@@ -1,0 +1,253 @@
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%; width: 100%;
+  background: #f7f7f7;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#gameCanvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+/* ===== КНОПКА ПОЛНОЭКРАННОГО РЕЖИМА ===== */
+#fullscreenBtn {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 50;
+  width: 44px; height: 44px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #535353;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+  padding: 0;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+#fullscreenBtn:active { transform: scale(0.92); background: #e0e0e0; }
+#fullscreenBtn.hidden { display: none; }
+#fullscreenBtn svg { pointer-events: none; }
+
+/* Скрываем кнопку fullscreen внутри Telegram — там уже fullscreen */
+body.telegram-mode #fullscreenBtn { display: none !important; }
+
+/* ===== ПРЕДУПРЕЖДЕНИЕ О ПОВОРОТЕ ЭКРАНА ===== */
+#orientationWarning {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 9999;
+  background: linear-gradient(180deg, #e8e8e8 0%, #f7f7f7 60%);
+  flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; padding: 20px; color: #333;
+}
+@media (orientation: portrait) { #orientationWarning { display: flex; } }
+#orientationWarning .rotate-icon {
+  font-size: 90px; margin-bottom: 24px; display: inline-block;
+  animation: rotatePhone 2.5s ease-in-out infinite;
+}
+@keyframes rotatePhone {
+  0%, 20% { transform: rotate(0deg); }
+  50%, 70% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+#orientationWarning h2 { font-size: 26px; margin-bottom: 12px; }
+#orientationWarning p { font-size: 16px; color: #666; max-width: 320px; line-height: 1.6; }
+#orientationWarning .small-hint { font-size: 13px; color: #999; margin-top: 20px; opacity: 0.8; }
+
+/* ===== HUD ===== */
+#hud {
+  position: absolute; 
+  top: max(20px, env(safe-area-inset-top)); 
+  right: max(20px, env(safe-area-inset-right));
+  display: flex; gap: 16px; align-items: center;
+  font-size: 20px; color: #333; font-weight: 900;
+  letter-spacing: 1px; z-index: 30; pointer-events: none;
+  text-shadow: 0 1px 4px rgba(255,255,255,0.9);
+  transition: opacity 0.3s;
+}
+#hud.hidden { opacity: 0; }
+#hud .bones-counter { display: flex; align-items: center; gap: 6px; color: #d47a1c; }
+
+/* ===== ЭКРАНЫ ===== */
+.ui-screen {
+  position: absolute; inset: 0;
+  z-index: 20;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; color: #535353;
+  padding: 20px; padding-top: 60px;
+  background: transparent;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ui-screen.hidden { display: none !important; }
+
+#menuScreen { justify-content: flex-start; padding-top: 10vh; }
+#menuScreen h1 {
+  font-size: 44px; margin-bottom: 4px; letter-spacing: 2px; color: #333;
+  text-shadow: 0 2px 10px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.8);
+}
+#menuScreen .subtitle {
+  font-size: 18px; color: #666; margin-bottom: 32px;
+  text-shadow: 0 1px 4px rgba(255,255,255,0.9);
+}
+.menu-buttons {
+  display: flex; flex-direction: column; gap: 14px;
+  width: 100%; max-width: 320px;
+}
+
+.btn {
+  padding: 16px 24px; font-family: inherit; font-size: 18px;
+  font-weight: bold; letter-spacing: 1px;
+  background: #444; color: #fff;
+  border: none; border-radius: 12px;
+  cursor: pointer; transition: transform 0.1s, background 0.2s;
+  box-shadow: 0 4px 0 #222;
+  min-height: 54px; touch-action: manipulation;
+  display: flex; justify-content: center; align-items: center;
+}
+.btn:active { transform: translateY(4px); box-shadow: 0 0 0 #222; }
+.btn.secondary { background: #777; box-shadow: 0 4px 0 #444; }
+.btn.secondary:active { transform: translateY(4px); box-shadow: 0 0 0 #444; }
+.btn.danger { background: #d9534f; box-shadow: 0 4px 0 #a94442; }
+.btn.danger:active { transform: translateY(4px); box-shadow: 0 0 0 #a94442; }
+.btn-back { max-width: 240px; margin-top: 20px; flex-shrink: 0; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+#recordsScreen, #upgradesScreen, #settingsScreen { 
+  background: rgba(247,247,247,0.96); 
+  justify-content: flex-start; 
+}
+#recordsScreen h1, #upgradesScreen h1, #settingsScreen h1 { font-size: 30px; margin-bottom: 20px; }
+
+.records-list {
+  width: 100%; max-width: 440px;
+  display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
+}
+.record-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; background: #fff; border-radius: 10px;
+  font-size: 17px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.record-row .rank { font-weight: bold; width: 48px; }
+.record-row .score { font-weight: bold; flex: 1; }
+.record-row .date { font-size: 13px; color: #888; }
+.record-row.top1 { background: #ffeeba; }
+.record-row.top2 { background: #e2e3e5; }
+.record-row.top3 { background: #f5c6cb; }
+.empty-records { opacity: 0.7; font-size: 17px; padding: 40px; text-align: center; }
+
+.bones-balance {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 22px; font-weight: bold; color: #d47a1c;
+  margin-bottom: 20px; padding: 12px 24px; background: #fff;
+  border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.upgrades-list {
+  width: 100%; max-width: 500px;
+  display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
+}
+.upgrade-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px; background: #fff; border-radius: 12px;
+  border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.upgrade-card.maxed { border-color: #7a7; background: #eaffea; }
+.upgrade-icon { font-size: 32px; width: 44px; text-align: center; flex-shrink: 0; }
+.upgrade-info { flex: 1; text-align: left; min-width: 0; }
+.upgrade-name { font-weight: bold; font-size: 17px; color: #333; }
+.upgrade-desc { font-size: 13px; color: #666; margin-top: 2px; }
+.upgrade-level { font-size: 13px; color: #7a7; margin-top: 4px; font-weight: bold; }
+.upgrade-buy {
+  padding: 10px 16px; font-family: inherit; font-size: 14px; font-weight: bold;
+  background: #d47a1c; color: white; border: none; border-radius: 8px;
+  cursor: pointer; min-width: 90px; flex-shrink: 0; min-height: 48px;
+  touch-action: manipulation;
+}
+.upgrade-buy:disabled { background: #ccc; cursor: not-allowed; }
+.upgrade-buy.maxed { background: #7a7; }
+
+#settingsScreen .settings-list {
+  width: 100%; max-width: 400px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+#gameoverScreen { background: rgba(247,247,247,0.92); }
+#gameoverScreen h1 { font-size: 34px; margin-bottom: 16px; color: #333; }
+.stat { font-size: 20px; margin: 8px 0; color: #333; }
+.stat span { font-weight: bold; }
+.bones-earned { font-size: 24px; color: #d47a1c; font-weight: bold; margin: 20px 0; }
+.gameover-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin-top: 16px; }
+
+#tapHint {
+  position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); width: 100%;
+  text-align: center; font-size: 16px; color: #666; font-weight: bold;
+  pointer-events: none; z-index: 10; text-shadow: 0 1px 4px rgba(255,255,255,1);
+  transition: opacity 0.3s;
+}
+#tapHint.hidden { opacity: 0; }
+
+#confirmDialog {
+  position: absolute; inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  display: flex; justify-content: center; align-items: center;
+  padding: 20px;
+}
+#confirmDialog.hidden { display: none !important; }
+#confirmDialog .dialog-box {
+  background: #fff; padding: 30px; border-radius: 16px;
+  text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  max-width: 340px; width: 100%;
+}
+#confirmDialog h2 { font-size: 22px; margin-bottom: 12px; color: #333; }
+#confirmDialog p { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.4; }
+#confirmDialog .dialog-buttons { display: flex; gap: 12px; justify-content: center; }
+#confirmDialog .btn { min-width: 100px; flex: 1; }
+
+/* ===== АДАПТАЦИЯ ПОД ЛАНДШАФТ ТЕЛЕФОНОВ ===== */
+@media (orientation: landscape) and (max-height: 520px) {
+  #menuScreen { padding-top: max(16px, env(safe-area-inset-top)); }
+  #menuScreen h1 { font-size: 26px; margin-bottom: 2px; }
+  #menuScreen .subtitle { font-size: 12px; margin-bottom: 14px; }
+  .menu-buttons { gap: 7px; max-width: 280px; }
+  .btn { padding: 8px 16px; font-size: 14px; min-height: 38px; border-radius: 8px; box-shadow: 0 3px 0 #222; }
+  .btn.secondary { box-shadow: 0 3px 0 #444; }
+  .btn.danger { box-shadow: 0 3px 0 #a94442; }
+  .btn:active, .btn.secondary:active { transform: translateY(3px); box-shadow: 0 0 0 transparent; }
+  #recordsScreen, #upgradesScreen, #settingsScreen { padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: 16px; }
+  #recordsScreen h1, #upgradesScreen h1, #settingsScreen h1 { font-size: 20px; margin-bottom: 12px; }
+  .record-row { padding: 8px 12px; font-size: 13px; }
+  .record-row .rank { width: 36px; }
+  .record-row .date { font-size: 11px; }
+  .empty-records { font-size: 14px; padding: 20px; }
+  .bones-balance { font-size: 16px; padding: 6px 14px; margin-bottom: 12px; }
+  .upgrades-list { gap: 8px; }
+  .upgrade-card { padding: 8px 10px; gap: 8px; }
+  .upgrade-icon { font-size: 22px; width: 32px; }
+  .upgrade-name { font-size: 13px; }
+  .upgrade-desc { font-size: 10px; margin-top: 1px; line-height: 1.2; }
+  .upgrade-level { font-size: 10px; margin-top: 2px; }
+  .upgrade-buy { font-size: 11px; padding: 5px 10px; min-width: 70px; min-height: 34px; border-radius: 6px; }
+  .btn-back { margin-top: 10px; max-width: 200px; }
+  #gameoverScreen { justify-content: flex-start; padding-top: max(20px, env(safe-area-inset-top)); }
+  #gameoverScreen h1 { font-size: 22px; margin-bottom: 8px; }
+  .stat { font-size: 14px; margin: 4px 0; }
+  .bones-earned { font-size: 16px; margin: 10px 0; }
+  .gameover-buttons { gap: 6px; margin-top: 10px; }
+  #confirmDialog .dialog-box { padding: 20px; }
+  #confirmDialog h2 { font-size: 18px; margin-bottom: 8px; }
+  #confirmDialog p { font-size: 12px; margin-bottom: 16px; }
+  #fullscreenBtn { width: 36px; height: 36px; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
+  #fullscreenBtn svg { width: 20px; height: 20px; }
+}

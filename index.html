@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🦖 T-Rex Runner</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Telegram Web App SDK (работает и вне Telegram — просто игнорируется) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+<!-- Кнопка полноэкранного режима -->
+<button id="fullscreenBtn" title="На весь экран" data-action="fullscreen">
+  <svg id="fsIconExpand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#535353" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+    <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+    <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+    <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+  </svg>
+  <svg id="fsIconCollapse" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#535353" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+    <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
+    <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+    <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
+    <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+  </svg>
+</button>
+
+<!-- Предупреждение о повороте экрана -->
+<div id="orientationWarning">
+  <div class="rotate-icon">📱</div>
+  <h2>Поверните телефон</h2>
+  <p>Для запуска игры необходимо альбомное (горизонтальное) положение экрана</p>
+  <div class="small-hint">Игра приостановлена до поворота устройства</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+  <span>HI <span id="hudHigh">00000</span></span>
+  <span id="hudScore">00000</span>
+  <span class="bones-counter">
+    <svg width="24" height="13.3" viewBox="-18 -10 36 20" style="display:inline-block; vertical-align:middle;">
+      <rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/>
+      <circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/>
+      <circle cx="-12" cy="4" r="6" fill="#f0e0b0"/>
+      <circle cx="12" cy="-4" r="6" fill="#f0e0b0"/>
+      <circle cx="12" cy="4" r="6" fill="#f0e0b0"/>
+    </svg>
+    <span id="hudBones">0</span>
+  </span>
+</div>
+<div id="tapHint" class="hidden">Тапни, чтобы прыгнуть 🦖</div>
+
+<div id="menuScreen" class="ui-screen">
+  <h1>🦖 T-REX</h1>
+  <div class="subtitle">RUNNER</div>
+  <div class="menu-buttons">
+    <button class="btn" data-action="start">▶ НАЧАТЬ ИГРУ</button>
+    <button class="btn secondary" data-action="records">🏆 РЕКОРДЫ</button>
+    <button class="btn secondary" data-action="upgrades">🦴 УЛУЧШЕНИЯ</button>
+    <button class="btn secondary" data-action="settings">⚙️ НАСТРОЙКИ</button>
+  </div>
+</div>
+
+<div id="recordsScreen" class="ui-screen hidden">
+  <h1>🏆 РЕКОРДЫ</h1>
+  <div class="records-list" id="recordsList"></div>
+  <button class="btn btn-back" data-action="back">← НАЗАД</button>
+</div>
+
+<div id="upgradesScreen" class="ui-screen hidden">
+  <h1>🦴 УЛУЧШЕНИЯ</h1>
+  <div class="bones-balance">
+    <svg width="28" height="15.5" viewBox="-18 -10 36 20" style="display:inline-block; vertical-align:middle;">
+      <rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/>
+      <circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/>
+      <circle cx="-12" cy="4" r="6" fill="#f0e0b0"/>
+      <circle cx="12" cy="-4" r="6" fill="#f0e0b0"/>
+      <circle cx="12" cy="4" r="6" fill="#f0e0b0"/>
+    </svg>
+    <span id="upgradesBones">0</span>
+  </div>
+  <div class="upgrades-list" id="upgradesList"></div>
+  <button class="btn btn-back" data-action="back">← НАЗАД</button>
+</div>
+
+<div id="settingsScreen" class="ui-screen hidden">
+  <h1>⚙️ НАСТРОЙКИ</h1>
+  <div class="settings-list">
+    <button class="btn danger" data-action="reset">🗑️ СБРОСИТЬ ПРОГРЕСС</button>
+  </div>
+  <button class="btn btn-back" data-action="back">← НАЗАД</button>
+</div>
+
+<div id="gameoverScreen" class="ui-screen hidden">
+  <h1>💥 ИГРА ОКОНЧЕНА</h1>
+  <div class="stat">Счёт: <span id="goScore">0</span></div>
+  <div class="stat">Рекорд: <span id="goHigh">0</span></div>
+  <div class="bones-earned" id="goBones">+0 🦴</div>
+  <div class="gameover-buttons">
+    <button class="btn" data-action="start">▶ ИГРАТЬ СНОВА</button>
+    <button class="btn secondary" data-action="back">🏠 В МЕНЮ</button>
+  </div>
+</div>
+
+<div id="confirmDialog" class="hidden">
+  <div class="dialog-box">
+    <h2>Сбросить прогресс игры?</h2>
+    <p>Ваш рекорд, все собранные кости и купленные улучшения будут удалены безвозвратно.</p>
+    <div class="dialog-buttons">
+      <button class="btn secondary" data-action="reset-no">Нет</button>
+      <button class="btn danger" data-action="reset-yes">Да</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
