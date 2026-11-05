@@ -382,18 +382,87 @@ function playSound(type) {
     }
   }
 
+  // ============================================
+  // НОВЫЙ ДИЗАЙН ПТЕРОДАКТИЛЯ
+  // ============================================
   function drawBird(b, scale = BIRD_SCALE_GAME) {
-    const x = b.x, y = b.y; const wingUp = Math.floor(frame / 8) % 2 === 0;
+    const x = b.x, y = b.y; 
+    const wingUp = Math.floor(frame / 8) % 2 === 0;
     const theme = THEMES[currentTheme];
-    ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); ctx.fill();
-    if (b.magnetized) { ctx.fillStyle = 'rgba(100,180,255,0.35)'; ctx.beginPath(); ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2); ctx.fill(); }
+    
+    // Тень на земле
+    ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
+    ctx.beginPath(); 
+    ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); 
+    ctx.fill();
+    
+    // Магнит
+    if (b.magnetized) { 
+      ctx.fillStyle = 'rgba(100,180,255,0.35)'; 
+      ctx.beginPath(); 
+      ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2); 
+      ctx.fill(); 
+    }
+    
     ctx.fillStyle = theme.bird;
-    ctx.fillRect(x + 10 * scale, y - 6 * scale, 26 * scale, 8 * scale); ctx.fillRect(x + 32 * scale, y - 10 * scale, 10 * scale, 8 * scale); ctx.fillRect(x + 40 * scale, y - 8 * scale, 6 * scale, 3 * scale);
-    ctx.fillStyle = '#FFF'; ctx.fillRect(x + 36 * scale, y - 8 * scale, 3 * scale, 3 * scale);
-    ctx.fillStyle = '#000'; ctx.fillRect(x + 37 * scale, y - 7 * scale, 1 * scale, 1 * scale);
-    ctx.fillStyle = theme.bird; ctx.fillRect(x + 2 * scale, y - 4 * scale, 10 * scale, 6 * scale);
-    if (wingUp) { ctx.fillRect(x + 8 * scale, y - 24 * scale, 20 * scale, 18 * scale); ctx.fillRect(x + 6 * scale, y - 28 * scale, 6 * scale, 8 * scale); ctx.fillRect(x + 16 * scale, y - 30 * scale, 6 * scale, 10 * scale); ctx.fillRect(x + 26 * scale, y - 26 * scale, 6 * scale, 8 * scale); }
-    else { ctx.fillRect(x + 8 * scale, y + 2 * scale, 20 * scale, 14 * scale); ctx.fillRect(x + 6 * scale, y + 14 * scale, 6 * scale, 6 * scale); ctx.fillRect(x + 16 * scale, y + 16 * scale, 6 * scale, 8 * scale); ctx.fillRect(x + 26 * scale, y + 12 * scale, 6 * scale, 8 * scale); }
+    
+    // Тело (вытянутое)
+    ctx.fillRect(x + 12 * scale, y - 2 * scale, 16 * scale, 4 * scale);
+    // Хвост
+    ctx.fillRect(x + 6 * scale, y, 6 * scale, 2 * scale);
+    ctx.fillRect(x + 4 * scale, y + 2 * scale, 2 * scale, 2 * scale);
+    
+    // Шея и голова
+    ctx.fillRect(x + 28 * scale, y - 5 * scale, 6 * scale, 5 * scale);
+    ctx.fillRect(x + 34 * scale, y - 4 * scale, 2 * scale, 4 * scale); 
+    
+    // Клюв (длинный, направлен вправо)
+    ctx.fillRect(x + 36 * scale, y - 3 * scale, 8 * scale, 2 * scale);
+    ctx.fillRect(x + 36 * scale, y - 1 * scale, 5 * scale, 1 * scale);
+    
+    // Гребень на затылке (направлен назад)
+    ctx.fillRect(x + 26 * scale, y - 10 * scale, 3 * scale, 5 * scale);
+    ctx.fillRect(x + 23 * scale, y - 8 * scale, 3 * scale, 3 * scale);
+    
+    // Глаз
+    ctx.fillStyle = '#FFF'; ctx.fillRect(x + 30 * scale, y - 3 * scale, 2 * scale, 2 * scale);
+    ctx.fillStyle = '#000'; ctx.fillRect(x + 31 * scale, y - 3 * scale, 1 * scale, 1 * scale);
+    
+    // Крылья (перепончатые)
+    ctx.fillStyle = theme.bird;
+    if (wingUp) {
+      ctx.beginPath();
+      ctx.moveTo(x + 14 * scale, y - 2 * scale);
+      ctx.lineTo(x + 4 * scale, y - 22 * scale);
+      ctx.lineTo(x + 10 * scale, y - 20 * scale);
+      ctx.lineTo(x + 20 * scale, y - 12 * scale);
+      ctx.lineTo(x + 28 * scale, y - 2 * scale);
+      ctx.closePath(); ctx.fill();
+      
+      // Светлая перепонка
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.beginPath();
+      ctx.moveTo(x + 10 * scale, y - 8 * scale);
+      ctx.lineTo(x + 14 * scale, y - 18 * scale);
+      ctx.lineTo(x + 22 * scale, y - 8 * scale);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(x + 14 * scale, y + 2 * scale);
+      ctx.lineTo(x + 4 * scale, y + 22 * scale);
+      ctx.lineTo(x + 10 * scale, y + 20 * scale);
+      ctx.lineTo(x + 20 * scale, y + 12 * scale);
+      ctx.lineTo(x + 28 * scale, y + 2 * scale);
+      ctx.closePath(); ctx.fill();
+      
+      // Светлая перепонка
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.beginPath();
+      ctx.moveTo(x + 10 * scale, y + 8 * scale);
+      ctx.lineTo(x + 14 * scale, y + 18 * scale);
+      ctx.lineTo(x + 22 * scale, y + 8 * scale);
+      ctx.fill();
+    }
   }
 
   function drawPowerUp(p) {
@@ -499,29 +568,20 @@ function playSound(type) {
     updateHUD(); initAudio();
   }
 
-  // ============================================
-  // ИСПРАВЛЕННЫЙ ДВОЙНОЙ ПРЫЖОК
-  // ============================================
   function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     
     const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
     
     if (!dino.jumping) {
-      // Прыжок с земли
       dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08);
       dino.jumping = true;
-      
-      // Если бонус активен — после прыжка останется 1 попытка в воздухе
       dino.jumpsLeft = hasDoubleJump ? 1 : 0;
-      
       haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, GROUND_Y, 6, 3);
     } else if (dino.jumpsLeft > 0) {
-      // Прыжок в воздухе (двойной)
-      dino.vy = JUMP_FORCE * 0.9; // Чуть слабее, реалистичнее
+      dino.vy = JUMP_FORCE * 0.9;
       dino.jumpsLeft--;
-      
       haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, dino.y, 6, 3);
     }
@@ -535,7 +595,10 @@ function playSound(type) {
   function spawnObstacle() {
     const r = Math.random();
     if (r < 0.45) {
-      const big = Math.random() < 0.5; const h = big ? 30 : 20; const w = big ? 12 : 8;
+      const big = Math.random() < 0.5; 
+      // УМЕНЬШЕННЫЕ БОЛЬШИЕ КАКТУСЫ
+      const h = big ? 25 : 20; // было 30
+      const w = big ? 10 : 8;  // было 12
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: big ? 'cactus_big' : 'cactus_small' });
     } else if (r < 0.85) {
       const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168]; const y = heights[Math.floor(Math.random() * heights.length)];
@@ -570,7 +633,6 @@ function playSound(type) {
           dino.y = GROUND_Y; 
           dino.vy = 0; 
           dino.jumping = false; 
-          // ВАЖНО: учитываем активный бонус при приземлении
           const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
           dino.jumpsLeft = hasDoubleJump ? 1 : 0;
           spawnDust(dino.x + 30, GROUND_Y, 5, 2); 
@@ -612,7 +674,6 @@ function playSound(type) {
         const p = powerUps[i];
         if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
           powerUpActive = { type: p.type, timer: p.duration, icon: p.icon, color: p.color };
-          // Если подобран бонус двойного прыжка — даём прыжок в воздухе, если ещё не прыгали
           if (p.type === 'doubleJump') {
             dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
           }
@@ -640,14 +701,18 @@ function playSound(type) {
 
       if (!powerUpActive || powerUpActive.type !== 'shield') {
         for (const o of obstacles) {
-          let oBox = o.type === 'cactus_small' ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale } : { x: o.x, y: o.y - o.h * dino.scale, w: 20 * dino.scale, h: o.h * dino.scale };
+          // Скорректированный хитбокс для уменьшенных больших кактусов
+          let oBox = o.type === 'cactus_small' 
+            ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale }
+            : { x: o.x, y: o.y - o.h * dino.scale, w: 16 * dino.scale, h: o.h * dino.scale };
           if (rectCollide(dinoBox, oBox)) { gameOver(); return; }
         }
       }
 
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
-        const bBox = { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 20 * BIRD_SCALE_GAME, w: 38 * BIRD_SCALE_GAME, h: 24 * BIRD_SCALE_GAME };
+        // Скорректированный хитбокс для нового птеродактиля (он длиннее)
+        const bBox = { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
         if (rectCollide(dinoBox, bBox)) {
           let bonesEarned = 1 + (save.upgrades.doubleBones || 0);
           sessionBones += bonesEarned; birdsEatenThisGame++;
@@ -757,7 +822,7 @@ function playSound(type) {
     const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30;
     drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 6) % 2, false, DINO_SCALE_MENU);
     drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, 2);
-    drawCactus({ x: W * 0.9, y: GROUND_Y, w: 12, h: 30, type: 'cactus_big' }, 2);
+    drawCactus({ x: W * 0.9, y: GROUND_Y, w: 10, h: 25, type: 'cactus_big' }, 2);
     const birdX = W * 0.4 + Math.sin(frame * 0.03) * 100; 
     const birdY = H * 0.25 + Math.cos(frame * 0.02) * 40;
     drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, BIRD_SCALE_MENU);
