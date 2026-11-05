@@ -7,31 +7,28 @@
   --danger-dark: #D32F2F;
   --bg-light: #E3F2FD;
   --text-dark: #263238;
-  --bone-color: #FFE0B2;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-/* ИСПОЛЬЗУЕМ 100dvh и ФИКСИРУЕМ HTML/BODY */
 html, body {
-  height: 100%; /* fallback */
-  height: 100dvh; /* динамическая высота */
+  height: 100%;
+  height: 100dvh; /* Динамическая высота для мобильных */
   width: 100%;
   font-family: 'Courier New', monospace;
   background: #E3F2FD;
   overflow: hidden;
-  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* CANVAS ФИКСИРУЕМ НА ВЕСЬ ЭКРАН */
 #gameCanvas { 
   position: fixed; 
   inset: 0; 
   width: 100%; 
   height: 100%; 
   z-index: 1; 
+  touch-action: none; /* Запрещаем скролл при свайпах на канвасе */
 }
 
 /* СПЛЭШ И ОРИЕНТАЦИЯ */
@@ -115,11 +112,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 }
 .ui-screen.hidden { display: none !important; opacity: 0; transform: scale(0.95); }
 
-/* Убрали 8vh, теперь меню прижимается корректно */
-#menuScreen { 
-  justify-content: center; 
-  padding-top: max(10px, env(safe-area-inset-top)); 
-}
+#menuScreen { justify-content: center; padding-top: max(10px, env(safe-area-inset-top)); }
 #menuScreen h1 {
   font-size: 48px; margin-bottom: 4px; letter-spacing: 2px; color: #2E7D32;
   text-shadow: 0 3px 0 #A5D6A7, 0 6px 10px rgba(0,0,0,0.15);
@@ -247,7 +240,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .ach-title { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; text-align: left; }
 .ach-name { font-size: 16px; font-weight: bold; color: #263238; text-align: left; }
 
-/* Мобильная адаптация */
 @media (orientation: landscape) and (max-height: 520px) {
   #menuScreen { padding-top: max(10px, env(safe-area-inset-top)); }
   #menuScreen h1 { font-size: 32px; margin-bottom: 2px; }
