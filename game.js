@@ -499,26 +499,31 @@ function playSound(type) {
     updateHUD(); initAudio();
   }
 
+  // ============================================
+  // ИСПРАВЛЕННЫЙ ДВОЙНОЙ ПРЫЖОК
+  // ============================================
   function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     
-    if (dino.jumping && dino.jumpsLeft > 0) {
-      dino.vy = JUMP_FORCE; 
-      dino.jumpsLeft--; 
-      haptic('jump'); playSound('jump');
-      spawnDust(dino.x + 30, dino.y, 6, 3);
-    } else if (!dino.jumping) {
-      dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08); 
-      dino.jumping = true; 
+    const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
+    
+    if (!dino.jumping) {
+      // Прыжок с земли
+      dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08);
+      dino.jumping = true;
       
-      if (dino.jumpsLeft > 1) {
-        dino.jumpsLeft = 1; 
-      } else {
-        dino.jumpsLeft = 0;
-      }
+      // Если бонус активен — после прыжка останется 1 попытка в воздухе
+      dino.jumpsLeft = hasDoubleJump ? 1 : 0;
       
       haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, GROUND_Y, 6, 3);
+    } else if (dino.jumpsLeft > 0) {
+      // Прыжок в воздухе (двойной)
+      dino.vy = JUMP_FORCE * 0.9; // Чуть слабее, реалистичнее
+      dino.jumpsLeft--;
+      
+      haptic('jump'); playSound('jump');
+      spawnDust(dino.x + 30, dino.y, 6, 3);
     }
   }
 
@@ -561,7 +566,15 @@ function playSound(type) {
 
       if (dino.jumping) {
         dino.vy += GRAVITY; dino.y += dino.vy;
-        if (dino.y >= GROUND_Y) { dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.jumpsLeft = 1; spawnDust(dino.x + 30, GROUND_Y, 5, 2); }
+        if (dino.y >= GROUND_Y) { 
+          dino.y = GROUND_Y; 
+          dino.vy = 0; 
+          dino.jumping = false; 
+          // ВАЖНО: учитываем активный бонус при приземлении
+          const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
+          dino.jumpsLeft = hasDoubleJump ? 1 : 0;
+          spawnDust(dino.x + 30, GROUND_Y, 5, 2); 
+        }
       } else if (frame % 8 === 0) { spawnDust(dino.x + 10, GROUND_Y, 1, 1); }
 
       spawnTimer -= 1;
@@ -599,7 +612,10 @@ function playSound(type) {
         const p = powerUps[i];
         if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
           powerUpActive = { type: p.type, timer: p.duration, icon: p.icon, color: p.color };
-          if (p.type === 'doubleJump') dino.jumpsLeft = 2;
+          // Если подобран бонус двойного прыжка — даём прыжок в воздухе, если ещё не прыгали
+          if (p.type === 'doubleJump') {
+            dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
+          }
           playSound('record'); haptic('eat');
           powerUps.splice(i, 1);
         }
@@ -691,7 +707,7 @@ function playSound(type) {
     fullscreenBtn.classList.add('hidden');
     speedBarContainer.classList.remove('active');
     powerUpHud.classList.add('hidden');
-    hud.classList.add('hidden'); // Скрываем HUD на экране смерти
+    hud.classList.add('hidden');
   }
 
   function checkAchievements(score) {
@@ -740,11 +756,8 @@ function playSound(type) {
   function drawMenuScene() {
     const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30;
     drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 6) % 2, false, DINO_SCALE_MENU);
-    
-    // Сдвигаем кактусы дальше вправо, чтобы они не перекрывали центр меню
     drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, 2);
     drawCactus({ x: W * 0.9, y: GROUND_Y, w: 12, h: 30, type: 'cactus_big' }, 2);
-    
     const birdX = W * 0.4 + Math.sin(frame * 0.03) * 100; 
     const birdY = H * 0.25 + Math.cos(frame * 0.02) * 40;
     drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, BIRD_SCALE_MENU);
@@ -768,36 +781,10 @@ function playSound(type) {
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
   }
   
-  function showRecords() { 
-    gameState = 'records'; hideAllScreens(); 
-    hud.classList.add('hidden'); // Скрываем счетчики
-    fullscreenBtn.classList.add('hidden'); 
-    recordsScreen.classList.remove('hidden'); 
-    renderRecords(); 
-  }
-  
-  function showUpgrades() { 
-    gameState = 'upgrades'; hideAllScreens(); 
-    hud.classList.add('hidden'); // Скрываем счетчики
-    fullscreenBtn.classList.add('hidden'); 
-    upgradesScreen.classList.remove('hidden'); 
-    renderUpgrades(); 
-  }
-  
-  function showAchievements() { 
-    gameState = 'achievements'; hideAllScreens(); 
-    hud.classList.add('hidden'); // Скрываем счетчики
-    fullscreenBtn.classList.add('hidden'); 
-    achievementsScreen.classList.remove('hidden'); 
-    renderAchievements(); 
-  }
-  
-  function showSettings() { 
-    gameState = 'settings'; hideAllScreens(); 
-    hud.classList.add('hidden'); // Скрываем счетчики
-    fullscreenBtn.classList.add('hidden'); 
-    settingsScreen.classList.remove('hidden'); 
-  }
+  function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
+  function showUpgrades() { gameState = 'upgrades'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); upgradesScreen.classList.remove('hidden'); renderUpgrades(); }
+  function showAchievements() { gameState = 'achievements'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); achievementsScreen.classList.remove('hidden'); renderAchievements(); }
+  function showSettings() { gameState = 'settings'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); settingsScreen.classList.remove('hidden'); }
 
   function renderRecords() {
     recordsList.innerHTML = '';
@@ -947,7 +934,6 @@ function playSound(type) {
     touchStartY = null;
   }, { passive: true });
 
-  // Инициализация и слушатели
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
   if (window.visualViewport) {
