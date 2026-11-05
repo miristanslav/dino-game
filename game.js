@@ -28,7 +28,7 @@ window.addEventListener('load', () => setTimeout(removeSplash, 1200));
 setTimeout(removeSplash, 2500); // Страховка
 
 function haptic(type) {
-  if (isTelegram && window.Telegram.WebApp.HapticFeedback) {
+  if (isTelegram && window.Telegram?.WebApp?.HapticFeedback) {
     try {
       const hf = window.Telegram.WebApp.HapticFeedback;
       if (type === 'jump') hf.impactOccurred('light');
@@ -155,11 +155,13 @@ function playSound(type) {
   if (portraitQuery.addEventListener) portraitQuery.addEventListener("change", updateOrientation);
   window.addEventListener('orientationchange', () => { setTimeout(updateOrientation, 100); setTimeout(resizeCanvas, 200); });
 
-  // Размеры
+  // Размеры (Используем visualViewport для точности)
   let W = window.innerWidth, H = window.innerHeight, GROUND_Y = H * 0.8;
   function resizeCanvas() {
     const oldGroundY = GROUND_Y;
-    W = window.innerWidth; H = window.innerHeight;
+    const vv = window.visualViewport;
+    W = vv ? vv.width : window.innerWidth;
+    H = vv ? vv.height : window.innerHeight;
     canvas.width = W; canvas.height = H;
     GROUND_Y = H * 0.8;
     if (!dino.jumping) dino.y = GROUND_Y;
@@ -474,6 +476,11 @@ function playSound(type) {
   }
 
   function reset() {
+    // Скрываем шапку Telegram (если мы внутри Telegram)
+    if (isTelegram && window.Telegram?.WebApp?.requestFullscreen) {
+      try { window.Telegram.WebApp.requestFullscreen(); } catch (e) {}
+    }
+    
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
@@ -782,7 +789,6 @@ function playSound(type) {
         const isUnlocked = save.unlockedSkins.includes(skin.id);
         const isEquipped = save.currentSkin === skin.id;
         const card = document.createElement('div'); card.className = 'upgrade-card'; if (isEquipped) card.classList.add('equipped');
-        // Цветной кружок для скина
         card.innerHTML = `
           <div class="upgrade-icon">
             <div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div>
@@ -889,7 +895,7 @@ function playSound(type) {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-  if (isTelegram && window.Telegram.WebApp.onEvent) {
+  if (isTelegram && window.Telegram?.WebApp?.onEvent) {
     try { window.Telegram.WebApp.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100)); } catch(e) {}
   }
   
