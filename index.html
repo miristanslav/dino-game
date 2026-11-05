@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -30,11 +30,12 @@
 <div id="powerUpHud" class="hidden">🛡 0s</div>
 <div id="speedBarContainer"><div id="speedBar"></div></div>
 
+<!-- HUD с уменьшенной иконкой кости -->
 <div id="hud">
   <span>HI <span id="hudHigh">00000</span></span>
   <span id="hudScore">00000</span>
   <span class="bones-counter">
-    <svg width="24" height="13.3" viewBox="-18 -10 36 20" style="display:inline-block; vertical-align:middle;">
+    <svg width="20" height="11" viewBox="-18 -10 36 20" style="display:inline-block; vertical-align:middle;">
       <rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/><circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="-12" cy="4" r="6" fill="#f0e0b0"/><circle cx="12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="12" cy="4" r="6" fill="#f0e0b0"/>
     </svg>
     <span id="hudBones">0</span>
@@ -123,6 +124,6 @@
   </div>
 </div>
 
-<script src="game.js?v=7"></script>
+<script src="game.js?v=8"></script>
 </body>
 </html>
