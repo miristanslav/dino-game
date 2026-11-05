@@ -1,15 +1,17 @@
-// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM (Защищенная) =====
+// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
 let isTelegram = false;
+let tgApp = null;
+
 try {
-  const tg = window.Telegram?.WebApp;
-  isTelegram = tg && tg.platform && tg.platform !== 'unknown';
+  tgApp = window.Telegram?.WebApp;
+  isTelegram = tgApp && tgApp.platform && tgApp.platform !== 'unknown';
   
   if (isTelegram) {
-    tg.ready();
-    tg.expand();
-    if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-    if (tg.setHeaderColor) tg.setHeaderColor('#E3F2FD');
-    if (tg.setBackgroundColor) tg.setBackgroundColor('#E3F2FD');
+    tgApp.ready();
+    tgApp.expand();
+    if (tgApp.disableVerticalSwipes) tgApp.disableVerticalSwipes();
+    if (tgApp.setHeaderColor) tgApp.setHeaderColor('#E3F2FD');
+    if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#E3F2FD');
     document.body.classList.add('telegram-mode');
   }
 } catch (e) {
@@ -24,13 +26,13 @@ function removeSplash() {
     setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
   }
 }
-window.addEventListener('load', () => setTimeout(removeSplash, 1200));
-setTimeout(removeSplash, 2500); // Страховка
+window.addEventListener('load', () => setTimeout(removeSplash, 1000));
+setTimeout(removeSplash, 2000); // Страховка
 
 function haptic(type) {
-  if (isTelegram && window.Telegram?.WebApp?.HapticFeedback) {
+  if (isTelegram && tgApp?.HapticFeedback) {
     try {
-      const hf = window.Telegram.WebApp.HapticFeedback;
+      const hf = tgApp.HapticFeedback;
       if (type === 'jump') hf.impactOccurred('light');
       if (type === 'eat') hf.notificationOccurred('success');
       if (type === 'crash') hf.notificationOccurred('error');
@@ -45,13 +47,9 @@ let soundEnabled = true;
 
 function initAudio() {
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-  } catch (e) {
-    console.warn("Audio init failed", e);
-  }
+  } catch (e) {}
 }
 
 function playSound(type) {
@@ -59,9 +57,7 @@ function playSound(type) {
   try {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
+    osc.connect(gain); gain.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
     if (type === 'jump') {
       osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
@@ -96,6 +92,30 @@ function playSound(type) {
 (() => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
+
+  // --- ЗАПРОС FULLSCREEN В TELEGRAM СРАЗУ ПРИ СТАРТЕ ---
+  let fullscreenRequested = false;
+  
+  function requestTgFullscreen() {
+    if (!isTelegram || fullscreenRequested) return;
+    try {
+      if (tgApp && tgApp.requestFullscreen) {
+        tgApp.requestFullscreen();
+        fullscreenRequested = true;
+        setTimeout(resizeCanvas, 300); // Пересчет после анимации
+      }
+    } catch (e) {}
+  }
+
+  // Пытаемся сразу
+  if (isTelegram) {
+    setTimeout(requestTgFullscreen, 50);
+    // Плюс на первый тап (если Telegram требует жеста)
+    document.addEventListener('pointerdown', function firstTap() {
+      requestTgFullscreen();
+      document.removeEventListener('pointerdown', firstTap);
+    });
+  }
 
   // DOM
   const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -132,7 +152,7 @@ function playSound(type) {
   const achPopupIcon = document.getElementById('achPopupIcon');
   const achPopupName = document.getElementById('achPopupName');
 
-  // Fullscreen
+  // Fullscreen (браузер)
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function updateFullscreenIcon() {
     if (isFullscreen()) { fsIconExpand.style.display = 'none'; fsIconCollapse.style.display = 'block'; }
@@ -211,7 +231,7 @@ function playSound(type) {
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
   let currentTheme = 'day';
   let isRaining = false;
-  let powerUpActive = null; // { type, timer, icon }
+  let powerUpActive = null;
   let birdsEatenThisGame = 0;
 
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
@@ -476,10 +496,7 @@ function playSound(type) {
   }
 
   function reset() {
-    // Скрываем шапку Telegram (если мы внутри Telegram)
-    if (isTelegram && window.Telegram?.WebApp?.requestFullscreen) {
-      try { window.Telegram.WebApp.requestFullscreen(); } catch (e) {}
-    }
+    requestTgFullscreen(); // Запрос на всякий случай (если первый тап был пропущен)
     
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
@@ -895,8 +912,8 @@ function playSound(type) {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-  if (isTelegram && window.Telegram?.WebApp?.onEvent) {
-    try { window.Telegram.WebApp.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100)); } catch(e) {}
+  if (isTelegram && tgApp?.onEvent) {
+    try { tgApp.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100)); } catch(e) {}
   }
   
   updateHUD(); showMainMenu(); requestAnimationFrame(loop);
