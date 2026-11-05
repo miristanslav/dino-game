@@ -1,22 +1,41 @@
-// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
-const tg = window.Telegram?.WebApp;
-const isTelegram = tg && tg.platform && tg.platform !== 'unknown';
-
-if (isTelegram) {
-  tg.ready();
-  tg.expand();
-  if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-  if (tg.setHeaderColor) tg.setHeaderColor('#E3F2FD');
-  if (tg.setBackgroundColor) tg.setBackgroundColor('#E3F2FD');
-  document.body.classList.add('telegram-mode');
+// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM (Защищенная) =====
+let isTelegram = false;
+try {
+  const tg = window.Telegram?.WebApp;
+  isTelegram = tg && tg.platform && tg.platform !== 'unknown';
+  
+  if (isTelegram) {
+    tg.ready();
+    tg.expand();
+    if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+    if (tg.setHeaderColor) tg.setHeaderColor('#E3F2FD');
+    if (tg.setBackgroundColor) tg.setBackgroundColor('#E3F2FD');
+    document.body.classList.add('telegram-mode');
+  }
+} catch (e) {
+  console.warn("Telegram WebApp initialization failed", e);
 }
 
+// Надежное удаление сплэш-экрана
+function removeSplash() {
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    splash.classList.add('fade-out');
+    setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
+  }
+}
+window.addEventListener('load', () => setTimeout(removeSplash, 1200));
+setTimeout(removeSplash, 2500); // Страховка
+
 function haptic(type) {
-  if (isTelegram && tg.HapticFeedback) {
-    if (type === 'jump') tg.HapticFeedback.impactOccurred('light');
-    if (type === 'eat') tg.HapticFeedback.notificationOccurred('success');
-    if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
-    if (type === 'buy') tg.HapticFeedback.impactOccurred('medium');
+  if (isTelegram && window.Telegram.WebApp.HapticFeedback) {
+    try {
+      const hf = window.Telegram.WebApp.HapticFeedback;
+      if (type === 'jump') hf.impactOccurred('light');
+      if (type === 'eat') hf.notificationOccurred('success');
+      if (type === 'crash') hf.notificationOccurred('error');
+      if (type === 'buy') hf.impactOccurred('medium');
+    } catch (e) {}
   }
 }
 
@@ -25,60 +44,60 @@ let audioCtx = null;
 let soundEnabled = true;
 
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {
+    console.warn("Audio init failed", e);
   }
 }
 
 function playSound(type) {
   if (!soundEnabled || !audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  const now = audioCtx.currentTime;
-  if (type === 'jump') {
-    osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-    gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now); osc.stop(now + 0.1);
-  } else if (type === 'eat') {
-    osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-    gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now); osc.stop(now + 0.1);
-  } else if (type === 'crash') {
-    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
-    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-    osc.start(now); osc.stop(now + 0.3);
-  } else if (type === 'click') {
-    osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now);
-    gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-    osc.start(now); osc.stop(now + 0.05);
-  } else if (type === 'record') {
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
-    notes.forEach((freq, i) => {
-      const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-      o.connect(g); g.connect(audioCtx.destination);
-      o.type = 'sine'; o.frequency.setValueAtTime(freq, now + i * 0.1);
-      g.gain.setValueAtTime(0.15, now + i * 0.1); g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
-      o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.2);
-    });
-  }
+    const now = audioCtx.currentTime;
+    if (type === 'jump') {
+      osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'eat') {
+      osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'crash') {
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+      gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'click') {
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now);
+      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      osc.start(now); osc.stop(now + 0.05);
+    } else if (type === 'record') {
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(freq, now + i * 0.1);
+        g.gain.setValueAtTime(0.15, now + i * 0.1); g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+        o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.2);
+      });
+    }
+  } catch (e) {}
 }
 
 // ===== ИГРА =====
 (() => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  
-  // Сплэш-экран
-  const splash = document.getElementById('splashScreen');
-  setTimeout(() => {
-    splash.classList.add('fade-out');
-    setTimeout(() => splash.remove(), 500);
-  }, 1500);
 
-  // DOM элементы
+  // DOM
   const fullscreenBtn = document.getElementById('fullscreenBtn');
   const fsIconExpand = document.getElementById('fsIconExpand');
   const fsIconCollapse = document.getElementById('fsIconCollapse');
@@ -89,6 +108,7 @@ function playSound(type) {
   const tapHint = document.getElementById('tapHint');
   const speedBarContainer = document.getElementById('speedBarContainer');
   const speedBar = document.getElementById('speedBar');
+  const powerUpHud = document.getElementById('powerUpHud');
   
   const menuScreen = document.getElementById('menuScreen');
   const recordsScreen = document.getElementById('recordsScreen');
@@ -119,8 +139,10 @@ function playSound(type) {
     else { fsIconExpand.style.display = 'block'; fsIconCollapse.style.display = 'none'; }
   }
   function toggleFullscreen() {
-    if (isFullscreen()) { if (document.exitFullscreen) document.exitFullscreen(); }
-    else { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+    try {
+      if (isFullscreen()) { if (document.exitFullscreen) document.exitFullscreen(); }
+      else { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+    } catch (e) {}
   }
   ['fullscreenchange', 'webkitfullscreenchange'].forEach(evt => {
     document.addEventListener(evt, () => { updateFullscreenIcon(); setTimeout(resizeCanvas, 100); });
@@ -131,7 +153,7 @@ function playSound(type) {
   const portraitQuery = window.matchMedia("(orientation: portrait)");
   const updateOrientation = () => { isPortraitMode = portraitQuery.matches; };
   if (portraitQuery.addEventListener) portraitQuery.addEventListener("change", updateOrientation);
-  window.addEventListener('orientationchange', () => setTimeout(updateOrientation, 100));
+  window.addEventListener('orientationchange', () => { setTimeout(updateOrientation, 100); setTimeout(resizeCanvas, 200); });
 
   // Размеры
   let W = window.innerWidth, H = window.innerHeight, GROUND_Y = H * 0.8;
@@ -157,7 +179,6 @@ function playSound(type) {
   const BASE_SPEED = 3.5;
   const MAX_SPEED_BONUS = 4.5;
 
-  // Скины
   const SKINS = [
     { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
     { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF' },
@@ -165,14 +186,12 @@ function playSound(type) {
     { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF' }
   ];
 
-  // Улучшения
   const UPGRADES = [
     { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [10, 30, 60, 100, 150] },
     { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притяжение птиц', maxLevel: 2, costs: [15, 40] },
     { id: 'doubleBones', icon: '✨', name: 'Двойные кости', desc: '+1 кость за птицу', maxLevel: 2, costs: [25, 75] }
   ];
 
-  // Достижения
   const ACHIEVEMENTS_DEF = [
     { id: 'first_run', icon: '👟', name: 'Первый шаг', desc: 'Сыграть первую игру' },
     { id: 'score_500', icon: '⭐', name: 'Новичок', desc: 'Набрать 500 очков' },
@@ -181,24 +200,21 @@ function playSound(type) {
     { id: 'bones_100', icon: '💰', name: 'Богач', desc: 'Накопить 100 костей' }
   ];
 
-  // Сохранение
   const SAVE_KEY = 'trex_color_save_v1';
   function defaultSave() { return { highScore: 0, bones: 0, games: [], upgrades: { jump: 0, magnet: 0, doubleBones: 0 }, achievements: {}, currentSkin: 'default', unlockedSkins: ['default'] }; }
   let save = (() => { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? { ...defaultSave(), ...JSON.parse(raw) } : defaultSave(); } catch { return defaultSave(); } })();
   function writeSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
 
-  // Состояние
   let gameState = 'menu';
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
-  let currentTheme = 'day'; // day / night
+  let currentTheme = 'day';
   let isRaining = false;
-  let powerUpActive = null; // { type, timer }
+  let powerUpActive = null; // { type, timer, icon }
   let birdsEatenThisGame = 0;
 
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
-  let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], floatingTexts = [];
+  let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
 
-  // === ЦВЕТОВЫЕ ПАЛИТРЫ ===
   const THEMES = {
     day: {
       skyTop: '#64B5F6', skyBot: '#E3F2FD',
@@ -216,12 +232,8 @@ function playSound(type) {
     }
   };
 
-  function getDinoColors() {
-    const skin = SKINS.find(s => s.id === save.currentSkin) || SKINS[0];
-    return skin;
-  }
+  function getDinoColors() { return SKINS.find(s => s.id === save.currentSkin) || SKINS[0]; }
 
-  // --- Отрисовка ---
   function uRect(u, v, w, h, color, scale = dino.scale) {
     ctx.fillStyle = color;
     ctx.fillRect(u * scale, v * scale, w * scale, h * scale);
@@ -245,30 +257,22 @@ function playSound(type) {
     uRect(24, 1, 9, 6, c.body, scale); uRect(24, 1, 9, 1, c.outline, scale);
     uRect(24, 1, 1, 6, c.outline, scale); uRect(26, 2, 5, 0.7, c.belly, scale);
     
-    // Челюсть
     uRect(30, 3, 4, 2.5, c.body, scale); uRect(30, 3, 4, 0.8, c.outline, scale);
-    uRect(33, 4, 0.8, 0.8, '#000', scale); // ноздря
-    uRect(30, 6.5, 4, 1.5, c.body, scale); uRect(30, 5.5, 4, 1, '#D32F2F', scale); // пасть
+    uRect(33, 4, 0.8, 0.8, '#000', scale);
+    uRect(30, 6.5, 4, 1.5, c.body, scale); uRect(30, 5.5, 4, 1, '#D32F2F', scale);
     for (let i = 0; i < 3; i++) uRect(30.5 + i, 5.8, 0.6, 0.7, '#FFF', scale);
     for (let i = 0; i < 3; i++) uRect(30.8 + i, 5.2, 0.5, 0.6, '#FFF', scale);
     uRect(30, 7.5, 4, 0.5, c.outline, scale);
 
-    // Глаз
     if (dead) { uRect(27, 2.5, 1, 1, c.outline, scale); uRect(27.2, 2.7, 0.6, 0.6, c.eye, scale); }
-    else { 
-      uRect(27, 2.5, 1.5, 1.5, c.eye, scale); 
-      uRect(27.8, 2.8, 0.7, 0.9, '#000', scale); 
-      uRect(27.2, 2.6, 0.4, 0.4, '#FFF', scale); 
-    }
-    uRect(26.8, 2.1, 2.2, 0.5, c.outline, scale); // бровь
+    else { uRect(27, 2.5, 1.5, 1.5, c.eye, scale); uRect(27.8, 2.8, 0.7, 0.9, '#000', scale); uRect(27.2, 2.6, 0.4, 0.4, '#FFF', scale); }
+    uRect(26.8, 2.1, 2.2, 0.5, c.outline, scale);
 
-    // Лапки
     uRect(26, 11, 2.5, 1.2, c.outline, scale); uRect(27.5, 11.5, 2, 0.9, c.outline, scale);
     uRect(28.8, 12, 1.8, 0.9, c.outline, scale); uRect(30, 12.3, 1.2, 0.8, c.outline, scale);
     uRect(31, 12, 0.6, 0.5, c.claw, scale); uRect(31, 12.7, 0.6, 0.5, c.claw, scale);
     uRect(26, 12, 2.5, 0.4, c.outline, scale);
 
-    // Ноги
     uRect(15, 17, 5, 4, c.body, scale); uRect(15, 17, 5, 0.7, c.belly, scale);
     uRect(15, 17, 0.7, 4, c.outline, scale);
     if (phase === 0) {
@@ -333,7 +337,6 @@ function playSound(type) {
   function drawDino() {
     const isDead = gameState === 'gameover';
     drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 6) % 2, isDead, dino.scale);
-    // Аура щита
     if (powerUpActive && powerUpActive.type === 'shield') {
       ctx.strokeStyle = 'rgba(33,150,243,0.8)'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(dino.x + 30, dino.y - 30, 45, 0, Math.PI * 2); ctx.stroke();
@@ -439,13 +442,14 @@ function playSound(type) {
     for (let i = 0; i < 30; i++) { const gx = (i * 50 - (frame * speed) % 50); ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke(); }
   }
 
-  // Частицы и дождь
   function updateParticles() { particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.04; }); particles = particles.filter(p => p.life > 0); }
   function updateBonesFlying() { bonesFlying.forEach(b => { b.x += b.vx; b.y += b.vy; b.vy += 0.3; b.rot += 0.2; b.life -= 0.02; }); bonesFlying = bonesFlying.filter(b => b.life > 0); }
+  
   function updateRain() {
     if (!isRaining) return;
     rainDrops.forEach(r => { r.x += r.vx; r.y += r.vy; if (r.y > H || r.x < 0) { r.y = -20; r.x = Math.random() * W; } });
   }
+  
   function drawRain() {
     if (!isRaining) return;
     ctx.strokeStyle = 'rgba(150,200,255,0.6)'; ctx.lineWidth = 1.5;
@@ -469,21 +473,21 @@ function playSound(type) {
     setTimeout(() => el.remove(), 1000);
   }
 
-  // Логика
   function reset() {
-    obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; floatingTexts = []; rainDrops = [];
+    obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
-    dino.scale = DINO_SCALE_GAME; currentTheme = 'day'; isRaining = false;
+    dino.scale = DINO_SCALE_GAME; currentTheme = 'day'; isRaining = false; powerUpActive = null;
+    birdsEatenThisGame = 0;
     gameState = 'playing'; hideAllScreens(); 
-    hud.classList.remove('hidden'); speedBarContainer.classList.add('active');
+    hud.classList.remove('hidden'); speedBarContainer.classList.add('active'); powerUpHud.classList.add('hidden');
     fullscreenBtn.classList.remove('hidden');
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
   }
 
   function jump() {
-    if (gameState !== 'playing' || dino.ducking) return;
+    if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     if (dino.jumping && dino.jumpsLeft > 0) {
       dino.vy = JUMP_FORCE; dino.jumpsLeft--; haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, dino.y, 6, 3);
@@ -494,7 +498,7 @@ function playSound(type) {
   }
 
   function duck(on) {
-    if (gameState !== 'playing' || dino.jumping) return;
+    if (gameState !== 'playing' || dino.jumping || isPortraitMode) return;
     dino.ducking = on;
   }
 
@@ -509,7 +513,6 @@ function playSound(type) {
     } else {
       const types = [
         { type: 'shield', icon: '🛡', color: '#2196F3', duration: 300 },
-        { type: 'slowmo', icon: '⏱', color: '#9C27B0', duration: 240 },
         { type: 'doubleJump', icon: '🦘', color: '#FF9800', duration: 400 }
       ];
       const pu = types[Math.floor(Math.random() * types.length)];
@@ -524,10 +527,7 @@ function playSound(type) {
     frame++;
     if (gameState === 'playing') {
       score += 0.1 * (speed / BASE_SPEED);
-      let currentMaxSpeed = BASE_SPEED + MAX_SPEED_BONUS;
-      if (powerUpActive && powerUpActive.type === 'slowmo') currentMaxSpeed *= 0.5;
       speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
-      if (powerUpActive && powerUpActive.type === 'slowmo') speed *= 0.5;
       
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
@@ -551,7 +551,6 @@ function playSound(type) {
       powerUps.forEach(p => p.x -= speed); powerUps = powerUps.filter(p => p.x > -20);
       updateRain();
 
-      // Птицы
       birds.forEach(b => {
         let effSpeed = speed * 0.5;
         if (save.upgrades.magnet > 0) {
@@ -569,10 +568,8 @@ function playSound(type) {
       });
       birds = birds.filter(b => b.x + b.w > -20);
 
-      // Коллизии
       let dinoBox = dino.ducking && !dino.jumping ? { x: dino.x + 6 * dino.scale, y: dino.y - 14 * dino.scale, w: 18 * dino.scale, h: 14 * dino.scale } : { x: dino.x + 6 * dino.scale, y: dino.y - 24 * dino.scale, w: 18 * dino.scale, h: 24 * dino.scale };
 
-      // Бонусы
       for (let i = powerUps.length - 1; i >= 0; i--) {
         const p = powerUps[i];
         if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
@@ -582,12 +579,18 @@ function playSound(type) {
           powerUps.splice(i, 1);
         }
       }
+      
       if (powerUpActive) {
         powerUpActive.timer--;
-        if (powerUpActive.timer <= 0) powerUpActive = null;
+        if (powerUpActive.timer <= 0) {
+          powerUpActive = null;
+          powerUpHud.classList.add('hidden');
+        } else {
+          powerUpHud.classList.remove('hidden');
+          powerUpHud.innerHTML = `${powerUpActive.icon} ${(powerUpActive.timer / 60).toFixed(1)}s`;
+        }
       }
 
-      // Кактусы
       if (!powerUpActive || powerUpActive.type !== 'shield') {
         for (const o of obstacles) {
           let oBox = o.type === 'cactus_small' ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale } : { x: o.x, y: o.y - o.h * dino.scale, w: 20 * dino.scale, h: o.h * dino.scale };
@@ -595,7 +598,6 @@ function playSound(type) {
         }
       }
 
-      // Птицы
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
         const bBox = { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 20 * BIRD_SCALE_GAME, w: 38 * BIRD_SCALE_GAME, h: 24 * BIRD_SCALE_GAME };
@@ -649,7 +651,6 @@ function playSound(type) {
 
     save.games.push({ score: finalScore, date: Date.now() }); save.games.sort((a, b) => b.score - a.score); save.games = save.games.slice(0, 10);
     
-    // Проверка достижений
     checkAchievements(finalScore);
     
     writeSave(); updateHUD();
@@ -658,6 +659,7 @@ function playSound(type) {
     gameoverScreen.classList.remove('hidden');
     fullscreenBtn.classList.add('hidden');
     speedBarContainer.classList.remove('active');
+    powerUpHud.classList.add('hidden');
   }
 
   function checkAchievements(score) {
@@ -719,7 +721,6 @@ function playSound(type) {
     render(); requestAnimationFrame(loop);
   }
 
-  // UI функции
   function hideAllScreens() {
     menuScreen.classList.add('hidden'); recordsScreen.classList.add('hidden'); upgradesScreen.classList.add('hidden');
     achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); confirmDialog.classList.add('hidden');
@@ -727,7 +728,7 @@ function playSound(type) {
   function showMainMenu() {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
-    speedBarContainer.classList.remove('active'); updateHUD();
+    speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
   }
   function showRecords() { gameState = 'records'; hideAllScreens(); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
   function showUpgrades() { gameState = 'upgrades'; hideAllScreens(); fullscreenBtn.classList.add('hidden'); upgradesScreen.classList.remove('hidden'); renderUpgrades(); }
@@ -781,8 +782,11 @@ function playSound(type) {
         const isUnlocked = save.unlockedSkins.includes(skin.id);
         const isEquipped = save.currentSkin === skin.id;
         const card = document.createElement('div'); card.className = 'upgrade-card'; if (isEquipped) card.classList.add('equipped');
+        // Цветной кружок для скина
         card.innerHTML = `
-          <div class="upgrade-icon" style="color:${skin.body}">🦖</div>
+          <div class="upgrade-icon">
+            <div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div>
+          </div>
           <div class="upgrade-info">
             <div class="upgrade-name">${skin.name}</div>
             <div class="upgrade-desc">${isEquipped ? 'Экипирован' : isUnlocked ? 'Разблокирован' : 'Не куплен'}</div>
@@ -852,13 +856,11 @@ function playSound(type) {
       return;
     }
     
-    // Прыжок / присед по тапу на экран
     if (gameState === 'playing' && !isPortraitMode) {
       jump();
     }
   });
 
-  // Клавиатура
   document.addEventListener('keydown', (e) => {
     if (gameState !== 'playing' || isPortraitMode) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); jump(); }
@@ -866,7 +868,6 @@ function playSound(type) {
   });
   document.addEventListener('keyup', (e) => { if (e.code === 'ArrowDown' || e.code === 'KeyS') duck(false); });
 
-  // Свайпы для мобильных
   let touchStartY = null; let touchMoved = false;
   document.addEventListener('touchstart', (e) => {
     if (e.target.closest('button') || gameState !== 'playing' || isPortraitMode) return;
@@ -887,8 +888,10 @@ function playSound(type) {
   // Запуск
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
-  if (isTelegram && tg.onEvent) tg.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100));
+  window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+  if (isTelegram && window.Telegram.WebApp.onEvent) {
+    try { window.Telegram.WebApp.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100)); } catch(e) {}
+  }
   
   updateHUD(); showMainMenu(); requestAnimationFrame(loop);
 })();
