@@ -14,11 +14,8 @@ try {
     if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#E3F2FD');
     document.body.classList.add('telegram-mode');
   }
-} catch (e) {
-  console.warn("Telegram WebApp initialization failed", e);
-}
+} catch (e) {}
 
-// Надежное удаление сплэш-экрана
 function removeSplash() {
   const splash = document.getElementById('splashScreen');
   if (splash) {
@@ -27,7 +24,7 @@ function removeSplash() {
   }
 }
 window.addEventListener('load', () => setTimeout(removeSplash, 1000));
-setTimeout(removeSplash, 2000); // Страховка
+setTimeout(removeSplash, 2000);
 
 function haptic(type) {
   if (isTelegram && tgApp?.HapticFeedback) {
@@ -41,7 +38,7 @@ function haptic(type) {
   }
 }
 
-// ===== ЗВУКИ (Web Audio API) =====
+// ===== ЗВУКИ =====
 let audioCtx = null;
 let soundEnabled = true;
 
@@ -93,24 +90,20 @@ function playSound(type) {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // --- ЗАПРОС FULLSCREEN В TELEGRAM СРАЗУ ПРИ СТАРТЕ ---
   let fullscreenRequested = false;
-  
   function requestTgFullscreen() {
     if (!isTelegram || fullscreenRequested) return;
     try {
       if (tgApp && tgApp.requestFullscreen) {
         tgApp.requestFullscreen();
         fullscreenRequested = true;
-        setTimeout(resizeCanvas, 300); // Пересчет после анимации
+        setTimeout(resizeCanvas, 300);
       }
     } catch (e) {}
   }
 
-  // Пытаемся сразу
   if (isTelegram) {
     setTimeout(requestTgFullscreen, 50);
-    // Плюс на первый тап (если Telegram требует жеста)
     document.addEventListener('pointerdown', function firstTap() {
       requestTgFullscreen();
       document.removeEventListener('pointerdown', firstTap);
@@ -152,7 +145,6 @@ function playSound(type) {
   const achPopupIcon = document.getElementById('achPopupIcon');
   const achPopupName = document.getElementById('achPopupName');
 
-  // Fullscreen (браузер)
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function updateFullscreenIcon() {
     if (isFullscreen()) { fsIconExpand.style.display = 'none'; fsIconCollapse.style.display = 'block'; }
@@ -168,14 +160,12 @@ function playSound(type) {
     document.addEventListener(evt, () => { updateFullscreenIcon(); setTimeout(resizeCanvas, 100); });
   });
 
-  // Ориентация
   let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
   const portraitQuery = window.matchMedia("(orientation: portrait)");
   const updateOrientation = () => { isPortraitMode = portraitQuery.matches; };
   if (portraitQuery.addEventListener) portraitQuery.addEventListener("change", updateOrientation);
   window.addEventListener('orientationchange', () => { setTimeout(updateOrientation, 100); setTimeout(resizeCanvas, 200); });
 
-  // Размеры (Используем visualViewport для точности)
   let W = window.innerWidth, H = window.innerHeight, GROUND_Y = H * 0.8;
   function resizeCanvas() {
     const oldGroundY = GROUND_Y;
@@ -191,7 +181,6 @@ function playSound(type) {
     if (typeof powerUps !== 'undefined') { const dY = GROUND_Y - oldGroundY; powerUps.forEach(p => { p.y += dY; }); }
   }
 
-  // Константы
   const GRAVITY = 0.75;
   const JUMP_FORCE = -12.6;
   const DINO_SCALE_GAME = 1.8;
@@ -232,6 +221,7 @@ function playSound(type) {
   let currentTheme = 'day';
   let isRaining = false;
   let powerUpActive = null;
+  let lastPowerUpSecond = -1;
   let birdsEatenThisGame = 0;
 
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
@@ -496,13 +486,12 @@ function playSound(type) {
   }
 
   function reset() {
-    requestTgFullscreen(); // Запрос на всякий случай (если первый тап был пропущен)
-    
+    requestTgFullscreen();
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
     dino.scale = DINO_SCALE_GAME; currentTheme = 'day'; isRaining = false; powerUpActive = null;
-    birdsEatenThisGame = 0;
+    birdsEatenThisGame = 0; lastPowerUpSecond = -1;
     gameState = 'playing'; hideAllScreens(); 
     hud.classList.remove('hidden'); speedBarContainer.classList.add('active'); powerUpHud.classList.add('hidden');
     fullscreenBtn.classList.remove('hidden');
@@ -512,11 +501,26 @@ function playSound(type) {
 
   function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
+    
     if (dino.jumping && dino.jumpsLeft > 0) {
-      dino.vy = JUMP_FORCE; dino.jumpsLeft--; haptic('jump'); playSound('jump');
+      // Прыжок в воздухе (двойной)
+      dino.vy = JUMP_FORCE; 
+      dino.jumpsLeft--; 
+      haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, dino.y, 6, 3);
     } else if (!dino.jumping) {
-      dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08); dino.jumping = true; dino.jumpsLeft = 1; haptic('jump'); playSound('jump');
+      // Прыжок с земли
+      dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08); 
+      dino.jumping = true; 
+      
+      // Если активен бонус, оставляем 1 прыжок в запасе
+      if (dino.jumpsLeft > 1) {
+        dino.jumpsLeft = 1; 
+      } else {
+        dino.jumpsLeft = 0;
+      }
+      
+      haptic('jump'); playSound('jump');
       spawnDust(dino.x + 30, GROUND_Y, 6, 3);
     }
   }
@@ -604,14 +608,21 @@ function playSound(type) {
         }
       }
       
+      // Оптимизированный таймер бонусов
       if (powerUpActive) {
         powerUpActive.timer--;
+        const secondsLeft = Math.ceil(powerUpActive.timer / 60);
+        
+        if (secondsLeft !== lastPowerUpSecond) {
+          lastPowerUpSecond = secondsLeft;
+          powerUpHud.innerHTML = `${powerUpActive.icon} ${secondsLeft}s`;
+        }
+        
         if (powerUpActive.timer <= 0) {
           powerUpActive = null;
           powerUpHud.classList.add('hidden');
         } else {
           powerUpHud.classList.remove('hidden');
-          powerUpHud.innerHTML = `${powerUpActive.icon} ${(powerUpActive.timer / 60).toFixed(1)}s`;
         }
       }
 
@@ -855,7 +866,6 @@ function playSound(type) {
     });
   }
 
-  // Управление
   document.addEventListener('pointerdown', (e) => {
     const btn = e.target.closest('[data-action]');
     if (btn) {
@@ -908,9 +918,12 @@ function playSound(type) {
     touchStartY = null;
   }, { passive: true });
 
-  // Запуск
+  // Инициализация и слушатели
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resizeCanvas);
+  }
   window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
   if (isTelegram && tgApp?.onEvent) {
     try { tgApp.onEvent('viewportChanged', () => setTimeout(resizeCanvas, 100)); } catch(e) {}
