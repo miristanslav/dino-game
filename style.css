@@ -22,9 +22,9 @@ html, body {
 
 #gameCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
-/* СПЛЭШ */
+/* СПЛЭШ И ОРИЕНТАЦИЯ */
 #splashScreen {
-  position: fixed; inset: 0; z-index: 9999;
+  position: fixed; inset: 0; z-index: 9998;
   background: linear-gradient(135deg, #4CAF50, #2196F3);
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   color: white; transition: opacity 0.5s ease-out;
@@ -32,6 +32,28 @@ html, body {
 #splashScreen.fade-out { opacity: 0; pointer-events: none; }
 .splash-title { font-size: 60px; text-shadow: 0 4px 0 #2E7D32; margin-bottom: 10px; }
 .splash-subtitle { font-size: 20px; letter-spacing: 4px; opacity: 0.9; }
+
+#orientationWarning {
+  display: none; position: fixed; inset: 0; z-index: 99999 !important; /* Максимальный приоритет */
+  background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
+  flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; padding: 20px; color: #263238;
+}
+@media (orientation: portrait) { 
+  #orientationWarning { display: flex !important; } 
+  #gameCanvas, #hud, #speedBarContainer, #fullscreenBtn, .ui-screen { display: none !important; }
+}
+#orientationWarning .rotate-icon {
+  font-size: 90px; margin-bottom: 24px; display: inline-block;
+  animation: rotatePhone 2.5s ease-in-out infinite;
+}
+@keyframes rotatePhone {
+  0%, 20% { transform: rotate(0deg); }
+  50%, 70% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+#orientationWarning h2 { font-size: 26px; margin-bottom: 12px; color: #1565C0; }
+#orientationWarning p { font-size: 16px; color: #455A64; max-width: 320px; line-height: 1.6; }
 
 /* КНОПКА FULLSCREEN */
 #fullscreenBtn {
@@ -44,6 +66,15 @@ html, body {
 #fullscreenBtn:active { transform: scale(0.92); background: rgba(0,0,0,0.5); }
 #fullscreenBtn.hidden { display: none; }
 body.telegram-mode #fullscreenBtn { display: none !important; }
+
+/* ТАЙМЕР БОНУСОВ */
+#powerUpHud {
+  position: absolute; top: max(60px, calc(env(safe-area-inset-top) + 50px)); left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.6); color: white; padding: 4px 12px; border-radius: 20px;
+  font-weight: bold; font-size: 14px; z-index: 30; display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+#powerUpHud.hidden { display: none; }
 
 /* HUD и ПРОГРЕСС-БАР */
 #speedBarContainer {
@@ -117,7 +148,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .record-row.top2 { background: linear-gradient(90deg, #CFD8DC, #FFF); }
 .record-row.top3 { background: linear-gradient(90deg, #FFCC80, #FFF); }
 
-/* Улучшения */
+/* Улучшения и Скины */
 .bones-balance {
   display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: bold; color: #F57C00;
   margin-bottom: 16px; padding: 10px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -125,7 +156,8 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .upgrades-list { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
 .upgrade-card.maxed { border-color: #4CAF50; background: #E8F5E9; }
 .upgrade-card.equipped { border-color: #2196F3; background: #E3F2FD; }
-.upgrade-icon { font-size: 28px; width: 40px; text-align: center; flex-shrink: 0; }
+.upgrade-icon { font-size: 28px; width: 40px; text-align: center; flex-shrink: 0; display: flex; justify-content: center; }
+.skin-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 8px rgba(0,0,0,0.3); font-size: 18px; }
 .upgrade-info { flex: 1; text-align: left; min-width: 0; }
 .upgrade-name { font-weight: bold; font-size: 16px; color: #263238;}
 .upgrade-desc { font-size: 12px; color: #666; margin-top: 2px; }
@@ -139,7 +171,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .upgrade-buy:disabled { background: #CFD8DC; color: #90A4AE; box-shadow: none; cursor: not-allowed; }
 .upgrade-buy.maxed { background: #4CAF50; color: #fff; box-shadow: 0 3px 0 #2E7D32; }
 
-/* Настройки */
 #settingsScreen .settings-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
 
 /* Game Over */
@@ -156,7 +187,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .bones-earned { font-size: 22px; color: #F57C00; font-weight: bold; margin: 16px 0; }
 .gameover-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; margin-top: 12px; }
 
-/* Всплывающий текст */
 .floating-text {
   position: absolute; font-size: 20px; font-weight: bold; color: #F57C00;
   pointer-events: none; z-index: 40; animation: floatUp 1s ease-out forwards;
@@ -167,7 +197,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
 }
 
-/* Уведомления */
 #tapHint {
   position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); width: 100%;
   text-align: center; font-size: 16px; color: #455A64; font-weight: bold;
@@ -175,7 +204,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 }
 #tapHint.hidden { opacity: 0; }
 
-/* Модалки */
 #confirmDialog {
   position: absolute; inset: 0; z-index: 100;
   background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
@@ -192,7 +220,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 #confirmDialog .dialog-buttons { display: flex; gap: 10px; justify-content: center; }
 #confirmDialog .btn { min-width: 100px; flex: 1; }
 
-/* Достижения */
 #achievementPopup {
   position: fixed; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-100px);
   background: #fff; padding: 12px 20px; border-radius: 50px; display: flex; align-items: center; gap: 12px;
@@ -204,7 +231,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .ach-title { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; text-align: left; }
 .ach-name { font-size: 16px; font-weight: bold; color: #263238; text-align: left; }
 
-/* Медиа-запросы */
 @media (orientation: landscape) and (max-height: 520px) {
   #menuScreen { padding-top: max(10px, env(safe-area-inset-top)); }
   #menuScreen h1 { font-size: 32px; margin-bottom: 2px; }
@@ -221,4 +247,4 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   .bones-earned { font-size: 16px; margin: 8px 0; }
   .gameover-buttons { gap: 6px; }
   #fullscreenBtn { width: 32px; height: 32px; }
-}
+                        }
