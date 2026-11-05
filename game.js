@@ -6,6 +6,7 @@ const isTelegram = tg && tg.platform && tg.platform !== 'unknown';
 if (isTelegram) {
   tg.ready();
   tg.expand();
+  if (tg.requestFullscreen) tg.requestFullscreen(); // <--- Скрывает шапку Telegram
   if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
   if (tg.setHeaderColor) tg.setHeaderColor('#f7f7f7');
   if (tg.setBackgroundColor) tg.setBackgroundColor('#f7f7f7');
