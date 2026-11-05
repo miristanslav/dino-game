@@ -1,12 +1,24 @@
 // ===== TELEGRAM WEB APP INIT =====
 const tg = window.Telegram?.WebApp;
-if (tg) {
+// Проверяем, что мы ДЕЙСТВИТЕЛЬНО внутри Telegram, а не в обычном браузере
+const isTelegram = tg && tg.platform && tg.platform !== 'unknown';
+
+if (isTelegram) {
   tg.ready();
   tg.expand();
   if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
   if (tg.setHeaderColor) tg.setHeaderColor('#f7f7f7');
   if (tg.setBackgroundColor) tg.setBackgroundColor('#f7f7f7');
   document.body.classList.add('telegram-mode');
+}
+
+// Функция для вибрации (работает только в Telegram)
+function haptic(type) {
+  if (isTelegram && tg.HapticFeedback) {
+    if (type === 'jump') tg.HapticFeedback.impactOccurred('light');
+    if (type === 'eat') tg.HapticFeedback.notificationOccurred('success');
+    if (type === 'crash') tg.HapticFeedback.notificationOccurred('error');
+  }
 }
 
 // ===== ИГРА =====
@@ -409,6 +421,7 @@ if (tg) {
 
   function jump() {
     if (gameState !== 'playing' || dino.jumping || dino.ducking) return;
+    haptic('jump');
     const jumpBonus = save.upgrades.jump * 1.08;
     dino.vy = JUMP_FORCE - jumpBonus; dino.jumping = true;
     spawnDust(dino.x + 30, GROUND_Y, 6, 3);
@@ -505,6 +518,7 @@ if (tg) {
         if (rectCollide(dinoBox, bBox)) {
           let bonesEarned = 1 + (save.upgrades.doubleBones || 0);
           sessionBones += bonesEarned;
+          haptic('eat');
           for (let j = 0; j < bonesEarned; j++) spawnBone(b.x + 20 * BIRD_SCALE_GAME, b.y, j);
           spawnDust(b.x + 20 * BIRD_SCALE_GAME, b.y, 8, 4); 
           birds.splice(i, 1); 
@@ -532,6 +546,7 @@ if (tg) {
   function gameOver() {
     gameState = 'gameover'; 
     shakeTime = 15; 
+    haptic('crash');
     spawnDust(dino.x + 30, dino.y - 20, 15, 5); 
     
     const earnedThisGame = sessionBones;
