@@ -1,9 +1,8 @@
 // ============================================================
 // CONFIG.JS — константы, глобальное состояние, DOM refs
-// Загружается ПЕРВЫМ. Все остальные файлы используют эти данные.
 // ============================================================
 
-// ===== TELEGRAM ФЛАГИ (инициализируются в game.js) =====
+// ===== TELEGRAM ФЛАГИ =====
 let isTelegram = false;
 let tgApp = null;
 
@@ -13,7 +12,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 22;
+const CURRENT_VERSION = 23;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -24,171 +23,28 @@ function formatVersion(v) {
 // ===== CHANGELOG =====
 const CHANGELOG = [
   {
+    version: 23,
+    changes: [
+      'Патч 22.1: Глобальные исправления',
+      'ИСПРАВЛЕН БАГ: горы и земля больше не чёрные (починена функция lerpColor)',
+      'ИСПРАВЛЕНО: Ночь теперь корректно затемняет цвета разных биомов',
+      'Улучшена система бонусов: теперь можно собирать несколько бонусов одновременно',
+      'HUD с бонусами перенесён в нижнюю часть экрана',
+      'Увеличен шанс появления птиц (теперь их больше)',
+      'Динамическая сложность: чем больше счёт, тем чаще появляются кактусы'
+    ]
+  },
+  {
     version: 22,
     changes: [
       'Патч 22: Биомы!',
-      'Введены 4 биома, которые меняются по мере роста счёта:',
-      '🌵 0 очков: Пустыня (жёлтая земля, голубые горы)',
-      '🌲 1000 очков: Лес (зелёная трава, тёмные ели)',
-      '❄️ 2500 очков: Снег (белая земля, снегопад)',
-      '🌋 5000 очков: Вулкан (тёмная земля, красные горы)',
-      'Цвета плавно смешиваются при переходе между биомами',
-      'Добавлен снегопад в снежном биоме'
+      'Введены 4 биома: Пустыня, Лес, Снег, Вулкан',
+      'Цвета плавно смешиваются при переходе между биомами'
     ]
   },
   {
     version: 21,
-    changes: [
-      'Патч 21: ежедневные испытания и стрик',
-      'Каждый день генерируется новое задание (очки, птицы или кости)',
-      'Стрик (серия дней) растёт при ежедневном входе',
-      'Пропуск дня сбрасывает стрик',
-      'Награда: 50 костей + 100 XP',
-      'Бонус к награде: +5 костей и +10 XP за каждый день стрика',
-      'Огонёк на кнопке «Ежедневки» в меню, если задание не выполнено',
-      'Прогресс заданий суммируется за день (для очков — лучший результат)'
-    ]
-  },
-  {
-    version: 20,
-    changes: [
-      'Патч 20: уровни игрока и бонусы скинов',
-      'Добавлена система XP и уровней',
-      'XP начисляется за игру: floor(score/10) + кости × 2',
-      'Попап «Новый уровень» с наградой костями (10 + уровень × 5)',
-      'XP-бар в правом верхнем углу HUD',
-      'Скины теперь дают бонусы:',
-      '🔥 Огненный: +10% к очкам',
-      '❄️ Ледяной: +2 сек к длительности бонусов (щит, двойной прыжок)',
-      '⭐ Золотой: +1 кость за каждую съеденную птицу',
-      'В окне gameover показывается набранный XP'
-    ]
-  },
-  {
-    version: 19,
-    changes: [
-      'Патч 19: чистый код — разделение на 10 файлов',
-      'game.js разбит на: config.js, physics.js, sprites.js, background.js, weather.js, ui.js, input.js',
-      'game.js теперь ~180 строк вместо 1000 — только update и loop',
-      'Все переменные состояния перенесены в config.js глобально',
-      'DOM-ссылки собраны в одном месте (config.js)',
-      'Никаких изменений в поведении игры — только структура'
-    ]
-  },
-  {
-    version: 18,
-    changes: [
-      'Патч 18: музыка теперь реально играет!',
-      'Исправлена ошибка: startMusic/stopMusic не видели gameState (ReferenceError каждый тик)',
-      'gameState вынесена в глобальную область (config.js)',
-      'Файл game.js разделён на 4 части: config.js, audio.js, storage.js, game.js',
-      'Удалена неиспользуемая переменная musicIndex'
-    ]
-  },
-  {
-    version: 17,
-    changes: [
-      'Патч 17: музыка теперь слышна!',
-      'Громкость мелодии увеличена в ~3.5 раза (0.04 → 0.14)',
-      'Волна sine заменена на triangle — звук ярче и заметнее',
-      'Добавлена басовая партия — мелодия стала полнее',
-      'Новая мелодия из 16 нот (вместо 8)',
-      'Плавная атака нот — нет щелчков в начале звука'
-    ]
-  },
-  {
-    version: 16,
-    changes: [
-      'Патч 16: стабильность и настройки',
-      'Исправлен невидимый символ в кнопке «Сбросить прогресс» (HTML)',
-      'Кнопка «Музыка» теперь работает: включает/выключает фоновую мелодию',
-      'Синхронизирована версия JS с HTML (0.0.16)',
-      'Оптимизация: рекорд сохраняется раз в ~5 сек вместо каждого кадра — меньше лагов на телефоне',
-      'Исправлена очистка canvas при тряске экрана (устранён «шлейф» по краям)'
-    ]
-  },
-  {
-    version: 15,
-    changes: [
-      'Комбо-система: съел 3 птицы подряд → x2 кости',
-      'Съел 6 птиц подряд → x3 кости (таймер 5 сек)',
-      'Near-miss: пролетел впритык от кактуса → +5 очков',
-      'Near-miss: пролетел впритык от птицы → +1 кость',
-      'Пропустил птицу — комбо сбрасывается',
-      'Индикатор комбо с таймером сверху экрана'
-    ]
-  },
-  {
-    version: 14,
-    changes: [
-      'Исправлено отображение версии (только в главном меню)',
-      'Клик по версии открывает список обновлений',
-      'Луна стала мягче — без яркого свечения',
-      'Молния в виде зигзага на горизонте',
-      'Добавлен звук удара грома (тихий)'
-    ]
-  },
-  {
-    version: 13,
-    changes: [
-      'Плавная смена дня и ночи с восходом и закатом',
-      'Красивые цвета неба: рассвет, полдень, закат, сумерки',
-      'Солнце и луна движутся по небу и уходят за горизонт',
-      'Улучшена видимость ночью (яркие цвета объектов)',
-      'Добавлено отображение версии игры'
-    ]
-  },
-  {
-    version: 12,
-    changes: [
-      'Переработана система времени суток (плавная)',
-      'Добавлены солнце и луна с движением по дуге',
-      'Улучшены цвета ночи для читаемости препятствий',
-      'Таймеры погоды переведены в секунды'
-    ]
-  },
-  {
-    version: 11,
-    changes: [
-      'Новый дизайн птеродактиля (длинный клюв, гребень)',
-      'Уменьшены размеры больших кактусов',
-      'Добавлены вспышки молний во время дождя',
-      'Скорректированы хитбоксы под новые размеры'
-    ]
-  },
-  {
-    version: 10,
-    changes: [
-      'Исправлен баг двойного прыжка',
-      'Таймеры бонусов переведены в секунды',
-      'Оптимизировано обновление таймера бонусов'
-    ]
-  },
-  {
-    version: 9,
-    changes: [
-      'HUD перемещён в центр экрана',
-      'Уменьшены иконки костей в HUD',
-      'Исправлено исчезновение HUD в меню'
-    ]
-  },
-  {
-    version: 8,
-    changes: [
-      'Добавлен полноэкранный режим в Telegram',
-      'Исправлено растягивание на весь экран',
-      'Улучшена адаптация под горизонтальный режим'
-    ]
-  },
-  {
-    version: 7,
-    changes: [
-      'Полноцветный мир (зелёные кактусы, коричневая земля)',
-      'Детализированный T-Rex с хвостом и челюстью',
-      'Добавлены скины (Огненный, Ледяной, Золотой)',
-      'Добавлены достижения и бонусы (Щит, Двойной прыжок)',
-      'Добавлены звуки (Web Audio API) и погода'
-    ]
+    changes: ['Патч 21: Ежедневные испытания и стрик']
   }
 ];
 
@@ -207,30 +63,16 @@ const RAIN_DURATION = 15;
 const COMBO_TIMEOUT = 5;
 
 // ===== МУЗЫКА =====
-const MUSIC_MELODY = [
-  523.25, 587.33, 659.25, 587.33,
-  523.25, 659.25, 783.99, 659.25,
-  698.46, 659.25, 587.33, 523.25,
-  587.33, 523.25, 392.00, 0
-];
-const MUSIC_BASS = [
-  130.81, 0, 146.83, 0,
-  164.81, 0, 130.81, 0,
-  174.61, 0, 146.83, 0,
-  130.81, 0, 196.00, 0
-];
+const MUSIC_MELODY = [523.25, 587.33, 659.25, 587.33, 523.25, 659.25, 783.99, 659.25, 698.46, 659.25, 587.33, 523.25, 587.33, 523.25, 392.00, 0];
+const MUSIC_BASS = [130.81, 0, 146.83, 0, 164.81, 0, 130.81, 0, 174.61, 0, 146.83, 0, 130.81, 0, 196.00, 0];
 const MUSIC_VOLUME = 0.14;
 
 // ===== СКИНЫ =====
 const SKINS = [
-  { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF',
-    bonus: { type: 'none', value: 0, desc: 'Без бонуса' } },
-  { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF',
-    bonus: { type: 'score', value: 1.10, desc: '+10% к очкам' } },
-  { id: 'ice', name: 'Ледяной', cost: 100, body: '#2196F3', outline: '#0D47A1', belly: '#BBDEFB', claw: '#E1F5FE', eye: '#FFF',
-    bonus: { type: 'powerup', value: 2, desc: '+2 сек к бонусам' } },
-  { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF',
-    bonus: { type: 'bones', value: 1, desc: '+1 кость за птицу' } }
+  { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF', bonus: { type: 'none', value: 0, desc: 'Без бонуса' } },
+  { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF', bonus: { type: 'score', value: 1.10, desc: '+10% к очкам' } },
+  { id: 'ice', name: 'Ледяной', cost: 100, body: '#2196F3', outline: '#0D47A1', belly: '#BBDEFB', claw: '#E1F5FE', eye: '#FFF', bonus: { type: 'powerup', value: 2, desc: '+2 сек к бонусам' } },
+  { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF', bonus: { type: 'bones', value: 1, desc: '+1 кость за птицу' } }
 ];
 
 // ===== УЛУЧШЕНИЯ =====
@@ -251,89 +93,121 @@ const ACHIEVEMENTS_DEF = [
 
 // ===== ЦВЕТА НЕБА =====
 const TIME_KEYS = [
-  { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' },
-  { t: 0.10, top: '#0F1432', bot: '#252A4A' },
-  { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' },
-  { t: 0.22, top: '#E8A598', bot: '#FFD89B' },
-  { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' },
-  { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' },
-  { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' },
-  { t: 0.65, top: '#FFC947', bot: '#FFE082' },
-  { t: 0.72, top: '#FF8A65', bot: '#FFAB91' },
-  { t: 0.78, top: '#FF6B6B', bot: '#FFA451' },
-  { t: 0.84, top: '#8B2E5F', bot: '#E85D75' },
-  { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' },
-  { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' },
-  { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' },
+  { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' }, { t: 0.10, top: '#0F1432', bot: '#252A4A' },
+  { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' }, { t: 0.22, top: '#E8A598', bot: '#FFD89B' },
+  { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' }, { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' },
+  { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' }, { t: 0.65, top: '#FFC947', bot: '#FFE082' },
+  { t: 0.72, top: '#FF8A65', bot: '#FFAB91' }, { t: 0.78, top: '#FF6B6B', bot: '#FFA451' },
+  { t: 0.84, top: '#8B2E5F', bot: '#E85D75' }, { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' },
+  { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' }, { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' }
 ];
+
+// ===== БИОМЫ =====
+const BIOMES = [
+  { id: 'desert', name: '🌵 Пустыня', minScore: 0, ground: '#8BC34A', groundLine: '#33691E', dirt: '#795548', mountainFar: '#90CAF9', mountainNear: '#A5D6A7', cactus: '#388E3C', cactusLight: '#4CAF50', bird: '#37474F', cloud: '#FFFFFF', hasSnow: false },
+  { id: 'forest', name: '🌲 Лес', minScore: 1000, ground: '#4CAF50', groundLine: '#1B5E20', dirt: '#5D4037', mountainFar: '#2E7D32', mountainNear: '#1B5E20', cactus: '#2E7D32', cactusLight: '#4CAF50', bird: '#263238', cloud: '#E8F5E9', hasSnow: false },
+  { id: 'snow', name: '❄️ Снег', minScore: 2500, ground: '#FFFFFF', groundLine: '#B0BEC5', dirt: '#CFD8DC', mountainFar: '#E3F2FD', mountainNear: '#BBDEFB', cactus: '#90CAF9', cactusLight: '#E3F2FD', bird: '#ECEFF1', cloud: '#FAFAFA', hasSnow: true },
+  { id: 'volcano', name: '🌋 Вулкан', minScore: 5000, ground: '#3E2723', groundLine: '#1B0000', dirt: '#212121', mountainFar: '#BF360C', mountainNear: '#FF5722', cactus: '#BF360C', cactusLight: '#FF7043', bird: '#000000', cloud: '#4E342E', hasSnow: false }
+];
+
+function getBiomeState(currentScore) {
+  let currentIdx = 0;
+  for (let i = 0; i < BIOMES.length; i++) {
+    if (currentScore >= BIOMES[i].minScore) currentIdx = i;
+  }
+  const current = BIOMES[currentIdx];
+  const next = BIOMES[currentIdx + 1] || null;
+  let transitionT = 0;
+  if (next) {
+    const transitionStart = next.minScore - 100;
+    if (currentScore >= transitionStart) {
+      transitionT = (currentScore - transitionStart) / 100;
+    }
+  }
+  return { current, next, transitionT };
+}
+
+function mixBiomeColor(color1, color2, t) {
+  return lerpColor(color1, color2, Math.max(0, Math.min(1, t)));
+}
+
+// ===== ЕЖЕДНЕВКИ =====
+const DAILY_TYPES = [
+  { type: 'score', icon: '⭐', title: 'Набери очки за одну игру', targets: [300, 400, 500, 600] },
+  { type: 'birds', icon: '🦅', title: 'Съешь птиц за день', targets: [5, 8, 10, 15] },
+  { type: 'bones', icon: '🦴', title: 'Собери кости за день', targets: [15, 25, 40, 60] }
+];
+
+function getTodayString() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function generateDailyQuest(todayStr) {
+  const randomType = DAILY_TYPES[Math.floor(Math.random() * DAILY_TYPES.length)];
+  const target = randomType.targets[Math.floor(Math.random() * randomType.targets.length)];
+  return { date: todayStr, type: randomType.type, icon: randomType.icon, title: `${randomType.title} (цель: ${target})`, target, progress: 0, completed: false, claimed: false };
+}
+
+function checkDailyAndStreak() {
+  const today = getTodayString();
+  let changed = false;
+  if (save.lastPlayDate !== today) {
+    if (save.lastPlayDate) {
+      const last = new Date(save.lastPlayDate);
+      const now = new Date(today);
+      const diffDays = Math.ceil(Math.abs(now - last) / (1000 * 60 * 60 * 24));
+      save.streak = (diffDays === 1) ? (save.streak || 0) + 1 : 1;
+    } else { save.streak = 1; }
+    save.lastPlayDate = today;
+    changed = true;
+  }
+  if (!save.dailyQuest || save.dailyQuest.date !== today) {
+    save.dailyQuest = generateDailyQuest(today);
+    changed = true;
+  }
+  if (changed) writeSave();
+}
+
+// ===== XP =====
+function xpForLevel(level) { return 100 + (level - 1) * 50; }
+function xpLevelReward(level) { return 10 + level * 5; }
+function getLevelFromXp(totalXp) {
+  let level = 1, remaining = Math.max(0, totalXp);
+  while (remaining >= xpForLevel(level) && level < 999) {
+    remaining -= xpForLevel(level);
+    level++;
+  }
+  return { level, currentXp: remaining, xpToNext: xpForLevel(level) };
+}
+function getCurrentSkin() { return SKINS.find(s => s.id === save.currentSkin) || SKINS[0]; }
 
 // ===== CANVAS =====
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// ===== РАЗМЕРЫ ЭКРАНА И ЗЕМЛИ =====
+// ===== РАЗМЕРЫ =====
 let W = window.innerWidth;
 let H = window.innerHeight;
 let GROUND_Y = H * 0.8;
 
-// ===== СОСТОЯНИЕ ИГРЫ =====
-let score = 0;
-let speed = BASE_SPEED;
-let frame = 0;
-let lastTime = 0;
-let spawnTimer = 0;
-let shakeTime = 0;
-let sessionBones = 0;
-
-let dayNightTime = 0.5 * DAY_NIGHT_CYCLE;
-let weatherTime = 0;
-let isRaining = false;
-let lightning = null;
-let lightningAmbient = 0;
-
-let powerUpActive = null;
+// ===== СОСТОЯНИЕ =====
+let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
+let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
+let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
-let birdsEatenThisGame = 0;
-
-let comboCount = 0;
-let comboTimer = 0;
 
 // ===== ИГРОВЫЕ ОБЪЕКТЫ =====
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
-let obstacles = [];
-let birds = [];
-let particles = [];
-let bonesFlying = [];
-let powerUps = [];
-let rainDrops = [];
+let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [];
 let activeTab = 'upg';
-let snowflakes = [];
 
-// ===== ФОНОВЫЕ ЭЛЕМЕНТЫ =====
+// ===== ФОН =====
 let stars = [];
-for (let i = 0; i < 80; i++) {
-  stars.push({
-    x: Math.random(),
-    y: Math.random() * 0.65,
-    size: Math.random() * 1.5 + 0.5,
-    phase: Math.random() * Math.PI * 2,
-    brightness: Math.random() * 0.5 + 0.5
-  });
-}
-
-let clouds = [
-  { x: 500, y: 60, s: 1, speed: 0.2 },
-  { x: 750, y: 90, s: 0.8, speed: 0.3 }
-];
-
+for (let i = 0; i < 80; i++) stars.push({ x: Math.random(), y: Math.random() * 0.65, size: Math.random() * 1.5 + 0.5, phase: Math.random() * Math.PI * 2, brightness: Math.random() * 0.5 + 0.5 });
+let clouds = [{ x: 500, y: 60, s: 1, speed: 0.2 }, { x: 750, y: 90, s: 0.8, speed: 0.3 }];
 let groundDots = [];
-for (let i = 0; i < 50; i++) {
-  groundDots.push({
-    x: Math.random() * W,
-    y: GROUND_Y + 6 + Math.random() * 20,
-    r: Math.random() * 1.5 + 0.5
-  });
-}
+for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
 // ===== DOM REFS =====
 const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -351,19 +225,17 @@ const versionBtn = document.getElementById('versionBtn');
 const versionNumber = document.getElementById('versionNumber');
 const changelogDialog = document.getElementById('changelogDialog');
 const changelogContent = document.getElementById('changelogContent');
-
 const comboHud = document.getElementById('comboHud');
 const comboMult = document.getElementById('comboMult');
 const comboTimerFill = document.getElementById('comboTimerFill');
-
 const menuScreen = document.getElementById('menuScreen');
+const dailyScreen = document.getElementById('dailyScreen');
 const recordsScreen = document.getElementById('recordsScreen');
 const upgradesScreen = document.getElementById('upgradesScreen');
 const achievementsScreen = document.getElementById('achievementsScreen');
 const settingsScreen = document.getElementById('settingsScreen');
 const gameoverScreen = document.getElementById('gameoverScreen');
 const confirmDialog = document.getElementById('confirmDialog');
-
 const recordsList = document.getElementById('recordsList');
 const upgradesList = document.getElementById('upgradesList');
 const skinsList = document.getElementById('skinsList');
@@ -380,7 +252,7 @@ const achPopupIcon = document.getElementById('achPopupIcon');
 const achPopupName = document.getElementById('achPopupName');
 const tabUpg = document.getElementById('tabUpg');
 const tabSkins = document.getElementById('tabSkins');
-// ===== ПАТЧ 20: XP и попап уровня =====
+
 const xpBarContainer = document.getElementById('xpBarContainer');
 const xpLevel = document.getElementById('xpLevel');
 const xpBarFill = document.getElementById('xpBarFill');
@@ -388,8 +260,7 @@ const levelUpPopup = document.getElementById('levelUpPopup');
 const levelUpName = document.getElementById('levelUpName');
 const levelUpReward = document.getElementById('levelUpReward');
 const goXp = document.getElementById('goXp');
-// ===== ПАТЧ 21: Ежедневки =====
-const dailyScreen = document.getElementById('dailyScreen');
+
 const dailyStreak = document.getElementById('dailyStreak');
 const dailyIcon = document.getElementById('dailyIcon');
 const dailyTitle = document.getElementById('dailyTitle');
@@ -402,6 +273,7 @@ const btnClaimDaily = document.getElementById('btnClaimDaily');
 const dailyBadge = document.getElementById('dailyBadge');
 
 // ===== УТИЛИТЫ =====
+// ИСПРАВЛЕНИЕ БАГА: Теперь lerpColor понимает и HEX, и RGB
 function lerpColor(a, b, t) {
   function parse(c) {
     if (c.startsWith('#')) {
@@ -418,186 +290,4 @@ function lerpColor(a, b, t) {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-}
-// ===== ПАТЧ 20: XP И УРОВНИ =====
-
-// Сколько XP нужно для перехода с уровня level на level+1
-function xpForLevel(level) {
-  return 100 + (level - 1) * 50;
-}
-
-// Награда костями за достижение уровня
-function xpLevelReward(level) {
-  return 10 + level * 5;
-}
-
-// Из общего XP вычислить: текущий уровень, XP внутри уровня, XP до следующего
-function getLevelFromXp(totalXp) {
-  let level = 1;
-  let remaining = Math.max(0, totalXp);
-  while (remaining >= xpForLevel(level) && level < 999) {
-    remaining -= xpForLevel(level);
-    level++;
-  }
-  return { level, currentXp: remaining, xpToNext: xpForLevel(level) };
-}
-
-// Получить текущий скин-объект
-function getCurrentSkin() {
-  return SKINS.find(s => s.id === save.currentSkin) || SKINS[0];
-}
-// ===== ПАТЧ 21: ЕЖЕДНЕВНЫЕ ЗАДАНИЯ =====
-
-const DAILY_TYPES = [
-  { type: 'score', icon: '⭐', title: 'Набери очки за одну игру', targets: [300, 400, 500, 600] },
-  { type: 'birds', icon: '🦅', title: 'Съешь птиц за день', targets: [5, 8, 10, 15] },
-  { type: 'bones', icon: '🦴', title: 'Собери кости за день', targets: [15, 25, 40, 60] }
-];
-
-function getTodayString() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function generateDailyQuest(todayStr) {
-  const randomType = DAILY_TYPES[Math.floor(Math.random() * DAILY_TYPES.length)];
-  const target = randomType.targets[Math.floor(Math.random() * randomType.targets.length)];
-  return {
-    date: todayStr,
-    type: randomType.type,
-    icon: randomType.icon,
-    title: `${randomType.title} (цель: ${target})`,
-    target: target,
-    progress: 0,
-    completed: false,
-    claimed: false
-  };
-}
-
-function checkDailyAndStreak() {
-  const today = getTodayString();
-  let changed = false;
-
-  // Проверка стрика
-  if (save.lastPlayDate !== today) {
-    if (save.lastPlayDate) {
-      // Вычисляем разницу в днях
-      const last = new Date(save.lastPlayDate);
-      const now = new Date(today);
-      const diffTime = Math.abs(now - last);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 1) {
-        save.streak = (save.streak || 0) + 1;
-      } else {
-        save.streak = 1;
-      }
-    } else {
-      save.streak = 1;
-    }
-    save.lastPlayDate = today;
-    changed = true;
-  }
-
-  // Проверка ежедневного задания
-  if (!save.dailyQuest || save.dailyQuest.date !== today) {
-    save.dailyQuest = generateDailyQuest(today);
-    changed = true;
-  }
-
-  if (changed) {
-    writeSave();
-  }
-   }
-// ===== ПАТЧ 22: БИОМЫ =====
-
-const BIOMES = [
-  {
-    id: 'desert',
-    name: '🌵 Пустыня',
-    minScore: 0,
-    ground: '#8BC34A',      // светло-зелёная трава (как было)
-    groundLine: '#33691E',
-    dirt: '#795548',
-    mountainFar: '#90CAF9', // голубые горы
-    mountainNear: '#A5D6A7',
-    cactus: '#388E3C',
-    cactusLight: '#4CAF50',
-    bird: '#37474F',
-    cloud: '#FFFFFF',
-    hasSnow: false
-  },
-  {
-    id: 'forest',
-    name: '🌲 Лес',
-    minScore: 1000,
-    ground: '#4CAF50',      // насыщенный зелёный
-    groundLine: '#1B5E20',
-    dirt: '#5D4037',
-    mountainFar: '#2E7D32', // тёмно-зелёные ели
-    mountainNear: '#1B5E20',
-    cactus: '#2E7D32',
-    cactusLight: '#4CAF50',
-    bird: '#263238',
-    cloud: '#E8F5E9',
-    hasSnow: false
-  },
-  {
-    id: 'snow',
-    name: '❄️ Снег',
-    minScore: 2500,
-    ground: '#FFFFFF',      // белый снег
-    groundLine: '#B0BEC5',
-    dirt: '#CFD8DC',
-    mountainFar: '#E3F2FD', // голубоватые сугробы
-    mountainNear: '#BBDEFB',
-    cactus: '#90CAF9',      // сине-зелёные кактусы
-    cactusLight: '#E3F2FD',
-    bird: '#ECEFF1',
-    cloud: '#FAFAFA',
-    hasSnow: true
-  },
-  {
-    id: 'volcano',
-    name: '🌋 Вулкан',
-    minScore: 5000,
-    ground: '#3E2723',      // тёмно-коричневая земля
-    groundLine: '#1B0000',
-    dirt: '#212121',
-    mountainFar: '#BF360C', // красные горы
-    mountainNear: '#FF5722',
-    cactus: '#BF360C',
-    cactusLight: '#FF7043',
-    bird: '#000000',
-    cloud: '#4E342E',
-    hasSnow: false
-  }
-];
-
-// Вычисляет текущий биом и коэффициент перехода к следующему (0..1)
-function getBiomeState(currentScore) {
-  let currentIdx = 0;
-  for (let i = 0; i < BIOMES.length; i++) {
-    if (currentScore >= BIOMES[i].minScore) currentIdx = i;
-  }
-  const current = BIOMES[currentIdx];
-  const next = BIOMES[currentIdx + 1] || null;
-  
-  let transitionT = 0;
-  if (next) {
-    // Переход начинается за 100 очков до следующего биома
-    const transitionStart = next.minScore - 100;
-    if (currentScore >= transitionStart) {
-      transitionT = (currentScore - transitionStart) / 100;
-    }
-  }
-  return { current, next, transitionT };
-}
-
-// Смешивает два цвета с учетом перехода
-function mixBiomeColor(color1, color2, t) {
-  return lerpColor(color1, color2, Math.max(0, Math.min(1, t)));
-  }
+                                            }
