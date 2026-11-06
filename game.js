@@ -122,7 +122,7 @@ function lerpColor(a, b, t) {
 }
 
 // ===== ВЕРСИЯ И CHANGELOG =====
-const CURRENT_VERSION = 14;
+const CURRENT_VERSION = 15;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -132,14 +132,24 @@ function formatVersion(v) {
 
 const CHANGELOG = [
   {
+    version: 15,
+    changes: [
+      'Комбо-система: съел 3 птицы подряд → x2 кости',
+      'Съел 6 птиц подряд → x3 кости (таймер 5 сек)',
+      'Near-miss: пролетел впритык от кактуса → +5 очков',
+      'Near-miss: пролетел впритык от птицы → +1 кость',
+      'Пропустил птицу — комбо сбрасывается',
+      'Индикатор комбо с таймером сверху экрана'
+    ]
+  },
+  {
     version: 14,
     changes: [
       'Исправлено отображение версии (только в главном меню)',
-      'Клик по версии надёжно открывает список обновлений',
+      'Клик по версии открывает список обновлений',
       'Луна стала мягче — без яркого свечения',
       'Молния в виде зигзага на горизонте',
-      'Добавлен звук удара грома (тихий)',
-      'Вспышка экрана от молнии сделана едва заметной'
+      'Добавлен звук удара грома (тихий)'
     ]
   },
   {
@@ -247,6 +257,10 @@ const CHANGELOG = [
   const changelogDialog = document.getElementById('changelogDialog');
   const changelogContent = document.getElementById('changelogContent');
   
+  const comboHud = document.getElementById('comboHud');
+  const comboMult = document.getElementById('comboMult');
+  const comboTimerFill = document.getElementById('comboTimerFill');
+
   const menuScreen = document.getElementById('menuScreen');
   const recordsScreen = document.getElementById('recordsScreen');
   const upgradesScreen = document.getElementById('upgradesScreen');
@@ -269,10 +283,8 @@ const CHANGELOG = [
   const achPopupIcon = document.getElementById('achPopupIcon');
   const achPopupName = document.getElementById('achPopupName');
 
-  // Устанавливаем версию
   versionNumber.textContent = formatVersion(CURRENT_VERSION);
 
-  // ====== ЯВНЫЙ ОБРАБОТЧИК КЛИКА НА КНОПКУ ВЕРСИИ ======
   function showChangelog() {
     changelogContent.innerHTML = '';
     CHANGELOG.forEach((entry, i) => {
@@ -288,14 +300,11 @@ const CHANGELOG = [
   }
   
   versionBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    initAudio();
-    playSound('click');
+    e.preventDefault(); e.stopPropagation();
+    initAudio(); playSound('click');
     showChangelog();
   });
 
-  // Fullscreen
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function updateFullscreenIcon() {
     if (isFullscreen()) { fsIconExpand.style.display = 'none'; fsIconCollapse.style.display = 'block'; }
@@ -311,14 +320,12 @@ const CHANGELOG = [
     document.addEventListener(evt, () => { updateFullscreenIcon(); setTimeout(resizeCanvas, 100); });
   });
 
-  // Ориентация
   let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
   const portraitQuery = window.matchMedia("(orientation: portrait)");
   const updateOrientation = () => { isPortraitMode = portraitQuery.matches; };
   if (portraitQuery.addEventListener) portraitQuery.addEventListener("change", updateOrientation);
   window.addEventListener('orientationchange', () => { setTimeout(updateOrientation, 100); setTimeout(resizeCanvas, 200); });
 
-  // Размеры
   let W = window.innerWidth, H = window.innerHeight, GROUND_Y = H * 0.8;
   function resizeCanvas() {
     const oldGroundY = GROUND_Y;
@@ -332,10 +339,7 @@ const CHANGELOG = [
     if (typeof obstacles !== 'undefined') obstacles.forEach(o => { o.y = GROUND_Y; });
     if (typeof birds !== 'undefined') { const dY = GROUND_Y - oldGroundY; birds.forEach(b => { b.y += dY; }); }
     if (typeof powerUps !== 'undefined') { const dY = GROUND_Y - oldGroundY; powerUps.forEach(p => { p.y += dY; }); }
-    if (typeof lightning !== 'undefined' && lightning) {
-      // Сбрасываем молнию при ресайзе, чтобы не было артефактов
-      lightning = null;
-    }
+    if (typeof lightning !== 'undefined' && lightning) lightning = null;
   }
 
   const GRAVITY = 0.75;
@@ -390,6 +394,11 @@ const CHANGELOG = [
   let lastPowerUpSecond = -1;
   let birdsEatenThisGame = 0;
 
+  // === ПЕРЕМЕННЫЕ КОМБО ===
+  let comboCount = 0;
+  let comboTimer = 0;
+  const COMBO_TIMEOUT = 5;
+
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
   let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
   
@@ -402,6 +411,55 @@ const CHANGELOG = [
       phase: Math.random() * Math.PI * 2,
       brightness: Math.random() * 0.5 + 0.5
     });
+  }
+
+  function getComboMultiplier() {
+    if (comboCount >= 6) return 3;
+    if (comboCount >= 3) return 2;
+    return 1;
+  }
+
+  function updateComboHUD(pulse = false) {
+    const mult = getComboMultiplier();
+    if (mult > 1) {
+      comboMult.textContent = `🔥 x${mult}`;
+      comboHud.classList.remove('hidden');
+      if (pulse) {
+        comboHud.classList.remove('pulse');
+        void comboHud.offsetWidth;
+        comboHud.classList.add('pulse');
+      }
+    } else {
+      comboHud.classList.add('hidden');
+    }
+  }
+
+  function resetCombo() {
+    if (comboCount > 0) {
+      comboCount = 0;
+      comboTimer = 0;
+      updateComboHUD();
+    }
+  }
+
+  function boxDistance(a, b) {
+    const dx = Math.max(0, Math.max(a.x - (b.x + b.w), b.x - (a.x + a.w)));
+    const dy = Math.max(0, Math.max(a.y - (b.y + b.h), b.y - (a.y + a.h)));
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function getDinoBox() {
+    return dino.ducking && !dino.jumping
+      ? { x: dino.x + 6 * dino.scale, y: dino.y - 14 * dino.scale, w: 18 * dino.scale, h: 14 * dino.scale }
+      : { x: dino.x + 6 * dino.scale, y: dino.y - 24 * dino.scale, w: 18 * dino.scale, h: 24 * dino.scale };
+  }
+  function getCactusBox(o) {
+    return o.type === 'cactus_small'
+      ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale }
+      : { x: o.x, y: o.y - o.h * dino.scale, w: 16 * dino.scale, h: o.h * dino.scale };
+  }
+  function getBirdBox(b) {
+    return { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
   }
 
   // ============================================
@@ -457,13 +515,10 @@ const CHANGELOG = [
 
   function getMoonPos(t) {
     let localT;
-    if (t >= 0.82) {
-      localT = (t - 0.82) / 0.36;
-    } else if (t <= 0.18) {
-      localT = (t + 0.18) / 0.36;
-    } else {
-      return null;
-    }
+    if (t >= 0.82) localT = (t - 0.82) / 0.36;
+    else if (t <= 0.18) localT = (t + 0.18) / 0.36;
+    else return null;
+    
     if (localT < 0 || localT > 1) return null;
     const angle = -Math.PI / 2 + localT * Math.PI;
     return {
@@ -692,35 +747,21 @@ const CHANGELOG = [
   let clouds = [{ x: 500, y: 60, s: 1, speed: 0.2 }, { x: 750, y: 90, s: 0.8, speed: 0.3 }];
   let groundDots = []; for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
-  // ============================================
-  // СОЛНЦЕ И ЛУНА
-  // ============================================
   function drawSun(pos, t) {
     if (!pos) return;
     const isLowSun = (t >= 0.18 && t <= 0.32) || (t >= 0.68 && t <= 0.82);
     let sunColor1, sunColor2, sunColor3, glowColor;
     if (isLowSun) {
-      sunColor1 = '#FF7043';
-      sunColor2 = '#FFB74D';
-      sunColor3 = '#FFE0B2';
-      glowColor = 'rgba(255, 152, 0, 0.5)';
+      sunColor1 = '#FF7043'; sunColor2 = '#FFB74D'; sunColor3 = '#FFE0B2'; glowColor = 'rgba(255, 152, 0, 0.5)';
     } else {
-      sunColor1 = '#FFD54F';
-      sunColor2 = '#FFEB3B';
-      sunColor3 = '#FFF9C4';
-      glowColor = 'rgba(255, 235, 59, 0.5)';
+      sunColor1 = '#FFD54F'; sunColor2 = '#FFEB3B'; sunColor3 = '#FFF9C4'; glowColor = 'rgba(255, 235, 59, 0.5)';
     }
     const halo = ctx.createRadialGradient(pos.x, pos.y, 20, pos.x, pos.y, 100);
-    halo.addColorStop(0, glowColor);
-    halo.addColorStop(1, 'rgba(255, 200, 80, 0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 100, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = sunColor1;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 32, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = sunColor2;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 24, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = sunColor3;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2); ctx.fill();
+    halo.addColorStop(0, glowColor); halo.addColorStop(1, 'rgba(255, 200, 80, 0)');
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(pos.x, pos.y, 100, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor1; ctx.beginPath(); ctx.arc(pos.x, pos.y, 32, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor2; ctx.beginPath(); ctx.arc(pos.x, pos.y, 24, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor3; ctx.beginPath(); ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawMoon(pos, t) {
@@ -734,7 +775,6 @@ const CHANGELOG = [
     const bodyG = Math.round(244 + (242-244) * warmth);
     const bodyB = Math.round(255 + (214-255) * warmth);
     
-    // Очень мягкое свечение (было radius 80 / alpha 0.4)
     const glowRadius = 38;
     const halo = ctx.createRadialGradient(pos.x, pos.y, 22, pos.x, pos.y, glowRadius);
     halo.addColorStop(0, `rgba(${bodyR}, ${bodyG}, ${bodyB}, 0.15)`);
@@ -743,11 +783,9 @@ const CHANGELOG = [
     ctx.fillStyle = halo;
     ctx.beginPath(); ctx.arc(pos.x, pos.y, glowRadius, 0, Math.PI * 2); ctx.fill();
     
-    // Тело луны
     ctx.fillStyle = `rgb(${bodyR}, ${bodyG}, ${bodyB})`;
     ctx.beginPath(); ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2); ctx.fill();
     
-    // Кратеры
     ctx.fillStyle = 'rgba(150, 140, 130, 0.18)';
     ctx.beginPath(); ctx.arc(pos.x - 6, pos.y - 4, 5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x + 8, pos.y + 6, 7, 0, Math.PI * 2); ctx.fill();
@@ -755,14 +793,10 @@ const CHANGELOG = [
     ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
   }
 
-  // ============================================
-  // МОЛНИЯ
-  // ============================================
   function triggerLightning() {
     const startX = 50 + Math.random() * (W - 100);
     const segments = [{ x: startX, y: 0 }];
-    let x = startX;
-    let y = 0;
+    let x = startX, y = 0;
     const endY = GROUND_Y - 60;
     while (y < endY) {
       const step = 25 + Math.random() * 30;
@@ -786,36 +820,27 @@ const CHANGELOG = [
   }
 
   function drawLightning() {
-    // Очень лёгкий голубой подсвет неба
     if (lightningAmbient > 0) {
       ctx.fillStyle = `rgba(180, 210, 255, ${lightningAmbient * 0.25})`;
       ctx.fillRect(0, 0, W, GROUND_Y);
     }
-    
     if (!lightning) return;
-    
     const alpha = Math.max(0, lightning.life);
     ctx.save();
     ctx.shadowColor = `rgba(180, 220, 255, ${alpha})`;
     ctx.shadowBlur = 15;
     ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
     const segs = lightning.segments;
     ctx.moveTo(segs[0].x, segs[0].y);
-    for (let i = 1; i < segs.length; i++) {
-      ctx.lineTo(segs[i].x, segs[i].y);
-    }
+    for (let i = 1; i < segs.length; i++) ctx.lineTo(segs[i].x, segs[i].y);
     ctx.stroke();
-    
-    // Тонкое белое ядро
     ctx.shadowBlur = 0;
     ctx.strokeStyle = `rgba(220, 240, 255, ${alpha * 0.9})`;
     ctx.lineWidth = 1.5;
     ctx.stroke();
-    
     ctx.restore();
   }
 
@@ -825,8 +850,7 @@ const CHANGELOG = [
     const lightLevel = getLightLevel(timeOfDay);
     
     const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, skyColors.top);
-    grad.addColorStop(1, skyColors.bot);
+    grad.addColorStop(0, skyColors.top); grad.addColorStop(1, skyColors.bot);
     ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
 
     if (lightLevel < 0.7) {
@@ -836,18 +860,13 @@ const CHANGELOG = [
         const alpha = starAlpha * star.brightness * twinkle;
         if (alpha > 0.05) {
           ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.beginPath(); 
-          ctx.arc(star.x * W, star.y * H, star.size, 0, Math.PI * 2); 
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(star.x * W, star.y * H, star.size, 0, Math.PI * 2); ctx.fill();
         }
       });
     }
 
     if (showCelestial) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, W, GROUND_Y);
-      ctx.clip();
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, GROUND_Y); ctx.clip();
       drawSun(getSunPos(timeOfDay), timeOfDay);
       drawMoon(getMoonPos(timeOfDay), timeOfDay);
       ctx.restore();
@@ -855,8 +874,7 @@ const CHANGELOG = [
 
     clouds.forEach(c => {
       const s = c.s; 
-      ctx.fillStyle = colors.cloud; 
-      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = colors.cloud; ctx.globalAlpha = 0.8;
       ctx.beginPath(); ctx.ellipse(c.x + 20 * s, c.y + 5 * s, 25 * s, 12 * s, 0, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.ellipse(c.x + 10 * s, c.y, 15 * s, 10 * s, 0, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
@@ -867,10 +885,8 @@ const CHANGELOG = [
     const offset = (frame * 0.1) % 400;
     for (let i = -1; i < 4; i++) { 
       const bx = i * 300 - offset; 
-      ctx.lineTo(bx + 80, GROUND_Y - 90); 
-      ctx.lineTo(bx + 160, GROUND_Y - 30); 
-      ctx.lineTo(bx + 220, GROUND_Y - 110); 
-      ctx.lineTo(bx + 300, GROUND_Y); 
+      ctx.lineTo(bx + 80, GROUND_Y - 90); ctx.lineTo(bx + 160, GROUND_Y - 30);
+      ctx.lineTo(bx + 220, GROUND_Y - 110); ctx.lineTo(bx + 300, GROUND_Y); 
     }
     ctx.lineTo(W, GROUND_Y); ctx.lineTo(W, GROUND_Y + 2); ctx.lineTo(0, GROUND_Y + 2); ctx.closePath(); ctx.fill();
 
@@ -879,10 +895,8 @@ const CHANGELOG = [
     const offset2 = (frame * 0.25) % 500;
     for (let i = -1; i < 3; i++) { 
       const bx = i * 400 - offset2; 
-      ctx.lineTo(bx + 100, GROUND_Y - 50); 
-      ctx.lineTo(bx + 200, GROUND_Y - 15); 
-      ctx.lineTo(bx + 300, GROUND_Y - 60); 
-      ctx.lineTo(bx + 400, GROUND_Y); 
+      ctx.lineTo(bx + 100, GROUND_Y - 50); ctx.lineTo(bx + 200, GROUND_Y - 15); 
+      ctx.lineTo(bx + 300, GROUND_Y - 60); ctx.lineTo(bx + 400, GROUND_Y); 
     }
     ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
   }
@@ -916,22 +930,15 @@ const CHANGELOG = [
       r.x += r.vx; r.y += r.vy; 
       if (r.y > H || r.x < 0) { r.y = -20; r.x = Math.random() * W + W * 0.2; } 
     });
-    // Молния - шанс, только если нет активной
-    if (!lightning && Math.random() < 0.008) {
-      triggerLightning();
-    }
+    if (!lightning && Math.random() < 0.008) triggerLightning();
   }
   
   function drawRain() {
     if (!isRaining) return;
     ctx.strokeStyle = 'rgba(150, 200, 255, 0.5)'; 
-    ctx.lineWidth = 2; 
-    ctx.lineCap = 'round';
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
     rainDrops.forEach(r => { 
-      ctx.beginPath(); 
-      ctx.moveTo(r.x, r.y); 
-      ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5); 
-      ctx.stroke(); 
+      ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5); ctx.stroke(); 
     });
   }
 
@@ -959,6 +966,9 @@ const CHANGELOG = [
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
     dino.scale = DINO_SCALE_GAME; powerUpActive = null;
+    
+    comboCount = 0; comboTimer = 0; updateComboHUD();
+    
     dayNightTime = 0.25 * DAY_NIGHT_CYCLE;
     weatherTime = 0; isRaining = false;
     birdsEatenThisGame = 0; lastPowerUpSecond = -1;
@@ -1021,6 +1031,16 @@ const CHANGELOG = [
       speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
+      // === ТАЙМЕР КОМБО ===
+      if (comboCount > 0) {
+        comboTimer -= dt;
+        if (comboTimer <= 0) {
+          resetCombo();
+        } else {
+          comboTimerFill.style.width = Math.min(100, (comboTimer / COMBO_TIMEOUT) * 100) + '%';
+        }
+      }
+
       dayNightTime += dt;
       if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
       
@@ -1031,7 +1051,6 @@ const CHANGELOG = [
         weatherTime = 0;
         if (isRaining) initRain();
       }
-      
       updateLightning(dt);
 
       if (dino.jumping) {
@@ -1053,8 +1072,30 @@ const CHANGELOG = [
         if (spawnTimer < 60) spawnTimer = 60;
       }
 
-      obstacles.forEach(o => o.x -= speed); obstacles = obstacles.filter(o => o.x + o.w > -20);
+      obstacles.forEach(o => o.x -= speed);
       powerUps.forEach(p => p.x -= speed); powerUps = powerUps.filter(p => p.x > -20);
+      
+      const dinoBox = getDinoBox();
+      
+      // === ПРОВЕРКА NEAR-MISS С КАКТУСАМИ ===
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        const oBox = getCactusBox(o);
+        
+        if (!dino.jumping && !o.wasClose) {
+          const dist = boxDistance(dinoBox, oBox);
+          if (dist > 0 && dist < 15) o.wasClose = true;
+        }
+        
+        if (oBox.x + oBox.w < dinoBox.x - 15) {
+          if (o.wasClose) {
+            score += 5;
+            spawnFloatingText(o.x + o.w * dino.scale / 2, o.y - o.h * dino.scale - 25, 'NICE! +5');
+          }
+          obstacles.splice(i, 1);
+        }
+      }
+
       updateRain(dt);
 
       birds.forEach(b => {
@@ -1072,9 +1113,27 @@ const CHANGELOG = [
         }
         b.x -= effSpeed;
       });
-      birds = birds.filter(b => b.x + b.w > -20);
-
-      let dinoBox = dino.ducking && !dino.jumping ? { x: dino.x + 6 * dino.scale, y: dino.y - 14 * dino.scale, w: 18 * dino.scale, h: 14 * dino.scale } : { x: dino.x + 6 * dino.scale, y: dino.y - 24 * dino.scale, w: 18 * dino.scale, h: 24 * dino.scale };
+      
+      // === ПРОВЕРКА NEAR-MISS С ПТИЦАМИ + СБРОС КОМБО ===
+      for (let i = birds.length - 1; i >= 0; i--) {
+        const b = birds[i];
+        const bBox = getBirdBox(b);
+        
+        if (!b.wasClose) {
+          const dist = boxDistance(dinoBox, bBox);
+          if (dist > 0 && dist < 12) b.wasClose = true;
+        }
+        
+        if (b.x + b.w * BIRD_SCALE_GAME < dino.x - 15) {
+          if (b.wasClose) {
+            sessionBones += 1;
+            spawnFloatingText(b.x + 20 * BIRD_SCALE_GAME, b.y - 20, '+1 🦴');
+            updateHUD();
+          }
+          resetCombo();
+          birds.splice(i, 1);
+        }
+      }
 
       for (let i = powerUps.length - 1; i >= 0; i--) {
         const p = powerUps[i];
@@ -1103,23 +1162,37 @@ const CHANGELOG = [
 
       if (!powerUpActive || powerUpActive.type !== 'shield') {
         for (const o of obstacles) {
-          let oBox = o.type === 'cactus_small' 
-            ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale }
-            : { x: o.x, y: o.y - o.h * dino.scale, w: 16 * dino.scale, h: o.h * dino.scale };
-          if (rectCollide(dinoBox, oBox)) { gameOver(); return; }
+          if (rectCollide(dinoBox, getCactusBox(o))) { gameOver(); return; }
         }
       }
 
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
-        const bBox = { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
+        const bBox = getBirdBox(b);
         if (rectCollide(dinoBox, bBox)) {
-          let bonesEarned = 1 + (save.upgrades.doubleBones || 0);
+          comboCount++;
+          comboTimer = COMBO_TIMEOUT;
+          const mult = getComboMultiplier();
+          
+          let baseBones = 1 + (save.upgrades.doubleBones || 0);
+          let bonesEarned = baseBones * mult;
+          
           sessionBones += bonesEarned; birdsEatenThisGame++;
           haptic('eat'); playSound('eat');
-          for (let j = 0; j < bonesEarned; j++) bonesFlying.push({ x: b.x + 20 * BIRD_SCALE_GAME, y: b.y, vy: -4, vx: 1, life: 1, rot: 0 });
-          spawnFloatingText(b.x + 20 * BIRD_SCALE_GAME, b.y - 20, `+${bonesEarned} 🦴`);
-          spawnDust(b.x + 20 * BIRD_SCALE_GAME, b.y, 8, 4); birds.splice(i, 1);
+          
+          const bonesForAnim = Math.min(bonesEarned, 6);
+          for (let j = 0; j < bonesForAnim; j++) {
+            bonesFlying.push({ x: b.x + 20 * BIRD_SCALE_GAME, y: b.y, vy: -4 - Math.random() * 2, vx: 1 + Math.random(), life: 1, rot: 0 });
+          }
+          
+          let text = `+${bonesEarned} 🦴`;
+          if (mult > 1) text += ` (x${mult})`;
+          spawnFloatingText(b.x + 20 * BIRD_SCALE_GAME, b.y - 20, text);
+          
+          spawnDust(b.x + 20 * BIRD_SCALE_GAME, b.y, 8, 4); 
+          birds.splice(i, 1);
+          
+          updateComboHUD(true);
           updateHUD();
         }
       }
@@ -1145,6 +1218,9 @@ const CHANGELOG = [
   function gameOver() {
     gameState = 'gameover'; shakeTime = 15; haptic('crash'); playSound('crash');
     spawnDust(dino.x + 30, dino.y - 20, 15, 5); 
+    
+    comboCount = 0; comboTimer = 0; updateComboHUD();
+    
     const earnedThisGame = sessionBones;
     save.bones += sessionBones; sessionBones = 0;
     const finalScore = Math.floor(score);
@@ -1189,9 +1265,7 @@ const CHANGELOG = [
     ctx.clearRect(-20, -20, W + 40, H + 40);
     
     const isMenu = gameState === 'menu' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
-    const timeOfDay = (gameState === 'playing' || gameState === 'gameover') 
-      ? dayNightTime / DAY_NIGHT_CYCLE 
-      : 0.5;
+    const timeOfDay = (gameState === 'playing' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
     const colors = getObjectColors(timeOfDay);
     
     drawBackground(timeOfDay, !isMenu);
@@ -1235,13 +1309,12 @@ const CHANGELOG = [
     menuScreen.classList.add('hidden'); recordsScreen.classList.add('hidden'); upgradesScreen.classList.add('hidden');
     achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); 
     confirmDialog.classList.add('hidden'); changelogDialog.style.display = 'none';
-    // ВАЖНО: кнопка версии скрывается по умолчанию
     versionBtn.style.display = 'none';
+    comboHud.classList.add('hidden');
   }
   
   function showMainMenu() {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
-    // Показываем версию ТОЛЬКО в главном меню
     versionBtn.style.display = 'flex';
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
@@ -1249,26 +1322,10 @@ const CHANGELOG = [
     dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
   }
   
-  function showRecords() { 
-    gameState = 'records'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
-    recordsScreen.classList.remove('hidden'); renderRecords(); 
-  }
-  function showUpgrades() { 
-    gameState = 'upgrades'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
-    upgradesScreen.classList.remove('hidden'); renderUpgrades(); 
-  }
-  function showAchievements() { 
-    gameState = 'achievements'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
-    achievementsScreen.classList.remove('hidden'); renderAchievements(); 
-  }
-  function showSettings() { 
-    gameState = 'settings'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
-    settingsScreen.classList.remove('hidden'); 
-  }
+  function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
+  function showUpgrades() { gameState = 'upgrades'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); upgradesScreen.classList.remove('hidden'); renderUpgrades(); }
+  function showAchievements() { gameState = 'achievements'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); achievementsScreen.classList.remove('hidden'); renderAchievements(); }
+  function showSettings() { gameState = 'settings'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); settingsScreen.classList.remove('hidden'); }
 
   function renderRecords() {
     recordsList.innerHTML = '';
@@ -1393,11 +1450,8 @@ const CHANGELOG = [
     }
   });
 
-  // Закрытие changelog кликом по фону
   changelogDialog.addEventListener('click', (e) => {
-    if (e.target === changelogDialog) {
-      changelogDialog.style.display = 'none';
-    }
+    if (e.target === changelogDialog) changelogDialog.style.display = 'none';
   });
 
   document.addEventListener('keydown', (e) => {
