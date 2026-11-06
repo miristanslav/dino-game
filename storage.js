@@ -14,7 +14,10 @@ function defaultSave() {
     currentSkin: 'default',
     unlockedSkins: ['default'],
     xp: 0,
-    playerLevel: 1
+    playerLevel: 1,
+    lastPlayDate: null,
+    streak: 0,
+    dailyQuest: null
   };
 }
 
