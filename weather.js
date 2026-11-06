@@ -1,8 +1,6 @@
 // ============================================================
-// WEATHER.JS — дождь, молния, частицы (пыль), летящие кости
-// Использует: ctx, W, H, GROUND_Y, speed, frame,
-//             isRaining, rainDrops, lightning, lightningAmbient,
-//             particles, bonesFlying
+// WEATHER.JS — дождь, снег, молния, частицы (пыль), кости
+// Патч 22: добавлен снегопад для снежного биома
 // ============================================================
 
 function initRain() {
@@ -40,6 +38,55 @@ function drawRain() {
     ctx.moveTo(r.x, r.y);
     ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5);
     ctx.stroke();
+  });
+}
+
+// ===== ПАТЧ 22: Снегопад =====
+function initSnow() {
+  snowflakes = [];
+  for (let i = 0; i < 80; i++) {
+    snowflakes.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2 + 1,
+      vx: -speed * 0.3 - Math.random() * 0.5,
+      vy: 1 + Math.random() * 2,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function updateSnow(dt) {
+  const biomeInfo = getBiomeState(score);
+  const isSnowBiome = biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5);
+  
+  if (!isSnowBiome) {
+    snowflakes = [];
+    return;
+  }
+  
+  if (snowflakes.length === 0) initSnow();
+  
+  snowflakes.forEach(s => {
+    s.x += s.vx;
+    s.y += s.vy;
+    s.phase += 0.05;
+    s.x += Math.sin(s.phase) * 0.5; // Легкое покачивание
+    
+    if (s.y > H || s.x < -10) {
+      s.y = -10;
+      s.x = Math.random() * W;
+    }
+  });
+}
+
+function drawSnow() {
+  if (snowflakes.length === 0) return;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  snowflakes.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
   });
 }
 
