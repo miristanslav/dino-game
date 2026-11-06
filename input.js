@@ -63,7 +63,23 @@ document.addEventListener('pointerdown', (e) => {
     
     if (action === 'fullscreen') toggleFullscreen();
     else if (action === 'start') reset();
-    else if (action === 'daily') showDaily();
+    else if (action === 'daily') {
+  if (typeof showDaily === 'function') {
+    try {
+      showDaily();
+    } catch (err) {
+      const dbg = document.createElement('div');
+      dbg.style.cssText = 'position:fixed;top:50px;left:10px;right:10px;background:red;color:white;padding:15px;z-index:999999;font-size:14px;border-radius:8px;';
+      dbg.textContent = 'ОШИБКА в showDaily: ' + err.message;
+      document.body.appendChild(dbg);
+    }
+  } else {
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:50px;left:10px;right:10px;background:red;color:white;padding:15px;z-index:999999;font-size:14px;border-radius:8px;';
+    dbg.textContent = 'ОШИБКА: функция showDaily не найдена! Проверь ui.js';
+    document.body.appendChild(dbg);
+  }
+    }
     else if (action === 'claim-daily') claimDailyReward();
     else if (action === 'records') showRecords();
     else if (action === 'upgrades') showUpgrades();
