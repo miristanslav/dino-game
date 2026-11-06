@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=14">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -54,10 +54,10 @@
   </div>
 </div>
 
-<!-- Кнопка версии (только в главном меню) -->
-<button id="versionBtn" class="version-btn" data-action="changelog">
+<!-- Кнопка версии без data-action — слушаем click напрямую в JS -->
+<button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.13</strong>
+  <strong id="versionNumber">0.0.14</strong>
 </button>
 
 <div id="recordsScreen" class="ui-screen hidden">
@@ -127,7 +127,7 @@
   </div>
 </div>
 
-<div id="changelogDialog" class="hidden">
+<div id="changelogDialog" style="display: none;">
   <div class="changelog-box">
     <h2>📋 Список обновлений</h2>
     <div id="changelogContent"></div>
@@ -135,6 +135,6 @@
   </div>
 </div>
 
-<script src="game.js?v=13"></script>
+<script src="game.js?v=14"></script>
 </body>
 </html>
