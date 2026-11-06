@@ -308,20 +308,21 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 
 #xpBarContainer {
   position: fixed;
-  top: max(16px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  right: max(20px, env(safe-area-inset-right));
   z-index: 30;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.85); /* Сделал фон чуть плотнее для читаемости */
   padding: 6px 12px;
   border-radius: 12px;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   font-family: inherit;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: none;
+  transition: opacity 0.3s;
 }
 #xpBarContainer.hidden { display: none; }
 #xpLevel {
@@ -425,10 +426,12 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 /* Адаптация под маленькие ландшафтные экраны */
 @media (orientation: landscape) and (max-height: 520px) {
   #xpBarContainer {
-    top: max(8px, env(safe-area-inset-top));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    right: max(10px, env(safe-area-inset-right));
     padding: 4px 8px;
     gap: 6px;
   }
+  /* ... остальное не трогаем ... */
   #xpBar { width: 40px; height: 5px; }
   #xpLevel { font-size: 11px; }
   #levelUpPopup { padding: 16px 28px; }
