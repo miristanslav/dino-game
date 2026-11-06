@@ -1,6 +1,6 @@
 // ============================================================
 // GAME.JS — точка входа: Telegram, splash, resize, update, loop
-// Патч 22.1: Динамическая сложность, массив бонусов
+// Патч 23: Редкие события (Метеорит и Золотая птица)
 // ============================================================
 
 // ===== TELEGRAM INIT =====
@@ -160,6 +160,7 @@ function reset() {
   rainDrops = [];
   snowflakes = [];
   activePowerUps = [];
+  meteors = []; // Очистка метеоритов
   lightning = null;
   lightningAmbient = 0;
   dino.y = GROUND_Y;
@@ -172,6 +173,7 @@ function reset() {
   speed = BASE_SPEED;
   frame = 0;
   spawnTimer = 40;
+  meteorTimer = 15; // Первый метеорит через 15 сек
   dino.scale = DINO_SCALE_GAME;
 
   comboCount = 0;
@@ -329,6 +331,50 @@ function update(dt) {
       spawnDust(dino.x + 10, GROUND_Y, 1, 1);
     }
 
+    // ПАТЧ 23: Спавн метеоритов
+    meteorTimer -= dt;
+    if (meteorTimer <= 0) {
+      spawnMeteor();
+      meteorTimer = 20 + Math.random() * 15; // От 20 до 35 секунд
+    }
+
+    // ПАТЧ 23: Движение и столкновение метеоритов
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i];
+      m.trail.push({ x: m.x, y: m.y });
+      if (m.trail.length > 10) m.trail.shift();
+
+      m.x += m.vx * (dt * 60);
+      m.y += m.vy * (dt * 60);
+
+      // Удар о землю
+      if (m.y >= GROUND_Y - m.r) {
+        shakeTime = 15;
+        spawnDust(m.x, GROUND_Y, 30, 8);
+        playSound('crash');
+        haptic('crash');
+        
+        sessionBones += 10;
+        spawnFloatingText(m.x, GROUND_Y - 60, '+10 🦴');
+        updateHUD();
+        
+        meteors.splice(i, 1);
+        continue;
+      }
+
+      // Удар в динозавра
+      const hasShield = activePowerUps.some(a => a.type === 'shield');
+      if (!hasShield && rectCollide(getDinoBox(), { x: m.x - m.r, y: m.y - m.r, w: m.r * 2, h: m.r * 2 })) {
+        gameOver();
+        return;
+      }
+
+      // Удаление за экраном
+      if (m.x < -100 || m.y > H + 100) {
+        meteors.splice(i, 1);
+      }
+    }
+
     spawnTimer -= dt * 60;
     if (spawnTimer <= 0) {
       spawnObstacle();
@@ -454,6 +500,7 @@ function update(dt) {
       }
     }
 
+    // ПАТЧ 23: Поедание птиц (с учетом золотой)
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       const bBox = getBirdBox(b);
@@ -463,7 +510,10 @@ function update(dt) {
         const mult = getComboMultiplier();
 
         const birdBonesBonus = (skinBonus.type === 'bones') ? skinBonus.value : 0;
-        const baseBones = 1 + (save.upgrades.doubleBones || 0) + birdBonesBonus;
+        
+        let baseBones = 1 + (save.upgrades.doubleBones || 0) + birdBonesBonus;
+        if (b.isGolden) baseBones = 10 + (save.upgrades.doubleBones || 0) + birdBonesBonus; // Золотая дает 10
+
         const bonesEarned = baseBones * mult;
 
         sessionBones += bonesEarned;
@@ -471,7 +521,7 @@ function update(dt) {
         haptic('eat');
         playSound('eat');
 
-        const bonesForAnim = Math.min(bonesEarned, 6);
+        const bonesForAnim = Math.min(bonesEarned, 12); // Больше костей для золотой
         for (let j = 0; j < bonesForAnim; j++) {
           bonesFlying.push({
             x: b.x + 20 * BIRD_SCALE_GAME,
@@ -555,6 +605,7 @@ function render() {
     obstacles.forEach(o => drawCactus(o, colors, dino.scale));
     birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME));
     powerUps.forEach(drawPowerUp);
+    meteors.forEach(drawMeteor); // ПАТЧ 23
     drawRain();
     drawSnow();
     drawBonesFlying();
