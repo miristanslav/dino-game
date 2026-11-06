@@ -1,11 +1,24 @@
+// Инициализация Telegram вынесена сюда, чтобы db.js видел isTelegram
 let isTelegram = false;
 let tgApp = null;
+try {
+  tgApp = window.Telegram?.WebApp;
+  isTelegram = tgApp && tgApp.platform && tgApp.platform !== 'unknown';
+  if (isTelegram) {
+    tgApp.ready();
+    tgApp.expand();
+    if (tgApp.disableVerticalSwipes) tgApp.disableVerticalSwipes();
+    if (tgApp.setHeaderColor) tgApp.setHeaderColor('#E3F2FD');
+    if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#E3F2FD');
+    document.body.classList.add('telegram-mode');
+  }
+} catch (e) {}
 
 let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 25;
+const CURRENT_VERSION = 26;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -15,44 +28,31 @@ function formatVersion(v) {
 
 const CHANGELOG = [
   {
-    version: 25,
+    version: 26,
     changes: [
-      'Патч 24: Питомцы-компаньоны!',
-      'Добавлена вкладка "Питомцы" в магазине',
-      'Летун: летает рядом с динозавром',
-      'Призрак: спасает от одного кактуса за игру',
-      'Огонёк: даёт +5% к очкам'
+      'Патч 25: Мировой рейтинг и Онлайн!',
+      'Добавлено подключение к Firebase',
+      'Теперь рейтинг общий для всех игроков (Топ-50)',
+      'В главном меню показывается реальное количество игроков онлайн',
+      'Ваш рекорд автоматически отправляется в облако при смерти',
+      'В рейтинге подсвечивается ваша строчка'
     ]
+  },
+  {
+    version: 25,
+    changes: ['Патч 24: Питомцы-компаньоны']
   },
   {
     version: 24,
-    changes: [
-      'Патч 23: Редкие события!',
-      'Добавлен падающий метеорит (раз в 20-30 секунд)',
-      'Метеорит при падении рассыпает +10 костей',
-      'Добавлена Золотая птица (шанс 10% вместо обычной)',
-      'Золотая птица даёт +10 костей вместо 1'
-    ]
+    changes: ['Патч 23: Редкие события (Метеорит и Золотая птица)']
   },
   {
     version: 23,
-    changes: [
-      'Патч 22.1: Глобальные исправления',
-      'ИСПРАВЛЕН БАГ: горы и земля больше не чёрные',
-      'ИСПРАВЛЕНО: Ночь корректно затемняет цвета',
-      'Улучшена система бонусов: можно собирать несколько сразу',
-      'HUD с бонусами перенесён в нижнюю часть экрана',
-      'Увеличен шанс появления птиц',
-      'Динамическая сложность: чем больше счёт, тем чаще кактусы'
-    ]
+    changes: ['Патч 22.1: Исправление цветов, бонусы внизу, динамическая сложность']
   },
   {
     version: 22,
-    changes: ['Патч 22: Биомы!', 'Введены 4 биома: Пустыня, Лес, Снег, Вулкан']
-  },
-  {
-    version: 21,
-    changes: ['Патч 21: Ежедневные испытания и стрик']
+    changes: ['Патч 22: Биомы! (Пустыня, Лес, Снег, Вулкан)']
   }
 ];
 
@@ -287,4 +287,4 @@ function lerpColor(a, b, t) {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-}
+                                         }
