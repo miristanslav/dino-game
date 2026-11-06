@@ -1,11 +1,9 @@
 // ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
 let isTelegram = false;
 let tgApp = null;
-
 try {
   tgApp = window.Telegram?.WebApp;
   isTelegram = tgApp && tgApp.platform && tgApp.platform !== 'unknown';
-  
   if (isTelegram) {
     tgApp.ready();
     tgApp.expand();
@@ -41,14 +39,12 @@ function haptic(type) {
 // ===== ЗВУКИ =====
 let audioCtx = null;
 let soundEnabled = true;
-
 function initAudio() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   } catch (e) {}
 }
-
 function playSound(type) {
   if (!soundEnabled || !audioCtx) return;
   try {
@@ -85,7 +81,7 @@ function playSound(type) {
   } catch (e) {}
 }
 
-// ===== УТИЛИТЫ ДЛЯ ЦВЕТА И ВРЕМЕНИ =====
+// ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
   const ah = parseInt(a.slice(1), 16);
   const bh = parseInt(b.slice(1), 16);
@@ -96,6 +92,81 @@ function lerpColor(a, b, t) {
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
 }
+
+// ===== ВЕРСИЯ И CHANGELOG =====
+const CURRENT_VERSION = 13;
+function formatVersion(v) {
+  const thousands = Math.floor(v / 1000);
+  const hundreds = Math.floor((v % 1000) / 100);
+  const tens = v % 100;
+  return `${thousands}.${hundreds}.${tens}`;
+}
+
+const CHANGELOG = [
+  {
+    version: 13,
+    changes: [
+      'Плавная смена дня и ночи с восходом и закатом',
+      'Красивые цвета неба: рассвет, полдень, закат, сумерки',
+      'Солнце и луна движутся по небу и уходят за горизонт',
+      'Улучшена видимость ночью (яркие цвета объектов)',
+      'Добавлено отображение версии игры',
+      'Проверены хитбоксы и таймеры'
+    ]
+  },
+  {
+    version: 12,
+    changes: [
+      'Переработана система времени суток (плавная)',
+      'Добавлены солнце и луна с движением по дуге',
+      'Улучшены цвета ночи для читаемости препятствий',
+      'Таймеры погоды переведены в секунды'
+    ]
+  },
+  {
+    version: 11,
+    changes: [
+      'Новый дизайн птеродактиля (длинный клюв, гребень)',
+      'Уменьшены размеры больших кактусов',
+      'Добавлены вспышки молний во время дождя',
+      'Скорректированы хитбоксы под новые размеры'
+    ]
+  },
+  {
+    version: 10,
+    changes: [
+      'Исправлен баг двойного прыжка',
+      'Таймеры бонусов переведены в секунды',
+      'Оптимизировано обновление таймера бонусов'
+    ]
+  },
+  {
+    version: 9,
+    changes: [
+      'HUD перемещён в центр экрана',
+      'Уменьшены иконки костей в HUD',
+      'Исправлено исчезновение HUD в меню'
+    ]
+  },
+  {
+    version: 8,
+    changes: [
+      'Добавлен полноэкранный режим в Telegram',
+      'Исправлено растягивание на весь экран',
+      'Улучшена адаптация под горизонтальный режим'
+    ]
+  },
+  {
+    version: 7,
+    changes: [
+      'Полноцветный мир (зелёные кактусы, коричневая земля)',
+      'Детализированный T-Rex с хвостом и челюстью',
+      'Добавлены скины (Огненный, Ледяной, Золотой)',
+      'Добавлены достижения и бонусы (Щит, Двойной прыжок)',
+      'Добавлены звуки (Web Audio API) и погода'
+    ]
+  }
+];
 
 // ===== ИГРА =====
 (() => {
@@ -113,7 +184,6 @@ function lerpColor(a, b, t) {
       }
     } catch (e) {}
   }
-
   if (isTelegram) {
     setTimeout(requestTgFullscreen, 50);
     document.addEventListener('pointerdown', function firstTap() {
@@ -134,6 +204,10 @@ function lerpColor(a, b, t) {
   const speedBarContainer = document.getElementById('speedBarContainer');
   const speedBar = document.getElementById('speedBar');
   const powerUpHud = document.getElementById('powerUpHud');
+  const versionBtn = document.getElementById('versionBtn');
+  const versionNumber = document.getElementById('versionNumber');
+  const changelogDialog = document.getElementById('changelogDialog');
+  const changelogContent = document.getElementById('changelogContent');
   
   const menuScreen = document.getElementById('menuScreen');
   const recordsScreen = document.getElementById('recordsScreen');
@@ -157,6 +231,10 @@ function lerpColor(a, b, t) {
   const achPopupIcon = document.getElementById('achPopupIcon');
   const achPopupName = document.getElementById('achPopupName');
 
+  // Устанавливаем версию
+  versionNumber.textContent = formatVersion(CURRENT_VERSION);
+
+  // Fullscreen
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function updateFullscreenIcon() {
     if (isFullscreen()) { fsIconExpand.style.display = 'none'; fsIconCollapse.style.display = 'block'; }
@@ -172,12 +250,14 @@ function lerpColor(a, b, t) {
     document.addEventListener(evt, () => { updateFullscreenIcon(); setTimeout(resizeCanvas, 100); });
   });
 
+  // Ориентация
   let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
   const portraitQuery = window.matchMedia("(orientation: portrait)");
   const updateOrientation = () => { isPortraitMode = portraitQuery.matches; };
   if (portraitQuery.addEventListener) portraitQuery.addEventListener("change", updateOrientation);
   window.addEventListener('orientationchange', () => { setTimeout(updateOrientation, 100); setTimeout(resizeCanvas, 200); });
 
+  // Размеры
   let W = window.innerWidth, H = window.innerHeight, GROUND_Y = H * 0.8;
   function resizeCanvas() {
     const oldGroundY = GROUND_Y;
@@ -202,10 +282,10 @@ function lerpColor(a, b, t) {
   const BASE_SPEED = 3.5;
   const MAX_SPEED_BONUS = 4.5;
 
-  // ===== ТАЙМИНГИ (в секундах) =====
-  const DAY_NIGHT_CYCLE = 75;    // Полный цикл: 45с день + 30с ночь
-  const CLEAR_DURATION = 20;     // 20 сек ясной погоды
-  const RAIN_DURATION = 15;      // 15 сек дождя
+  // Тайминги в секундах
+  const DAY_NIGHT_CYCLE = 75;
+  const CLEAR_DURATION = 20;
+  const RAIN_DURATION = 15;
 
   const SKINS = [
     { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
@@ -236,8 +316,7 @@ function lerpColor(a, b, t) {
   let gameState = 'menu';
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
   
-  // Время суток и погода (в секундах)
-  let dayNightTime = 0;
+  let dayNightTime = 0.5 * DAY_NIGHT_CYCLE;
   let weatherTime = 0;
   let isRaining = false;
   let lightningFlash = 0;
@@ -249,7 +328,6 @@ function lerpColor(a, b, t) {
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
   let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
   
-  // Звёзды
   let stars = [];
   for (let i = 0; i < 80; i++) {
     stars.push({ 
@@ -262,84 +340,94 @@ function lerpColor(a, b, t) {
   }
 
   // ============================================
-  // СИСТЕМА ВРЕМЕНИ СУТОК (ПЛАВНАЯ)
+  // ЦВЕТА НЕБА (плавные переходы)
   // ============================================
-  
-  // Возвращает цвета неба на основе времени суток (0..1)
+  const TIME_KEYS = [
+    { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
+    { t: 0.10, top: '#0F1432', bot: '#252A4A' }, // Глубокая ночь
+    { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' }, // Предрассвет
+    { t: 0.22, top: '#E8A598', bot: '#FFD89B' }, // Рассвет
+    { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' }, // Восход
+    { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' }, // Утро
+    { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' }, // Полдень
+    { t: 0.65, top: '#FFC947', bot: '#FFE082' }, // После полудня
+    { t: 0.72, top: '#FF8A65', bot: '#FFAB91' }, // Ранний закат
+    { t: 0.78, top: '#FF6B6B', bot: '#FFA451' }, // Закат
+    { t: 0.84, top: '#8B2E5F', bot: '#E85D75' }, // Сумерки
+    { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' }, // Поздние сумерки
+    { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' }, // Ночь
+    { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
+  ];
+
   function getSkyColors(t) {
-    const keys = [
-      { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
-      { t: 0.10, top: '#2C1B47', bot: '#5E3A73' }, // Предрассвет
-      { t: 0.18, top: '#E57399', bot: '#FFB74D' }, // Рассвет
-      { t: 0.30, top: '#42A5F5', bot: '#BBDEFB' }, // Утро
-      { t: 0.50, top: '#1E88E5', bot: '#90CAF9' }, // Полдень
-      { t: 0.65, top: '#FF7043', bot: '#FFCC80' }, // Закат
-      { t: 0.75, top: '#6A1B9A', bot: '#AD1457' }, // Сумерки
-      { t: 0.85, top: '#0A0E1A', bot: '#1A1F35' }, // Ночь
-      { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
-    ];
-    for (let i = 0; i < keys.length - 1; i++) {
-      if (t >= keys[i].t && t <= keys[i+1].t) {
-        const lt = (t - keys[i].t) / (keys[i+1].t - keys[i].t);
+    for (let i = 0; i < TIME_KEYS.length - 1; i++) {
+      if (t >= TIME_KEYS[i].t && t <= TIME_KEYS[i+1].t) {
+        const lt = (t - TIME_KEYS[i].t) / (TIME_KEYS[i+1].t - TIME_KEYS[i].t);
         return {
-          top: lerpColor(keys[i].top, keys[i+1].top, lt),
-          bot: lerpColor(keys[i].bot, keys[i+1].bot, lt),
+          top: lerpColor(TIME_KEYS[i].top, TIME_KEYS[i+1].top, lt),
+          bot: lerpColor(TIME_KEYS[i].bot, TIME_KEYS[i+1].bot, lt),
         };
       }
     }
-    return { top: keys[0].top, bot: keys[0].bot };
+    return { top: TIME_KEYS[0].top, bot: TIME_KEYS[0].bot };
   }
 
-  // Уровень освещения (0 = ночь, 1 = день)
+  // 1 = день, 0 = ночь
   function getLightLevel(t) {
-    if (t >= 0.30 && t <= 0.55) return 1.0;
-    if (t >= 0.85 || t <= 0.10) return 0.25;
-    if (t > 0.10 && t < 0.18) return 0.25 + (t - 0.10) / 0.08 * 0.5;
-    if (t >= 0.18 && t < 0.30) return 0.75 + (t - 0.18) / 0.12 * 0.25;
-    if (t > 0.55 && t < 0.75) return 1.0 - (t - 0.55) / 0.20 * 0.75;
-    return 1.0;
+    if (t >= 0.32 && t <= 0.68) return 1.0;
+    if (t >= 0.92 || t <= 0.08) return 0.0;
+    if (t > 0.08 && t < 0.32) return (t - 0.08) / 0.24;
+    if (t > 0.68 && t < 0.92) return 1.0 - (t - 0.68) / 0.24;
+    return 0.5;
   }
 
-  // Позиция солнца (видно с 0.15 до 0.72)
+  // Позиция солнца
   function getSunPos(t) {
-    if (t < 0.15 || t > 0.72) return null;
-    const localT = (t - 0.15) / 0.57;
+    if (t < 0.18 || t > 0.82) return null;
+    const localT = (t - 0.18) / 0.64;
     const angle = -Math.PI / 2 + localT * Math.PI;
-    const radius = H * 0.55;
+    const radiusX = W * 0.4;
+    const radiusY = H * 0.5;
     return {
-      x: W / 2 + Math.sin(angle) * radius * 1.3,
-      y: GROUND_Y - Math.cos(angle) * radius
+      x: W / 2 + Math.sin(angle) * radiusX,
+      y: GROUND_Y - Math.cos(angle) * radiusY
     };
   }
 
-  // Позиция луны (видно с 0.72 до 1.15)
+  // Позиция луны
   function getMoonPos(t) {
-    let adjusted = t;
-    if (t < 0.15) adjusted = t + 1;
-    if (adjusted < 0.72) return null;
-    const localT = (adjusted - 0.72) / 0.43;
+    let localT;
+    if (t >= 0.82) {
+      localT = (t - 0.82) / 0.36;
+    } else if (t <= 0.18) {
+      localT = (t + 0.18) / 0.36;
+    } else {
+      return null;
+    }
     if (localT < 0 || localT > 1) return null;
     const angle = -Math.PI / 2 + localT * Math.PI;
-    const radius = H * 0.55;
+    const radiusX = W * 0.4;
+    const radiusY = H * 0.5;
     return {
-      x: W / 2 + Math.sin(angle) * radius * 1.3,
-      y: GROUND_Y - Math.cos(angle) * radius
+      x: W / 2 + Math.sin(angle) * radiusX,
+      y: GROUND_Y - Math.cos(angle) * radiusY
     };
   }
 
-  // Цвета объектов (интерполируются день↔ночь)
+  // Цвета объектов
   function getObjectColors(t) {
-    const night = 1 - getLightLevel(t);
+    const lightLevel = getLightLevel(t);
+    const nightness = 1 - lightLevel;
     return {
-      cactus: lerpColor('#388E3C', '#66BB6A', night),
-      cactusLight: lerpColor('#4CAF50', '#81C784', night),
-      ground: lerpColor('#8BC34A', '#3E5C2A', night),
-      groundLine: lerpColor('#33691E', '#1B3D0F', night),
-      dirt: lerpColor('#795548', '#4E342E', night),
-      bird: lerpColor('#37474F', '#B0BEC5', night),
-      cloud: lerpColor('#FFFFFF', '#64748B', night),
-      mountainFar: lerpColor('#90CAF9', '#312E81', night),
-      mountainNear: lerpColor('#A5D6A7', '#1E1B4B', night),
+      cactus: lerpColor('#388E3C', '#4CAF50', nightness * 0.4),
+      cactusLight: lerpColor('#4CAF50', '#66BB6A', nightness * 0.4),
+      ground: lerpColor('#8BC34A', '#558B2F', nightness * 0.8),
+      groundLine: lerpColor('#33691E', '#1B5E20', nightness * 0.5),
+      dirt: lerpColor('#795548', '#5D4037', nightness * 0.5),
+      bird: lerpColor('#37474F', '#CFD8DC', nightness),
+      cloud: lerpColor('#FFFFFF', '#90A4AE', nightness),
+      mountainFar: lerpColor('#90CAF9', '#3949AB', nightness),
+      mountainNear: lerpColor('#A5D6A7', '#1B5E20', nightness),
     };
   }
 
@@ -367,23 +455,19 @@ function lerpColor(a, b, t) {
     uRect(24, 7, 3, 0.6, c.belly, scale);
     uRect(24, 1, 9, 6, c.body, scale); uRect(24, 1, 9, 1, c.outline, scale);
     uRect(24, 1, 1, 6, c.outline, scale); uRect(26, 2, 5, 0.7, c.belly, scale);
-    
     uRect(30, 3, 4, 2.5, c.body, scale); uRect(30, 3, 4, 0.8, c.outline, scale);
     uRect(33, 4, 0.8, 0.8, '#000', scale);
     uRect(30, 6.5, 4, 1.5, c.body, scale); uRect(30, 5.5, 4, 1, '#D32F2F', scale);
     for (let i = 0; i < 3; i++) uRect(30.5 + i, 5.8, 0.6, 0.7, '#FFF', scale);
     for (let i = 0; i < 3; i++) uRect(30.8 + i, 5.2, 0.5, 0.6, '#FFF', scale);
     uRect(30, 7.5, 4, 0.5, c.outline, scale);
-
     if (dead) { uRect(27, 2.5, 1, 1, c.outline, scale); uRect(27.2, 2.7, 0.6, 0.6, c.eye, scale); }
     else { uRect(27, 2.5, 1.5, 1.5, c.eye, scale); uRect(27.8, 2.8, 0.7, 0.9, '#000', scale); uRect(27.2, 2.6, 0.4, 0.4, '#FFF', scale); }
     uRect(26.8, 2.1, 2.2, 0.5, c.outline, scale);
-
     uRect(26, 11, 2.5, 1.2, c.outline, scale); uRect(27.5, 11.5, 2, 0.9, c.outline, scale);
     uRect(28.8, 12, 1.8, 0.9, c.outline, scale); uRect(30, 12.3, 1.2, 0.8, c.outline, scale);
     uRect(31, 12, 0.6, 0.5, c.claw, scale); uRect(31, 12.7, 0.6, 0.5, c.claw, scale);
     uRect(26, 12, 2.5, 0.4, c.outline, scale);
-
     uRect(15, 17, 5, 4, c.body, scale); uRect(15, 17, 5, 0.7, c.belly, scale);
     uRect(15, 17, 0.7, 4, c.outline, scale);
     if (phase === 0) {
@@ -483,19 +567,16 @@ function lerpColor(a, b, t) {
   function drawBird(b, colors, scale = BIRD_SCALE_GAME) {
     const x = b.x, y = b.y; 
     const wingUp = Math.floor(frame / 8) % 2 === 0;
-    
     ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
     ctx.beginPath(); 
     ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); 
     ctx.fill();
-    
     if (b.magnetized) { 
       ctx.fillStyle = 'rgba(100,180,255,0.35)'; 
       ctx.beginPath(); 
       ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2); 
       ctx.fill(); 
     }
-    
     ctx.fillStyle = colors.bird;
     ctx.fillRect(x + 12 * scale, y - 2 * scale, 16 * scale, 4 * scale);
     ctx.fillRect(x + 6 * scale, y, 6 * scale, 2 * scale);
@@ -506,10 +587,8 @@ function lerpColor(a, b, t) {
     ctx.fillRect(x + 36 * scale, y - 1 * scale, 5 * scale, 1 * scale);
     ctx.fillRect(x + 26 * scale, y - 10 * scale, 3 * scale, 5 * scale);
     ctx.fillRect(x + 23 * scale, y - 8 * scale, 3 * scale, 3 * scale);
-    
     ctx.fillStyle = '#FFF'; ctx.fillRect(x + 30 * scale, y - 3 * scale, 2 * scale, 2 * scale);
     ctx.fillStyle = '#000'; ctx.fillRect(x + 31 * scale, y - 3 * scale, 1 * scale, 1 * scale);
-    
     ctx.fillStyle = colors.bird;
     if (wingUp) {
       ctx.beginPath();
@@ -558,53 +637,73 @@ function lerpColor(a, b, t) {
   let groundDots = []; for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
   // ============================================
-  // РИСОВАНИЕ СОЛНЦА И ЛУНЫ
+  // СОЛНЦЕ И ЛУНА
   // ============================================
-  function drawSun(pos) {
+  function drawSun(pos, t) {
     if (!pos) return;
-    // Свечение
-    const glow = ctx.createRadialGradient(pos.x, pos.y, 10, pos.x, pos.y, 80);
-    glow.addColorStop(0, 'rgba(255, 235, 59, 0.6)');
-    glow.addColorStop(1, 'rgba(255, 235, 59, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 80, 0, Math.PI * 2); ctx.fill();
-    // Солнце
-    ctx.fillStyle = '#FFF59D';
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 30, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFEB3B';
+    const isLowSun = (t >= 0.18 && t <= 0.32) || (t >= 0.68 && t <= 0.82);
+    let sunColor1, sunColor2, sunColor3, glowColor;
+    if (isLowSun) {
+      sunColor1 = '#FF7043';
+      sunColor2 = '#FFB74D';
+      sunColor3 = '#FFE0B2';
+      glowColor = 'rgba(255, 152, 0, 0.5)';
+    } else {
+      sunColor1 = '#FFD54F';
+      sunColor2 = '#FFEB3B';
+      sunColor3 = '#FFF9C4';
+      glowColor = 'rgba(255, 235, 59, 0.5)';
+    }
+    const halo = ctx.createRadialGradient(pos.x, pos.y, 20, pos.x, pos.y, 100);
+    halo.addColorStop(0, glowColor);
+    halo.addColorStop(1, 'rgba(255, 200, 80, 0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 100, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor1;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 32, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor2;
     ctx.beginPath(); ctx.arc(pos.x, pos.y, 24, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = sunColor3;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawMoon(pos) {
+  function drawMoon(pos, t) {
     if (!pos) return;
-    const glow = ctx.createRadialGradient(pos.x, pos.y, 5, pos.x, pos.y, 60);
-    glow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 60, 0, Math.PI * 2); ctx.fill();
-    // Луна
-    ctx.fillStyle = '#FFF8E1';
+    let warmth = 0;
+    if (t >= 0.78 && t <= 0.90) warmth = 1 - (t - 0.78) / 0.12;
+    else if (t >= 0.10 && t <= 0.22) warmth = (t - 0.10) / 0.12;
+    warmth = Math.max(0, Math.min(1, warmth));
+    const warmR = Math.round(200 + (255-200) * warmth);
+    const warmG = Math.round(220 + (220-220) * warmth);
+    const warmB = Math.round(255 + (180-255) * warmth);
+    const halo = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 80);
+    halo.addColorStop(0, `rgba(${warmR}, ${warmG}, ${warmB}, 0.4)`);
+    halo.addColorStop(0.5, `rgba(${warmR}, ${warmG}, ${warmB}, 0.15)`);
+    halo.addColorStop(1, `rgba(${warmR}, ${warmG}, ${warmB}, 0)`);
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 80, 0, Math.PI * 2); ctx.fill();
+    const bodyR = Math.round(240 + (255-240) * warmth);
+    const bodyG = Math.round(244 + (242-244) * warmth);
+    const bodyB = Math.round(255 + (214-255) * warmth);
+    ctx.fillStyle = `rgb(${bodyR}, ${bodyG}, ${bodyB})`;
     ctx.beginPath(); ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2); ctx.fill();
-    // Кратеры
-    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillStyle = 'rgba(150, 140, 130, 0.2)';
     ctx.beginPath(); ctx.arc(pos.x - 6, pos.y - 4, 5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x + 8, pos.y + 6, 7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x - 2, pos.y + 10, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawBackground(timeOfDay) {
+  function drawBackground(timeOfDay, showCelestial = true) {
     const colors = getObjectColors(timeOfDay);
     const skyColors = getSkyColors(timeOfDay);
     const lightLevel = getLightLevel(timeOfDay);
     
-    // Небо
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, skyColors.top);
     grad.addColorStop(1, skyColors.bot);
     ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
 
-    // Звёзды
     if (lightLevel < 0.7) {
       const starAlpha = Math.max(0, 1 - lightLevel * 1.5);
       stars.forEach(star => {
@@ -619,16 +718,16 @@ function lerpColor(a, b, t) {
       });
     }
 
-    // Солнце и луна (с обрезкой по горизонту)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, W, GROUND_Y);
-    ctx.clip();
-    drawSun(getSunPos(timeOfDay));
-    drawMoon(getMoonPos(timeOfDay));
-    ctx.restore();
+    if (showCelestial) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, W, GROUND_Y);
+      ctx.clip();
+      drawSun(getSunPos(timeOfDay), timeOfDay);
+      drawMoon(getMoonPos(timeOfDay), timeOfDay);
+      ctx.restore();
+    }
 
-    // Облака
     clouds.forEach(c => {
       const s = c.s; 
       ctx.fillStyle = colors.cloud; 
@@ -638,7 +737,6 @@ function lerpColor(a, b, t) {
       ctx.globalAlpha = 1;
     });
 
-    // Горы
     ctx.fillStyle = colors.mountainFar; 
     ctx.beginPath(); ctx.moveTo(0, GROUND_Y); 
     const offset = (frame * 0.1) % 400;
@@ -683,26 +781,16 @@ function lerpColor(a, b, t) {
   function initRain() {
     rainDrops = [];
     for (let i = 0; i < 70; i++) {
-      rainDrops.push({ 
-        x: Math.random() * W, 
-        y: Math.random() * H, 
-        vx: -speed * 0.5 - 2, 
-        vy: 15 + Math.random() * 10,
-      });
+      rainDrops.push({ x: Math.random() * W, y: Math.random() * H, vx: -speed * 0.5 - 2, vy: 15 + Math.random() * 10 });
     }
   }
 
   function updateRain(dt) {
     if (!isRaining) return;
     rainDrops.forEach(r => { 
-      r.x += r.vx; 
-      r.y += r.vy; 
-      if (r.y > H || r.x < 0) { 
-        r.y = -20; 
-        r.x = Math.random() * W + W * 0.2; 
-      } 
+      r.x += r.vx; r.y += r.vy; 
+      if (r.y > H || r.x < 0) { r.y = -20; r.x = Math.random() * W + W * 0.2; } 
     });
-    // Случайная молния
     if (Math.random() < 0.01 * dt * 60) {
       lightningFlash = 0.15;
     }
@@ -719,7 +807,6 @@ function lerpColor(a, b, t) {
       ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5); 
       ctx.stroke(); 
     });
-    
     if (lightningFlash > 0) {
       ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.7, lightningFlash * 4)})`;
       ctx.fillRect(0, 0, W, H);
@@ -749,26 +836,20 @@ function lerpColor(a, b, t) {
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
     dino.scale = DINO_SCALE_GAME; powerUpActive = null;
-    
-    // Сброс таймеров
-    dayNightTime = 0.25 * DAY_NIGHT_CYCLE; // Начинаем с утра (не с полуночи)
-    weatherTime = 0;
-    isRaining = false;
-    lightningFlash = 0;
-    
+    dayNightTime = 0.25 * DAY_NIGHT_CYCLE; // Начинаем утром
+    weatherTime = 0; isRaining = false; lightningFlash = 0;
     birdsEatenThisGame = 0; lastPowerUpSecond = -1;
     gameState = 'playing'; hideAllScreens(); 
     hud.classList.remove('hidden'); speedBarContainer.classList.add('active'); powerUpHud.classList.add('hidden');
     fullscreenBtn.classList.remove('hidden');
+    versionBtn.classList.add('hidden');
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
   }
 
   function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
-    
     const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
-    
     if (!dino.jumping) {
       dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08);
       dino.jumping = true;
@@ -792,8 +873,7 @@ function lerpColor(a, b, t) {
     const r = Math.random();
     if (r < 0.45) {
       const big = Math.random() < 0.5; 
-      const h = big ? 25 : 20;
-      const w = big ? 10 : 8; 
+      const h = big ? 25 : 20; const w = big ? 10 : 8; 
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: big ? 'cactus_big' : 'cactus_small' });
     } else if (r < 0.85) {
       const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168]; const y = heights[Math.floor(Math.random() * heights.length)];
@@ -804,7 +884,7 @@ function lerpColor(a, b, t) {
         { type: 'doubleJump', icon: '🦘', color: '#FF9800', duration: 7 }
       ];
       const pu = types[Math.floor(Math.random() * types.length)];
-      powerUps.push({ x: W + 20, y: GROUND_Y - 80 + Math.random() * 40, ...pu, timer: pu.duration });
+      powerUps.push({ x: W + 20, y: GROUND_Y - 80 + Math.random() * 40, ...pu });
     }
   }
 
@@ -813,16 +893,11 @@ function lerpColor(a, b, t) {
   function update(dt) {
     if (isPortraitMode) return;
     frame++;
-    
     if (gameState === 'playing') {
       score += 0.1 * (speed / BASE_SPEED) * (dt * 60);
       speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
-      
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
-      // ============================================
-      // НОВАЯ СИСТЕМА ВРЕМЕНИ И ПОГОДЫ (в секундах)
-      // ============================================
       dayNightTime += dt;
       if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
       
@@ -833,16 +908,13 @@ function lerpColor(a, b, t) {
         weatherTime = 0;
         if (isRaining) initRain();
       }
-      
       if (lightningFlash > 0) lightningFlash = Math.max(0, lightningFlash - dt);
 
       if (dino.jumping) {
         dino.vy += GRAVITY * (dt * 60); 
         dino.y += dino.vy * (dt * 60);
         if (dino.y >= GROUND_Y) { 
-          dino.y = GROUND_Y; 
-          dino.vy = 0; 
-          dino.jumping = false; 
+          dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; 
           const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
           dino.jumpsLeft = hasDoubleJump ? 1 : 0;
           spawnDust(dino.x + 30, GROUND_Y, 5, 2); 
@@ -884,24 +956,19 @@ function lerpColor(a, b, t) {
         const p = powerUps[i];
         if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
           powerUpActive = { type: p.type, timer: p.duration, maxTimer: p.duration, icon: p.icon, color: p.color };
-          if (p.type === 'doubleJump') {
-            dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
-          }
+          if (p.type === 'doubleJump') dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
           playSound('record'); haptic('eat');
           powerUps.splice(i, 1);
         }
       }
       
-      // Таймер бонусов (в секундах)
       if (powerUpActive) {
         powerUpActive.timer -= dt;
         const secondsLeft = Math.ceil(powerUpActive.timer);
-        
         if (secondsLeft !== lastPowerUpSecond) {
           lastPowerUpSecond = secondsLeft;
           powerUpHud.innerHTML = `${powerUpActive.icon} ${Math.max(0, secondsLeft)}s`;
         }
-        
         if (powerUpActive.timer <= 0) {
           powerUpActive = null;
           powerUpHud.classList.add('hidden');
@@ -954,24 +1021,19 @@ function lerpColor(a, b, t) {
   function gameOver() {
     gameState = 'gameover'; shakeTime = 15; haptic('crash'); playSound('crash');
     spawnDust(dino.x + 30, dino.y - 20, 15, 5); 
-    
     const earnedThisGame = sessionBones;
     save.bones += sessionBones; sessionBones = 0;
     const finalScore = Math.floor(score);
-    
     const isNewRecord = finalScore > save.highScore;
     if (isNewRecord) { save.highScore = finalScore; playSound('record'); newRecordText.classList.remove('hidden'); }
     else { newRecordText.classList.add('hidden'); }
-
     save.games.push({ score: finalScore, date: Date.now() }); save.games.sort((a, b) => b.score - a.score); save.games = save.games.slice(0, 10);
-    
     checkAchievements(finalScore);
-    
     writeSave(); updateHUD();
     goScore.textContent = finalScore; goHigh.textContent = Math.floor(save.highScore); goBones.textContent = `+${earnedThisGame} 🦴`;
-    
     gameoverScreen.classList.remove('hidden');
     fullscreenBtn.classList.add('hidden');
+    versionBtn.classList.add('hidden');
     speedBarContainer.classList.remove('active');
     powerUpHud.classList.add('hidden');
     hud.classList.add('hidden');
@@ -1002,14 +1064,13 @@ function lerpColor(a, b, t) {
     ctx.save(); ctx.translate(shakeX, shakeY);
     ctx.clearRect(-20, -20, W + 40, H + 40);
     
-    // Время суток для отрисовки
-    const timeOfDay = gameState === 'playing' || gameState === 'gameover' 
+    const isMenu = gameState === 'menu' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
+    const timeOfDay = (gameState === 'playing' || gameState === 'gameover') 
       ? dayNightTime / DAY_NIGHT_CYCLE 
-      : 0.5; // В меню — день
-    
+      : 0.5;
     const colors = getObjectColors(timeOfDay);
     
-    drawBackground(timeOfDay);
+    drawBackground(timeOfDay, !isMenu);
     drawGround(timeOfDay);
     
     particles.forEach(p => { ctx.fillStyle = `rgba(255,255,255,${p.life * 0.8})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); });
@@ -1047,20 +1108,52 @@ function lerpColor(a, b, t) {
 
   function hideAllScreens() {
     menuScreen.classList.add('hidden'); recordsScreen.classList.add('hidden'); upgradesScreen.classList.add('hidden');
-    achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); confirmDialog.classList.add('hidden');
+    achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); 
+    confirmDialog.classList.add('hidden'); changelogDialog.classList.add('hidden');
   }
   
   function showMainMenu() {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
+    versionBtn.classList.remove('hidden');
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
     isRaining = false; lightningFlash = 0; dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
   }
   
-  function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
-  function showUpgrades() { gameState = 'upgrades'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); upgradesScreen.classList.remove('hidden'); renderUpgrades(); }
-  function showAchievements() { gameState = 'achievements'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); achievementsScreen.classList.remove('hidden'); renderAchievements(); }
-  function showSettings() { gameState = 'settings'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); settingsScreen.classList.remove('hidden'); }
+  function showRecords() { 
+    gameState = 'records'; hideAllScreens(); 
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    recordsScreen.classList.remove('hidden'); renderRecords(); 
+  }
+  function showUpgrades() { 
+    gameState = 'upgrades'; hideAllScreens(); 
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    upgradesScreen.classList.remove('hidden'); renderUpgrades(); 
+  }
+  function showAchievements() { 
+    gameState = 'achievements'; hideAllScreens(); 
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    achievementsScreen.classList.remove('hidden'); renderAchievements(); 
+  }
+  function showSettings() { 
+    gameState = 'settings'; hideAllScreens(); 
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    settingsScreen.classList.remove('hidden'); 
+  }
+
+  function showChangelog() {
+    changelogContent.innerHTML = '';
+    CHANGELOG.forEach((entry, i) => {
+      const div = document.createElement('div');
+      div.className = 'changelog-entry' + (i === 0 ? ' current' : '');
+      let html = `<h3>Версия ${formatVersion(entry.version)}</h3><ul>`;
+      entry.changes.forEach(change => { html += `<li>${change}</li>`; });
+      html += '</ul>';
+      div.innerHTML = html;
+      changelogContent.appendChild(div);
+    });
+    changelogDialog.classList.remove('hidden');
+  }
 
   function renderRecords() {
     recordsList.innerHTML = '';
@@ -1082,7 +1175,6 @@ function lerpColor(a, b, t) {
   function renderUpgrades() {
     upgradesBones.textContent = save.bones;
     upgradesList.innerHTML = ''; skinsList.innerHTML = '';
-    
     if (activeTab === 'upg') {
       upgradesList.classList.remove('hidden'); skinsList.classList.add('hidden');
       UPGRADES.forEach(upg => {
@@ -1170,6 +1262,8 @@ function lerpColor(a, b, t) {
       else if (action === 'achievements') showAchievements();
       else if (action === 'settings') showSettings();
       else if (action === 'back') showMainMenu();
+      else if (action === 'changelog') showChangelog();
+      else if (action === 'changelog-close') changelogDialog.classList.add('hidden');
       else if (action === 'reset') confirmDialog.classList.remove('hidden');
       else if (action === 'reset-no') confirmDialog.classList.add('hidden');
       else if (action === 'reset-yes') {
@@ -1180,7 +1274,6 @@ function lerpColor(a, b, t) {
       }
       return;
     }
-    
     if (gameState === 'playing' && !isPortraitMode) {
       jump();
     }
