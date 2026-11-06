@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -40,6 +40,13 @@
     <span id="hudBones">0</span>
   </span>
 </div>
+
+<!-- НОВЫЙ ЭЛЕМЕНТ: индикатор комбо -->
+<div id="comboHud" class="hidden">
+  <span id="comboMult">🔥 x2</span>
+  <div id="comboTimerBar"><div id="comboTimerFill"></div></div>
+</div>
+
 <div id="tapHint" class="hidden">Тапни, чтобы прыгнуть 🦖</div>
 
 <div id="menuScreen" class="ui-screen">
@@ -54,10 +61,9 @@
   </div>
 </div>
 
-<!-- Кнопка версии без data-action — слушаем click напрямую в JS -->
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.14</strong>
+  <strong id="versionNumber">0.0.15</strong>
 </button>
 
 <div id="recordsScreen" class="ui-screen hidden">
@@ -135,6 +141,6 @@
   </div>
 </div>
 
-<script src="game.js?v=14"></script>
+<script src="game.js?v=15"></script>
 </body>
 </html>
