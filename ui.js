@@ -70,7 +70,7 @@ function claimDailyReward() {
 }
 
 function renderRecords() {
-  fetchGlobalLeaderboard(); // ПАТЧ 25: Загружаем рейтинг из облака
+  fetchGlobalLeaderboard();
 }
 
 function renderUpgrades() {
@@ -157,7 +157,7 @@ function showMainMenu() {
   menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0; speedBarContainer.classList.remove('active');
   powerUpHud.classList.add('hidden'); updateHUD(); updateDailyBadge();
   isRaining = false; lightning = null; lightningAmbient = 0; dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0; stopMusic();
-  startPresenceTracking(); // ПАТЧ 25: Начинаем отслеживать онлайн
+  startPresenceTracking();
 }
 
 function showDaily() {
@@ -183,12 +183,9 @@ function showAchievements() {
 function showSettings() {
   gameState = 'settings'; hideAllScreens(); hud.classList.add('hidden'); xpBarContainer.classList.add('hidden');
   fullscreenBtn.classList.add('hidden'); settingsScreen.classList.remove('hidden');
+  // ПАТЧ 26: синхронизируем тексты кнопок с текущим состоянием
+  if (btnSound) btnSound.textContent = soundEnabled ? '🔊 ЗВУКИ: ВКЛ' : '🔇 ЗВУКИ: ВЫКЛ';
+  if (btnMusic) btnMusic.textContent = musicEnabled ? '🎵 МУЗЫКА: ВКЛ' : '🔇 МУЗЫКА: ВЫКЛ';
 }
 
-if (tabUpg) tabUpg.addEventListener('click', () => { activeTab = 'upg'; tabUpg.classList.add('active'); if(tabSkins) tabSkins.classList.remove('active'); if(tabPets) tabPets.classList.remove('active'); renderUpgrades(); });
-if (tabSkins) tabSkins.addEventListener('click', () => { activeTab = 'skins'; tabSkins.classList.add('active'); if(tabUpg) tabUpg.classList.remove('active'); if(tabPets) tabPets.classList.remove('active'); renderUpgrades(); });
-if (tabPets) tabPets.addEventListener('click', () => { activeTab = 'pets'; tabPets.classList.add('active'); if(tabUpg) tabUpg.classList.remove('active'); if(tabSkins) tabSkins.classList.remove('active'); renderUpgrades(); });
-
-versionBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); initAudio(); playSound('click'); showChangelog(); });
-changelogDialog.addEventListener('click', (e) => { if (e.target === changelogDialog) changelogDialog.style.display = 'none'; });
-versionNumber.textContent = formatVersion(CURRENT_VERSION);
+if (tabUpg) tabUpg.addEventListener('click', () => { activeTab = 'upg'; tabUpg.classList.add('active'); if
