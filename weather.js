@@ -1,6 +1,6 @@
 // ============================================================
 // WEATHER.JS — дождь, снег, молния, частицы (пыль), кости
-// Патч 22: добавлен снегопад для снежного биома
+// Патч 26: оптимизация очистки снежинок
 // ============================================================
 
 function initRain() {
@@ -41,7 +41,6 @@ function drawRain() {
   });
 }
 
-// ===== ПАТЧ 22: Снегопад =====
 function initSnow() {
   snowflakes = [];
   for (let i = 0; i < 80; i++) {
@@ -59,20 +58,21 @@ function initSnow() {
 function updateSnow(dt) {
   const biomeInfo = getBiomeState(score);
   const isSnowBiome = biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5);
-  
+
   if (!isSnowBiome) {
-    snowflakes = [];
+    // ПАТЧ 26: не пересоздаём пустой массив каждый кадр
+    if (snowflakes.length > 0) snowflakes = [];
     return;
   }
-  
+
   if (snowflakes.length === 0) initSnow();
-  
+
   snowflakes.forEach(s => {
     s.x += s.vx;
     s.y += s.vy;
     s.phase += 0.05;
-    s.x += Math.sin(s.phase) * 0.5; // Легкое покачивание
-    
+    s.x += Math.sin(s.phase) * 0.5;
+
     if (s.y > H || s.x < -10) {
       s.y = -10;
       s.x = Math.random() * W;
@@ -182,4 +182,4 @@ function drawBonesFlying() {
     ctx.restore();
     ctx.globalAlpha = 1;
   });
-}
+                                                   }
