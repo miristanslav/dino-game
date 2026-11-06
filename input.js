@@ -1,8 +1,6 @@
 // ============================================================
 // INPUT.JS — управление: кнопки, клавиатура, тач, fullscreen
-// Использует: gameState, isPortraitMode, dino, isTelegram, tgApp,
-//             initAudio, playSound, stopMusic, startMusic,
-//             toggleFullscreenBtn (в game.js)
+// Патч 21: + обработка кнопок daily и claim-daily
 // ============================================================
 
 // ===== FULLSCREEN =====
@@ -54,13 +52,19 @@ window.addEventListener('orientationchange', () => {
 document.addEventListener('pointerdown', (e) => {
   const btn = e.target.closest('[data-action]');
   if (btn) {
+    // Если кнопка заблокирована — игнорируем
+    if (btn.disabled) return;
+    
     e.preventDefault();
     e.stopPropagation();
     initAudio();
     playSound('click');
     const action = btn.dataset.action;
+    
     if (action === 'fullscreen') toggleFullscreen();
     else if (action === 'start') reset();
+    else if (action === 'daily') showDaily();
+    else if (action === 'claim-daily') claimDailyReward();
     else if (action === 'records') showRecords();
     else if (action === 'upgrades') showUpgrades();
     else if (action === 'achievements') showAchievements();
@@ -72,6 +76,7 @@ document.addEventListener('pointerdown', (e) => {
     else if (action === 'reset-yes') {
       save = defaultSave();
       writeSave();
+      checkDailyAndStreak(); // Сброс стрика, генерация новой ежедневки
       updateHUD();
       renderUpgrades();
       renderRecords();
