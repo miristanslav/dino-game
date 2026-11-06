@@ -22,11 +22,9 @@ html, body {
   -webkit-user-select: none;
 }
 
-#gameCanvas { 
-  position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; touch-action: none;
-}
+#gameCanvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; touch-action: none; }
 
-/* СПЛЭШ И ОРИЕНТАЦИЯ */
+/* СПЛЭШ */
 #splashScreen {
   position: fixed; inset: 0; z-index: 9998;
   background: linear-gradient(135deg, #4CAF50, #2196F3);
@@ -45,7 +43,7 @@ html, body {
 }
 @media (orientation: portrait) { 
   #orientationWarning { display: flex !important; } 
-  #gameCanvas, #hud, #speedBarContainer, #fullscreenBtn, .ui-screen { display: none !important; }
+  #gameCanvas, #hud, #speedBarContainer, #fullscreenBtn, .ui-screen, .version-btn { display: none !important; }
 }
 #orientationWarning .rotate-icon {
   font-size: 90px; margin-bottom: 24px; display: inline-block;
@@ -59,7 +57,6 @@ html, body {
 #orientationWarning h2 { font-size: 26px; margin-bottom: 12px; color: #1565C0; }
 #orientationWarning p { font-size: 16px; color: #455A64; max-width: 320px; line-height: 1.6; }
 
-/* КНОПКА FULLSCREEN */
 #fullscreenBtn {
   position: fixed; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left));
   z-index: 50; width: 44px; height: 44px;
@@ -71,16 +68,143 @@ html, body {
 #fullscreenBtn.hidden { display: none; }
 body.telegram-mode #fullscreenBtn { display: none !important; }
 
+/* ============================================
+   КНОПКА ВЕРСИИ
+   ============================================ */
+.version-btn {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(83, 83, 83, 0.3);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #455A64;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  transition: background 0.15s, transform 0.1s;
+  touch-action: manipulation;
+}
+.version-btn:active {
+  background: rgba(255, 255, 255, 0.95);
+  transform: scale(0.95);
+}
+.version-btn strong {
+  color: #1976D2;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+.version-btn.hidden { display: none; }
+
+/* ============================================
+   CHANGELOG MODAL
+   ============================================ */
+#changelogDialog {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex; justify-content: center; align-items: center;
+  padding: 20px;
+}
+#changelogDialog.hidden { display: none !important; }
+
+#changelogDialog .changelog-box {
+  background: #fff;
+  padding: 22px;
+  border-radius: 16px;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  max-width: 440px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#changelogDialog h2 {
+  font-size: 20px;
+  margin-bottom: 18px;
+  color: #263238;
+  text-align: center;
+}
+
+.changelog-entry {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.changelog-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 12px;
+  padding-bottom: 0;
+}
+
+.changelog-entry h3 {
+  font-size: 15px;
+  color: #1976D2;
+  margin-bottom: 8px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.changelog-entry.current h3 {
+  color: #2E7D32;
+}
+
+.changelog-entry.current h3::after {
+  content: "ТЕКУЩАЯ";
+  font-size: 9px;
+  padding: 2px 6px;
+  background: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.changelog-entry ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.changelog-entry li {
+  font-size: 13px;
+  color: #455A64;
+  padding: 3px 0 3px 16px;
+  position: relative;
+  line-height: 1.45;
+}
+
+.changelog-entry li::before {
+  content: "•";
+  color: #4CAF50;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  top: 2px;
+}
+
 /* ТАЙМЕР БОНУСОВ */
 #powerUpHud {
-  position: absolute; top: max(65px, calc(env(safe-area-inset-top) + 55px)); left: 50%; transform: translateX(-50%);
+  position: absolute; top: max(60px, calc(env(safe-area-inset-top) + 50px)); left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.6); color: white; padding: 4px 12px; border-radius: 20px;
   font-weight: bold; font-size: 14px; z-index: 30; display: flex; align-items: center; gap: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 #powerUpHud.hidden { display: none; }
 
-/* HUD и ПРОГРЕСС-БАР */
+/* HUD */
 #speedBarContainer {
   position: absolute; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
   width: 120px; height: 8px; background: rgba(0,0,0,0.15); border-radius: 4px; z-index: 30; overflow: hidden;
@@ -89,21 +213,14 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 #speedBarContainer.active { opacity: 1; }
 #speedBar { height: 100%; width: 0%; background: linear-gradient(90deg, #8BC34A, #FFC107, #F44336); transition: width 0.2s; }
 
-/* ОБНОВЛЁННЫЙ HUD (В ЦЕНТРЕ) */
 #hud {
   position: absolute; 
   top: max(28px, calc(env(safe-area-inset-top) + 24px)); 
   left: 50%;
   transform: translateX(-50%);
   display: flex; gap: 16px; align-items: center; 
-  font-size: 15px; 
-  color: #263238; 
-  font-weight: 900;
-  letter-spacing: 1px; 
-  z-index: 30; 
-  pointer-events: none;
-  
-  /* Добавляем лёгкую матовую плашку для читаемости на фоне неба */
+  font-size: 15px; color: #263238; font-weight: 900;
+  letter-spacing: 1px; z-index: 30; pointer-events: none;
   background: rgba(255, 255, 255, 0.4);
   padding: 6px 18px;
   border-radius: 20px;
@@ -113,11 +230,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   text-shadow: 0 1px 1px rgba(255,255,255,0.5);
 }
 #hud.hidden { opacity: 0; }
-#hud .bones-counter { 
-  display: flex; align-items: center; gap: 4px; 
-  color: #F57C00; 
-  margin-left: 4px;
-}
+#hud .bones-counter { display: flex; align-items: center; gap: 4px; color: #F57C00; margin-left: 4px; }
 
 /* ЭКРАНЫ */
 .ui-screen {
@@ -146,7 +259,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 }
 .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
 
-/* Кнопки */
 .btn {
   padding: 14px 24px; font-family: inherit; font-size: 17px; font-weight: bold; letter-spacing: 1px;
   background: #4CAF50; color: #fff; border: none; border-radius: 12px;
@@ -160,7 +272,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .btn-back { max-width: 240px; margin-top: 16px; flex-shrink: 0; background: #78909C; box-shadow: 0 4px 0 #455A64; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Табы */
 .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
 .tab-btn {
   padding: 8px 16px; font-family: inherit; font-weight: bold; border: none; border-radius: 8px;
@@ -168,7 +279,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 }
 .tab-btn.active { background: #FFC107; color: #000; box-shadow: 0 2px 0 #FFA000; }
 
-/* Списки */
 .records-list {
   width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
 }
@@ -181,7 +291,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .record-row.top2 { background: linear-gradient(90deg, #CFD8DC, #FFF); }
 .record-row.top3 { background: linear-gradient(90deg, #FFCC80, #FFF); }
 
-/* Улучшения и Скины */
 .bones-balance {
   display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: bold; color: #F57C00;
   margin-bottom: 16px; padding: 10px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -206,7 +315,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 
 #settingsScreen .settings-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
 
-/* Game Over */
 #gameoverScreen { background: rgba(227,242,253,0.92); justify-content: center; }
 #gameoverScreen h1 { font-size: 32px; margin-bottom: 8px; color: #D32F2F; text-shadow: 0 2px 0 #FFCDD2; }
 .new-record {
@@ -281,4 +389,10 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   .gameover-buttons { gap: 6px; }
   #fullscreenBtn { width: 32px; height: 32px; }
   #hud { font-size: 13px; padding: 4px 12px; top: max(24px, calc(env(safe-area-inset-top) + 20px)); gap: 12px; }
+  .version-btn { font-size: 11px; padding: 5px 10px; }
+  #changelogDialog .changelog-box { padding: 16px; }
+  #changelogDialog h2 { font-size: 17px; margin-bottom: 12px; }
+  .changelog-entry { margin-bottom: 12px; padding-bottom: 12px; }
+  .changelog-entry h3 { font-size: 13px; }
+  .changelog-entry li { font-size: 12px; }
   }
