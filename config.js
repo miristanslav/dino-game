@@ -273,9 +273,9 @@ const btnClaimDaily = document.getElementById('btnClaimDaily');
 const dailyBadge = document.getElementById('dailyBadge');
 
 // ===== УТИЛИТЫ =====
-// ИСПРАВЛЕНИЕ БАГА: Теперь lerpColor понимает и HEX, и RGB
 function lerpColor(a, b, t) {
   function parse(c) {
+    if (!c || typeof c !== 'string') return [0, 0, 0]; // Защита от пустых значений
     if (c.startsWith('#')) {
       const v = parseInt(c.slice(1), 16);
       return [(v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF];
@@ -290,4 +290,4 @@ function lerpColor(a, b, t) {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-                                            }
+}
