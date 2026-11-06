@@ -307,6 +307,7 @@ let bonesFlying = [];
 let powerUps = [];
 let rainDrops = [];
 let activeTab = 'upg';
+let snowflakes = [];
 
 // ===== ФОНОВЫЕ ЭЛЕМЕНТЫ =====
 let stars = [];
