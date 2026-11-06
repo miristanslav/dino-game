@@ -15,6 +15,24 @@ function updateHUD() {
     xpBarFill.style.width = Math.min(100, pct) + '%';
   }
 }
+// ===== ПАТЧ 22.1: Отрисовка бонусов в HUD =====
+function updatePowerUpHUD() {
+  const container = document.getElementById('powerUpHudContainer');
+  if (!container) return;
+
+  if (activePowerUps.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  let html = '';
+  activePowerUps.forEach(a => {
+    const sec = Math.ceil(a.timer);
+    html += `<div class="powerup-badge" style="border-color: ${a.color}">${a.icon} ${Math.max(0, sec)}s</div>`;
+  });
+  container.innerHTML = html;
+}
 
 function updateDailyBadge() {
   if (save.dailyQuest && !save.dailyQuest.claimed) {
