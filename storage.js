@@ -1,7 +1,3 @@
-// ============================================================
-// STORAGE.JS — сохранение прогресса в localStorage
-// ============================================================
-
 const SAVE_KEY = 'trex_color_save_v1';
 
 function defaultSave() {
@@ -13,6 +9,8 @@ function defaultSave() {
     achievements: {},
     currentSkin: 'default',
     unlockedSkins: ['default'],
+    currentPet: 'none',
+    unlockedPets: ['none'],
     xp: 0,
     playerLevel: 1,
     lastPlayDate: null,
