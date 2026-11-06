@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 26;
+const CURRENT_VERSION = 27;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,20 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 27,
+    changes: [
+      'Патч 26: Стабильность и безопасность',
+      'Исправлена XSS-уязвимость в мировом рейтинге',
+      'Исправлен дробный highScore (новый рекорд теперь корректен)',
+      'Фон меню больше не залипает в позднем биоме после игры',
+      'Бейдж ежедневки обновляется сразу после игры',
+      'Настройки звука и музыки сохраняются между сессиями',
+      'Корректный сброс игрового состояния при «Сбросить прогресс»',
+      'Устранена утечка слушателей Firebase-онлайна',
+      'Нормализация старых сейвов при загрузке'
+    ]
+  },
   {
     version: 26,
     changes: [
@@ -159,8 +173,15 @@ function checkDailyAndStreak() {
     if (save.lastPlayDate) {
       const last = new Date(save.lastPlayDate);
       const now = new Date(today);
-      const diffDays = Math.ceil(Math.abs(now - last) / (1000 * 60 * 60 * 24));
-      save.streak = (diffDays === 1) ? (save.streak || 0) + 1 : 1;
+      const lastTime = last.getTime();
+      const nowTime = now.getTime();
+      // ПАТЧ 26: Защита от битых дат в сейве — раньше NaN ломал стрик молча
+      if (!isNaN(lastTime) && !isNaN(nowTime)) {
+        const diffDays = Math.ceil(Math.abs(nowTime - lastTime) / (1000 * 60 * 60 * 24));
+        save.streak = (diffDays === 1) ? (save.streak || 0) + 1 : 1;
+      } else {
+        save.streak = 1;
+      }
     } else { save.streak = 1; }
     save.lastPlayDate = today;
     changed = true;
@@ -287,4 +308,4 @@ function lerpColor(a, b, t) {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-                                         }
+        }
