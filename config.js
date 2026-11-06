@@ -220,7 +220,7 @@ const hudBones = document.getElementById('hudBones');
 const tapHint = document.getElementById('tapHint');
 const speedBarContainer = document.getElementById('speedBarContainer');
 const speedBar = document.getElementById('speedBar');
-const powerUpHud = document.getElementById('powerUpHud');
+const powerUpHud = document.getElementById('powerUpHudContainer'); // ИСПРАВЛЕНО
 const versionBtn = document.getElementById('versionBtn');
 const versionNumber = document.getElementById('versionNumber');
 const changelogDialog = document.getElementById('changelogDialog');
@@ -275,7 +275,7 @@ const dailyBadge = document.getElementById('dailyBadge');
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
   function parse(c) {
-    if (!c || typeof c !== 'string') return [0, 0, 0]; // Защита от пустых значений
+    if (!c || typeof c !== 'string') return [0, 0, 0];
     if (c.startsWith('#')) {
       const v = parseInt(c.slice(1), 16);
       return [(v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF];
