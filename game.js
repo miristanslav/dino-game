@@ -36,142 +36,6 @@ function haptic(type) {
   }
 }
 
-// ===== ЗВУКИ =====
-let audioCtx = null;
-let soundEnabled = true;
-let musicEnabled = true;
-let musicInterval = null;
-let musicIndex = 0;
-// === ПАТЧ 17: новая мелодия + бас ===
-const MUSIC_MELODY = [
-  523.25, 587.33, 659.25, 587.33,
-  523.25, 659.25, 783.99, 659.25,
-  698.46, 659.25, 587.33, 523.25,
-  587.33, 523.25, 392.00, 0
-];
-const MUSIC_BASS = [
-  130.81, 0, 146.83, 0,
-  164.81, 0, 130.81, 0,
-  174.61, 0, 146.83, 0,
-  130.81, 0, 196.00, 0
-];
-const MUSIC_VOLUME = 0.14;
-
-function initAudio() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-  } catch (e) {}
-}
-
-// === ПАТЧ 17: усиленная мелодия с басом ===
-function startMusic() {
-  if (!musicEnabled || musicInterval) return;
-  let step = 0;
-  musicInterval = setInterval(() => {
-    if (!musicEnabled || gameState !== 'playing' || !audioCtx) return;
-    try {
-      const now = audioCtx.currentTime;
-      const melodyFreq = MUSIC_MELODY[step % MUSIC_MELODY.length];
-      const bassFreq = MUSIC_BASS[step % MUSIC_BASS.length];
-
-      if (melodyFreq > 0) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(melodyFreq, now);
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
-        osc.start(now); osc.stop(now + 0.35);
-      }
-
-      if (bassFreq > 0) {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2); gain2.connect(audioCtx.destination);
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(bassFreq, now);
-        gain2.gain.setValueAtTime(0, now);
-        gain2.gain.linearRampToValueAtTime(MUSIC_VOLUME * 0.7, now + 0.05);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-        osc2.start(now); osc2.stop(now + 0.4);
-      }
-
-      step++;
-    } catch (e) {}
-  }, 380);
-}
-
-function stopMusic() {
-  if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
-}
-
-function playSound(type) {
-  if (!soundEnabled || !audioCtx) return;
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    const now = audioCtx.currentTime;
-    if (type === 'jump') {
-      osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    } else if (type === 'eat') {
-      osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    } else if (type === 'crash') {
-      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
-      gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if (type === 'click') {
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now);
-      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-      osc.start(now); osc.stop(now + 0.05);
-    } else if (type === 'record') {
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, i) => {
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.type = 'sine'; o.frequency.setValueAtTime(freq, now + i * 0.1);
-        g.gain.setValueAtTime(0.15, now + i * 0.1); g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
-        o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.2);
-      });
-    }
-  } catch (e) {}
-}
-
-function playThunder() {
-  if (!soundEnabled || !audioCtx) return;
-  try {
-    const bufferSize = audioCtx.sampleRate * 2;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
-    }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 250;
-    filter.Q.value = 1;
-    const gain = audioCtx.createGain();
-    const now = audioCtx.currentTime;
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-    noise.start(now);
-    noise.stop(now + 2);
-  } catch (e) {}
-}
-
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
   const ah = parseInt(a.slice(1), 16);
@@ -183,123 +47,6 @@ function lerpColor(a, b, t) {
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
 }
-
-// ===== ВЕРСИЯ И CHANGELOG =====
-const CURRENT_VERSION = 17;
-function formatVersion(v) {
-  const thousands = Math.floor(v / 1000);
-  const hundreds = Math.floor((v % 1000) / 100);
-  const tens = v % 100;
-  return `${thousands}.${hundreds}.${tens}`;
-}
-
-const CHANGELOG = [
-  {
-    version: 17,
-    changes: [
-      'Патч 17: музыка теперь слышна!',
-      'Громкость мелодии увеличена в ~3.5 раза (0.04 → 0.14)',
-      'Волна sine заменена на triangle — звук ярче и заметнее',
-      'Добавлена басовая партия — мелодия стала полнее',
-      'Новая мелодия из 16 нот (вместо 8)',
-      'Плавная атака нот — нет щелчков в начале звука'
-    ]
-  },
-  {
-    version: 16,
-    changes: [
-      'Патч 16: стабильность и настройки',
-      'Исправлен невидимый символ в кнопке «Сбросить прогресс» (HTML)',
-      'Кнопка «Музыка» теперь работает: включает/выключает фоновую мелодию',
-      'Синхронизирована версия JS с HTML (0.0.16)',
-      'Оптимизация: рекорд сохраняется раз в ~5 сек вместо каждого кадра — меньше лагов на телефоне',
-      'Исправлена очистка canvas при тряске экрана (устранён «шлейф» по краям)'
-    ]
-  },
-  {
-    version: 15,
-    changes: [
-      'Комбо-система: съел 3 птицы подряд → x2 кости',
-      'Съел 6 птиц подряд → x3 кости (таймер 5 сек)',
-      'Near-miss: пролетел впритык от кактуса → +5 очков',
-      'Near-miss: пролетел впритык от птицы → +1 кость',
-      'Пропустил птицу — комбо сбрасывается',
-      'Индикатор комбо с таймером сверху экрана'
-    ]
-  },
-  {
-    version: 14,
-    changes: [
-      'Исправлено отображение версии (только в главном меню)',
-      'Клик по версии открывает список обновлений',
-      'Луна стала мягче — без яркого свечения',
-      'Молния в виде зигзага на горизонте',
-      'Добавлен звук удара грома (тихий)'
-    ]
-  },
-  {
-    version: 13,
-    changes: [
-      'Плавная смена дня и ночи с восходом и закатом',
-      'Красивые цвета неба: рассвет, полдень, закат, сумерки',
-      'Солнце и луна движутся по небу и уходят за горизонт',
-      'Улучшена видимость ночью (яркие цвета объектов)',
-      'Добавлено отображение версии игры'
-    ]
-  },
-  {
-    version: 12,
-    changes: [
-      'Переработана система времени суток (плавная)',
-      'Добавлены солнце и луна с движением по дуге',
-      'Улучшены цвета ночи для читаемости препятствий',
-      'Таймеры погоды переведены в секунды'
-    ]
-  },
-  {
-    version: 11,
-    changes: [
-      'Новый дизайн птеродактиля (длинный клюв, гребень)',
-      'Уменьшены размеры больших кактусов',
-      'Добавлены вспышки молний во время дождя',
-      'Скорректированы хитбоксы под новые размеры'
-    ]
-  },
-  {
-    version: 10,
-    changes: [
-      'Исправлен баг двойного прыжка',
-      'Таймеры бонусов переведены в секунды',
-      'Оптимизировано обновление таймера бонусов'
-    ]
-  },
-  {
-    version: 9,
-    changes: [
-      'HUD перемещён в центр экрана',
-      'Уменьшены иконки костей в HUD',
-      'Исправлено исчезновение HUD в меню'
-    ]
-  },
-  {
-    version: 8,
-    changes: [
-      'Добавлен полноэкранный режим в Telegram',
-      'Исправлено растягивание на весь экран',
-      'Улучшена адаптация под горизонтальный режим'
-    ]
-  },
-  {
-    version: 7,
-    changes: [
-      'Полноцветный мир (зелёные кактусы, коричневая земля)',
-      'Детализированный T-Rex с хвостом и челюстью',
-      'Добавлены скины (Огненный, Ледяной, Золотой)',
-      'Добавлены достижения и бонусы (Щит, Двойной прыжок)',
-      'Добавлены звуки (Web Audio API) и погода'
-    ]
-  }
-];
 
 // ===== ИГРА =====
 (() => {
@@ -427,46 +174,6 @@ const CHANGELOG = [
     if (typeof lightning !== 'undefined' && lightning) lightning = null;
   }
 
-  const GRAVITY = 0.75;
-  const JUMP_FORCE = -12.6;
-  const DINO_SCALE_GAME = 1.8;
-  const DINO_SCALE_MENU = 3.0;
-  const BIRD_SCALE_GAME = 0.9;
-  const BIRD_SCALE_MENU = 1.2;
-  const BASE_SPEED = 3.5;
-  const MAX_SPEED_BONUS = 4.5;
-
-  const DAY_NIGHT_CYCLE = 75;
-  const CLEAR_DURATION = 20;
-  const RAIN_DURATION = 15;
-
-  const SKINS = [
-    { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
-    { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF' },
-    { id: 'ice', name: 'Ледяной', cost: 100, body: '#2196F3', outline: '#0D47A1', belly: '#BBDEFB', claw: '#E1F5FE', eye: '#FFF' },
-    { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF' }
-  ];
-
-  const UPGRADES = [
-    { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [10, 30, 60, 100, 150] },
-    { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притяжение птиц', maxLevel: 2, costs: [15, 40] },
-    { id: 'doubleBones', icon: '✨', name: 'Двойные кости', desc: '+1 кость за птицу', maxLevel: 2, costs: [25, 75] }
-  ];
-
-  const ACHIEVEMENTS_DEF = [
-    { id: 'first_run', icon: '👟', name: 'Первый шаг', desc: 'Сыграть первую игру' },
-    { id: 'score_500', icon: '⭐', name: 'Новичок', desc: 'Набрать 500 очков' },
-    { id: 'score_2000', icon: '🌟', name: 'Профи', desc: 'Набрать 2000 очков' },
-    { id: 'birds_10', icon: '🦅', name: 'Охотник', desc: 'Съесть 10 птиц за игру' },
-    { id: 'bones_100', icon: '💰', name: 'Богач', desc: 'Накопить 100 костей' }
-  ];
-
-  const SAVE_KEY = 'trex_color_save_v1';
-  function defaultSave() { return { highScore: 0, bones: 0, games: [], upgrades: { jump: 0, magnet: 0, doubleBones: 0 }, achievements: {}, currentSkin: 'default', unlockedSkins: ['default'] }; }
-  let save = (() => { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? { ...defaultSave(), ...JSON.parse(raw) } : defaultSave(); } catch { return defaultSave(); } })();
-  function writeSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
-
-  let gameState = 'menu';
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
   
   let dayNightTime = 0.5 * DAY_NIGHT_CYCLE;
@@ -481,7 +188,6 @@ const CHANGELOG = [
 
   let comboCount = 0;
   let comboTimer = 0;
-  const COMBO_TIMEOUT = 5;
 
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
   let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
@@ -545,23 +251,6 @@ const CHANGELOG = [
   function getBirdBox(b) {
     return { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
   }
-
-  const TIME_KEYS = [
-    { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' },
-    { t: 0.10, top: '#0F1432', bot: '#252A4A' },
-    { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' },
-    { t: 0.22, top: '#E8A598', bot: '#FFD89B' },
-    { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' },
-    { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' },
-    { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' },
-    { t: 0.65, top: '#FFC947', bot: '#FFE082' },
-    { t: 0.72, top: '#FF8A65', bot: '#FFAB91' },
-    { t: 0.78, top: '#FF6B6B', bot: '#FFA451' },
-    { t: 0.84, top: '#8B2E5F', bot: '#E85D75' },
-    { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' },
-    { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' },
-    { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' },
-  ];
 
   function getSkyColors(t) {
     for (let i = 0; i < TIME_KEYS.length - 1; i++) {
@@ -1060,8 +749,7 @@ const CHANGELOG = [
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
     startMusic();
-                                           }
-    function jump() {
+}  function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
     if (!dino.jumping) {
