@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=21">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -58,6 +58,7 @@
   <div class="subtitle">COLOR RUNNER</div>
   <div class="menu-buttons">
     <button class="btn" data-action="start">▶ НАЧАТЬ ИГРУ</button>
+    <button class="btn secondary" data-action="daily">📅 ЕЖЕДНЕВКИ <span id="dailyBadge" class="hidden">🔥</span></button>
     <button class="btn secondary" data-action="records">🏆 РЕКОРДЫ</button>
     <button class="btn secondary" data-action="upgrades">🦴 УЛУЧШЕНИЯ</button>
     <button class="btn secondary" data-action="achievements">🏅 ДОСТИЖЕНИЯ</button>
@@ -67,8 +68,22 @@
 
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.20</strong>
+  <strong id="versionNumber">0.0.21</strong>
 </button>
+
+<div id="dailyScreen" class="ui-screen hidden">
+  <h1>📅 ЕЖЕДНЕВКА</h1>
+  <div class="streak-display">🔥 Серия: <span id="dailyStreak">0</span> дн.</div>
+  <div class="daily-card" id="dailyCard">
+    <div class="daily-icon" id="dailyIcon">⭐</div>
+    <div class="daily-title" id="dailyTitle">Загрузка...</div>
+    <div class="daily-progress-text"><span id="dailyProgressText">0</span> / <span id="dailyTargetText">0</span></div>
+    <div class="daily-progress-bar"><div class="daily-progress-fill" id="dailyProgressFill"></div></div>
+    <div class="daily-rewards">Награда: <span id="dailyBoneReward">50</span> 🦴 + <span id="dailyXpReward">100</span> XP</div>
+    <button class="btn" id="btnClaimDaily" data-action="claim-daily" disabled>ЗАБРАТЬ НАГРАДУ</button>
+  </div>
+  <button class="btn btn-back" data-action="back">← НАЗАД</button>
+</div>
 
 <div id="recordsScreen" class="ui-screen hidden">
   <h1>🏆 РЕКОРДЫ</h1>
@@ -123,7 +138,7 @@
 <div id="confirmDialog" class="hidden">
   <div class="dialog-box">
     <h2>Сбросить прогресс?</h2>
-    <p>Все рекорды, кости, улучшения, скины и уровни будут удалены!</p>
+    <p>Все рекорды, кости, улучшения, скины, уровни и стрик будут удалены!</p>
     <div class="dialog-buttons">
       <button class="btn secondary" data-action="reset-no">Нет</button>
       <button class="btn danger" data-action="reset-yes">Да</button>
@@ -154,16 +169,15 @@
   </div>
 </div>
 
-<!-- ПОРЯДОК ЗАГРУЗКИ КРИТИЧЕН -->
-<script src="config.js?v=20"></script>
-<script src="audio.js?v=20"></script>
-<script src="storage.js?v=20"></script>
-<script src="physics.js?v=20"></script>
-<script src="sprites.js?v=20"></script>
-<script src="background.js?v=20"></script>
-<script src="weather.js?v=20"></script>
-<script src="ui.js?v=20"></script>
-<script src="input.js?v=20"></script>
-<script src="game.js?v=20"></script>
+<script src="config.js?v=21"></script>
+<script src="audio.js?v=21"></script>
+<script src="storage.js?v=21"></script>
+<script src="physics.js?v=21"></script>
+<script src="sprites.js?v=21"></script>
+<script src="background.js?v=21"></script>
+<script src="weather.js?v=21"></script>
+<script src="ui.js?v=21"></script>
+<script src="input.js?v=21"></script>
+<script src="game.js?v=21"></script>
 </body>
 </html>
