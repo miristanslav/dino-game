@@ -12,7 +12,9 @@ function defaultSave() {
     upgrades: { jump: 0, magnet: 0, doubleBones: 0 },
     achievements: {},
     currentSkin: 'default',
-    unlockedSkins: ['default']
+    unlockedSkins: ['default'],
+    xp: 0,
+    playerLevel: 1
   };
 }
 
