@@ -1,6 +1,6 @@
 // ============================================================
 // GAME.JS — точка входа: Telegram, splash, resize, update, loop
-// Загружается ПОСЛЕДНИМ. Запускает игру.
+// Патч 20: + XP при gameover, + бонусы скинов в геймплее
 // ============================================================
 
 // ===== TELEGRAM INIT =====
@@ -185,6 +185,7 @@ function reset() {
   gameState = 'playing';
   hideAllScreens();
   hud.classList.remove('hidden');
+  xpBarContainer.classList.remove('hidden');
   speedBarContainer.classList.add('active');
   powerUpHud.classList.add('hidden');
   fullscreenBtn.classList.remove('hidden');
@@ -226,17 +227,40 @@ function gameOver() {
   save.games.sort((a, b) => b.score - a.score);
   save.games = save.games.slice(0, 10);
   checkAchievements(finalScore);
+
+  // ===== ПАТЧ 20: начисление XP и проверка уровня =====
+  const xpGained = Math.floor(finalScore / 10) + earnedThisGame * 2;
+  const oldLevel = getLevelFromXp(save.xp).level;
+  save.xp += xpGained;
+  const newInfo = getLevelFromXp(save.xp);
+  let totalLevelReward = 0;
+  if (newInfo.level > oldLevel) {
+    for (let lv = oldLevel + 1; lv <= newInfo.level; lv++) {
+      totalLevelReward += xpLevelReward(lv);
+    }
+    save.bones += totalLevelReward;
+    save.playerLevel = newInfo.level;
+  }
+
   writeSave();
   updateHUD();
   goScore.textContent = finalScore;
   goHigh.textContent = Math.floor(save.highScore);
   goBones.textContent = `+${earnedThisGame} 🦴`;
+  goXp.textContent = `+${xpGained} XP`;
+
   gameoverScreen.classList.remove('hidden');
   fullscreenBtn.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
   versionBtn.style.display = 'none';
   speedBarContainer.classList.remove('active');
   powerUpHud.classList.add('hidden');
   hud.classList.add('hidden');
+
+  // Показать попап нового уровня через 0.9 сек
+  if (newInfo.level > oldLevel) {
+    setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 900);
+  }
 }
 
 // ===== UPDATE =====
@@ -244,7 +268,11 @@ function update(dt) {
   if (isPortraitMode) return;
   frame++;
   if (gameState === 'playing') {
-    score += 0.1 * (speed / BASE_SPEED) * (dt * 60);
+    // ===== ПАТЧ 20: бонус скина к очкам =====
+    const skinBonus = getCurrentSkin().bonus;
+    const scoreBonusMult = (skinBonus.type === 'score') ? skinBonus.value : 1;
+
+    score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
     speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
     speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
@@ -310,7 +338,7 @@ function update(dt) {
 
       if (oBox.x + oBox.w < dinoBox.x - 15) {
         if (o.wasClose) {
-          score += 5;
+          score += 5 * scoreBonusMult;
           spawnFloatingText(o.x + o.w * dino.scale / 2, o.y - o.h * dino.scale - 25, 'NICE! +5');
         }
         obstacles.splice(i, 1);
@@ -347,7 +375,7 @@ function update(dt) {
       b.x -= effSpeed;
     });
 
-    // Near-miss с птицами + сброс комбо при пропуске
+    // Near-miss с птицами + сброс комбо
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       const bBox = getBirdBox(b);
@@ -372,7 +400,16 @@ function update(dt) {
     for (let i = powerUps.length - 1; i >= 0; i--) {
       const p = powerUps[i];
       if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
-        powerUpActive = { type: p.type, timer: p.duration, maxTimer: p.duration, icon: p.icon, color: p.color };
+        // ===== ПАТЧ 20: бонус скина к длительности бонусов =====
+        const puBonusDur = (skinBonus.type === 'powerup') ? skinBonus.value : 0;
+        const totalDuration = p.duration + puBonusDur;
+        powerUpActive = {
+          type: p.type,
+          timer: totalDuration,
+          maxTimer: totalDuration,
+          icon: p.icon,
+          color: p.color
+        };
         if (p.type === 'doubleJump') dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
         playSound('record');
         haptic('eat');
@@ -414,7 +451,9 @@ function update(dt) {
         comboTimer = COMBO_TIMEOUT;
         const mult = getComboMultiplier();
 
-        const baseBones = 1 + (save.upgrades.doubleBones || 0);
+        // ===== ПАТЧ 20: бонус скина к костям за птицу =====
+        const birdBonesBonus = (skinBonus.type === 'bones') ? skinBonus.value : 0;
+        const baseBones = 1 + (save.upgrades.doubleBones || 0) + birdBonesBonus;
         const bonesEarned = baseBones * mult;
 
         sessionBones += bonesEarned;
