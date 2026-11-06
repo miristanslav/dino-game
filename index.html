@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -41,6 +41,11 @@
   </span>
 </div>
 
+<div id="xpBarContainer">
+  <span id="xpLevel">Lv.1</span>
+  <div id="xpBar"><div id="xpBarFill"></div></div>
+</div>
+
 <div id="comboHud" class="hidden">
   <span id="comboMult">🔥 x2</span>
   <div id="comboTimerBar"><div id="comboTimerFill"></div></div>
@@ -62,7 +67,7 @@
 
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.19</strong>
+  <strong id="versionNumber">0.0.20</strong>
 </button>
 
 <div id="recordsScreen" class="ui-screen hidden">
@@ -108,6 +113,7 @@
   <div class="stat">Счёт: <span id="goScore">0</span></div>
   <div class="stat">Рекорд: <span id="goHigh">0</span></div>
   <div class="bones-earned" id="goBones">+0 🦴</div>
+  <div class="xp-earned" id="goXp">+0 XP</div>
   <div class="gameover-buttons">
     <button class="btn" data-action="start">▶ ИГРАТЬ СНОВА</button>
     <button class="btn secondary" data-action="back">🏠 В МЕНЮ</button>
@@ -117,7 +123,7 @@
 <div id="confirmDialog" class="hidden">
   <div class="dialog-box">
     <h2>Сбросить прогресс?</h2>
-    <p>Все рекорды, кости, улучшения и скины будут удалены!</p>
+    <p>Все рекорды, кости, улучшения, скины и уровни будут удалены!</p>
     <div class="dialog-buttons">
       <button class="btn secondary" data-action="reset-no">Нет</button>
       <button class="btn danger" data-action="reset-yes">Да</button>
@@ -133,6 +139,13 @@
   </div>
 </div>
 
+<div id="levelUpPopup">
+  <div class="levelup-icon">⭐</div>
+  <div class="levelup-title">НОВЫЙ УРОВЕНЬ!</div>
+  <div class="levelup-name" id="levelUpName">Lv.2</div>
+  <div class="levelup-reward" id="levelUpReward">+20 🦴</div>
+</div>
+
 <div id="changelogDialog" style="display: none;">
   <div class="changelog-box">
     <h2>📋 Список обновлений</h2>
@@ -142,15 +155,15 @@
 </div>
 
 <!-- ПОРЯДОК ЗАГРУЗКИ КРИТИЧЕН -->
-<script src="config.js?v=19"></script>
-<script src="audio.js?v=19"></script>
-<script src="storage.js?v=19"></script>
-<script src="physics.js?v=19"></script>
-<script src="sprites.js?v=19"></script>
-<script src="background.js?v=19"></script>
-<script src="weather.js?v=19"></script>
-<script src="ui.js?v=19"></script>
-<script src="input.js?v=19"></script>
-<script src="game.js?v=19"></script>
+<script src="config.js?v=20"></script>
+<script src="audio.js?v=20"></script>
+<script src="storage.js?v=20"></script>
+<script src="physics.js?v=20"></script>
+<script src="sprites.js?v=20"></script>
+<script src="background.js?v=20"></script>
+<script src="weather.js?v=20"></script>
+<script src="ui.js?v=20"></script>
+<script src="input.js?v=20"></script>
+<script src="game.js?v=20"></script>
 </body>
 </html>
