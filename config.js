@@ -12,7 +12,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 23;
+const CURRENT_VERSION = 24;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -29,19 +29,9 @@ const CHANGELOG = [
       'Добавлен падающий метеорит (раз в 20-30 секунд)',
       'Метеорит при падении рассыпает +10 костей',
       'Добавлена Золотая птица (шанс 10% вместо обычной)',
-      'Золотая птица даёт +10 костей вместо 1'
-    ]
-  },
-  {
-    version: 23,
-    changes: [
-      'Патч 22.1: Глобальные исправления',
-      'ИСПРАВЛЕН БАГ: горы и земля больше не чёрные (починена функция lerpColor)',
-      'ИСПРАВЛЕНО: Ночь теперь корректно затемняет цвета разных биомов',
-      'Улучшена система бонусов: теперь можно собирать несколько бонусов одновременно',
-      'HUD с бонусами перенесён в нижнюю часть экрана',
-      'Увеличен шанс появления птиц (теперь их больше)',
-      'Динамическая сложность: чем больше счёт, тем чаще появляются кактусы'
+      'Золотая птица даёт +10 костей вместо 1',
+      'Улучшена система бонусов: можно собирать несколько сразу',
+      'Увеличен шанс появления птиц'
     ]
   },
   {
@@ -206,14 +196,13 @@ let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shak
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
-let lastPowerUpSecond = -1;
-let meteorTimer = 15; // Секунд до первого метеорита
+let meteorTimer = 15; // ПАТЧ 23: Таймер метеорита
 
 // ===== ИГРОВЫЕ ОБЪЕКТЫ =====
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
 let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [];
+let meteors = []; // ПАТЧ 23: Массив метеоритов
 let activeTab = 'upg';
-let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [];
 
 // ===== ФОН =====
 let stars = [];
@@ -303,4 +292,4 @@ function lerpColor(a, b, t) {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-}
+  }
