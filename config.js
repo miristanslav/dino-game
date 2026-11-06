@@ -13,7 +13,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 19;
+const CURRENT_VERSION = 20;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
