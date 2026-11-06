@@ -3,15 +3,6 @@
 // Патч 22.1: Динамическая сложность, массив бонусов
 // ============================================================
 
-// ВРЕМЕННЫЙ ПЕРЕХВАТЧИК ОШИБОК
-window.onerror = function(msg, url, line, col, error) {
-  var dbg = document.createElement('div');
-  dbg.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;background:red;color:white;padding:15px;z-index:999999;font-size:14px;border-radius:8px;word-wrap:break-word;';
-  dbg.textContent = 'ОШИБКА: ' + msg + ' (строка ' + line + ')';
-  document.body.appendChild(dbg);
-  return false;
-};
-// ===== TELEGRAM INIT =====
 // ===== TELEGRAM INIT =====
 try {
   tgApp = window.Telegram?.WebApp;
@@ -168,7 +159,7 @@ function reset() {
   powerUps = [];
   rainDrops = [];
   snowflakes = [];
-  activePowerUps = []; // Очищаем бонусы
+  activePowerUps = [];
   lightning = null;
   lightningAmbient = 0;
   dino.y = GROUND_Y;
@@ -197,7 +188,7 @@ function reset() {
   hud.classList.remove('hidden');
   xpBarContainer.classList.remove('hidden');
   speedBarContainer.classList.add('active');
-  updatePowerUpHUD(); // Скрываем контейнер бонусов
+  updatePowerUpHUD();
   fullscreenBtn.classList.remove('hidden');
   versionBtn.style.display = 'none';
   tapHint.classList.remove('hidden');
@@ -274,7 +265,7 @@ function gameOver() {
   xpBarContainer.classList.add('hidden');
   versionBtn.style.display = 'none';
   speedBarContainer.classList.remove('active');
-  document.getElementById('powerUpHudContainer').classList.add('hidden'); // Скрываем бонусы
+  powerUpHud.classList.add('hidden'); 
   hud.classList.add('hidden');
 
   if (newInfo.level > oldLevel) {
@@ -292,7 +283,6 @@ function update(dt) {
 
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
     
-    // ПАТЧ 22.1: Динамическая сложность (скорость)
     speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
     speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
@@ -308,7 +298,6 @@ function update(dt) {
     dayNightTime += dt;
     if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
 
-    // Погода в зависимости от биома
     const biomeInfo = getBiomeState(score);
     if (biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5)) {
       isRaining = false;
@@ -325,7 +314,6 @@ function update(dt) {
       updateRain(dt);
     }
 
-    // Прыжок
     if (dino.jumping) {
       dino.vy += GRAVITY * (dt * 60);
       dino.y += dino.vy * (dt * 60);
@@ -341,19 +329,13 @@ function update(dt) {
       spawnDust(dino.x + 10, GROUND_Y, 1, 1);
     }
 
-    // ПАТЧ 22.1: Динамическая сложность (спавн)
-    spawnTimer -= dt * 60; // Перевод в кадры
+    spawnTimer -= dt * 60;
     if (spawnTimer <= 0) {
       spawnObstacle();
-      
-      // Чем выше счёт, тем меньше пауза между препятствиями
-      const difficultyFactor = Math.min(1, score / 2000); // 0 -> 1
-      let baseGap = Math.max(45, 100 - difficultyFactor * 40); // от 100 до 60 кадров
-      
-      // Учитываем скорость, чтобы плотность оставалась высокой
+      const difficultyFactor = Math.min(1, score / 2000);
+      let baseGap = Math.max(45, 100 - difficultyFactor * 40);
       const minFrames = baseGap / (speed / BASE_SPEED);
       const maxFrames = (baseGap + 60) / (speed / BASE_SPEED);
-      
       spawnTimer = Math.max(30, minFrames + Math.random() * (maxFrames - minFrames));
     }
 
@@ -363,7 +345,6 @@ function update(dt) {
 
     const dinoBox = getDinoBox();
 
-    // Near-miss с кактусами
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
       const oBox = getCactusBox(o);
@@ -380,7 +361,6 @@ function update(dt) {
       }
     }
 
-    // Птицы
     birds.forEach(b => {
       let effSpeed = speed * 0.5;
       if (save.upgrades.magnet > 0) {
@@ -426,7 +406,6 @@ function update(dt) {
       }
     }
 
-    // Сбор бонусов (массив)
     for (let i = powerUps.length - 1; i >= 0; i--) {
       const p = powerUps[i];
       if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
@@ -451,11 +430,10 @@ function update(dt) {
         playSound('record');
         haptic('eat');
         powerUps.splice(i, 1);
-        updatePowerUpHUD(); // Обновляем отрисовку
+        updatePowerUpHUD();
       }
     }
 
-    // Таймеры бонусов
     let powerUpChanged = false;
     for (let i = activePowerUps.length - 1; i >= 0; i--) {
       activePowerUps[i].timer -= dt;
@@ -466,7 +444,6 @@ function update(dt) {
     }
     if (powerUpChanged) updatePowerUpHUD();
 
-    // Столкновения с кактусами
     const hasShield = activePowerUps.some(a => a.type === 'shield');
     if (!hasShield) {
       for (const o of obstacles) {
@@ -477,7 +454,6 @@ function update(dt) {
       }
     }
 
-    // Поедание птиц
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       const bBox = getBirdBox(b);
