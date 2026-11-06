@@ -23,6 +23,16 @@ function formatVersion(v) {
 // ===== CHANGELOG =====
 const CHANGELOG = [
   {
+    version: 24,
+    changes: [
+      'Патч 23: Редкие события!',
+      'Добавлен падающий метеорит (раз в 20-30 секунд)',
+      'Метеорит при падении рассыпает +10 костей',
+      'Добавлена Золотая птица (шанс 10% вместо обычной)',
+      'Золотая птица даёт +10 костей вместо 1'
+    ]
+  },
+  {
     version: 23,
     changes: [
       'Патч 22.1: Глобальные исправления',
@@ -196,11 +206,14 @@ let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shak
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
+let lastPowerUpSecond = -1;
+let meteorTimer = 15; // Секунд до первого метеорита
 
 // ===== ИГРОВЫЕ ОБЪЕКТЫ =====
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
 let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [];
 let activeTab = 'upg';
+let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [];
 
 // ===== ФОН =====
 let stars = [];
