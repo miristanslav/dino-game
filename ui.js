@@ -1,14 +1,20 @@
 // ============================================================
 // UI.JS — все экраны меню, changelog, рендер списков, попапы
-// Использует: все DOM refs, save, writeSave, SKINS, UPGRADES,
-//             ACHIEVEMENTS_DEF, CHANGELOG, CURRENT_VERSION,
-//             haptic, playSound, initAudio
+// Патч 20: + XP-бар, + бонусы в карточках скинов, + попап уровня
 // ============================================================
 
 function updateHUD() {
   hudHigh.textContent = String(Math.floor(save.highScore)).padStart(5, '0');
   hudScore.textContent = String(Math.floor(score)).padStart(5, '0');
   hudBones.textContent = save.bones + sessionBones;
+
+  // ===== ПАТЧ 20: XP-бар =====
+  if (xpLevel && xpBarFill) {
+    const info = getLevelFromXp(save.xp);
+    xpLevel.textContent = `Lv.${info.level}`;
+    const pct = info.xpToNext > 0 ? (info.currentXp / info.xpToNext) * 100 : 0;
+    xpBarFill.style.width = Math.min(100, pct) + '%';
+  }
 }
 
 function hideAllScreens() {
@@ -22,6 +28,7 @@ function hideAllScreens() {
   changelogDialog.style.display = 'none';
   versionBtn.style.display = 'none';
   comboHud.classList.add('hidden');
+  levelUpPopup.classList.remove('show');
 }
 
 function showChangelog() {
@@ -101,6 +108,12 @@ function renderUpgrades() {
       const card = document.createElement('div');
       card.className = 'upgrade-card';
       if (isEquipped) card.classList.add('equipped');
+
+      // ===== ПАТЧ 20: показываем бонус скина =====
+      const bonusText = (skin.bonus && skin.bonus.type !== 'none')
+        ? `<div class="skin-bonus">${skin.bonus.desc}</div>`
+        : '';
+
       card.innerHTML = `
         <div class="upgrade-icon">
           <div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div>
@@ -108,6 +121,7 @@ function renderUpgrades() {
         <div class="upgrade-info">
           <div class="upgrade-name">${skin.name}</div>
           <div class="upgrade-desc">${isEquipped ? 'Экипирован' : isUnlocked ? 'Разблокирован' : 'Не куплен'}</div>
+          ${bonusText}
         </div>
         <button class="upgrade-buy ${isEquipped ? 'maxed' : ''}" ${isEquipped || (!isUnlocked && save.bones < skin.cost) ? 'disabled' : ''}>
           ${isEquipped ? '✓ НАДЕТ' : isUnlocked ? 'НАДЕТЬ' : `${skin.cost} 🦴`}
@@ -196,10 +210,22 @@ function unlockAch(id) {
   }
 }
 
+// ===== ПАТЧ 20: попап нового уровня =====
+function showLevelUpPopup(level, reward) {
+  levelUpName.textContent = `Lv.${level}`;
+  levelUpReward.textContent = `+${reward} 🦴`;
+  levelUpPopup.classList.add('show');
+  playSound('record');
+  setTimeout(() => {
+    levelUpPopup.classList.remove('show');
+  }, 3000);
+}
+
 function showMainMenu() {
   gameState = 'menu';
   hideAllScreens();
   hud.classList.remove('hidden');
+  xpBarContainer.classList.remove('hidden');
   fullscreenBtn.classList.remove('hidden');
   versionBtn.style.display = 'flex';
   tapHint.classList.add('hidden');
@@ -220,6 +246,7 @@ function showRecords() {
   gameState = 'records';
   hideAllScreens();
   hud.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
   fullscreenBtn.classList.add('hidden');
   recordsScreen.classList.remove('hidden');
   renderRecords();
@@ -229,6 +256,7 @@ function showUpgrades() {
   gameState = 'upgrades';
   hideAllScreens();
   hud.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
   fullscreenBtn.classList.add('hidden');
   upgradesScreen.classList.remove('hidden');
   renderUpgrades();
@@ -238,6 +266,7 @@ function showAchievements() {
   gameState = 'achievements';
   hideAllScreens();
   hud.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
   fullscreenBtn.classList.add('hidden');
   achievementsScreen.classList.remove('hidden');
   renderAchievements();
@@ -247,11 +276,12 @@ function showSettings() {
   gameState = 'settings';
   hideAllScreens();
   hud.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
   fullscreenBtn.classList.add('hidden');
   settingsScreen.classList.remove('hidden');
 }
 
-// ===== Tab switching для улучшений/скинов =====
+// ===== Tab switching =====
 tabUpg.addEventListener('click', () => {
   activeTab = 'upg';
   tabUpg.classList.add('active');
@@ -266,7 +296,7 @@ tabSkins.addEventListener('click', () => {
   renderUpgrades();
 });
 
-// ===== Кнопка версии → changelog =====
+// ===== Кнопка версии =====
 versionBtn.addEventListener('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -280,5 +310,5 @@ changelogDialog.addEventListener('click', (e) => {
   if (e.target === changelogDialog) changelogDialog.style.display = 'none';
 });
 
-// ===== Начальная установка версии в UI =====
+// ===== Начальная установка версии =====
 versionNumber.textContent = formatVersion(CURRENT_VERSION);
