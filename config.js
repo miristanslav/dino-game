@@ -403,15 +403,22 @@ const dailyBadge = document.getElementById('dailyBadge');
 
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
-  const ah = parseInt(a.slice(1), 16);
-  const bh = parseInt(b.slice(1), 16);
-  const ar = (ah >> 16) & 0xFF, ag = (ah >> 8) & 0xFF, ab = ah & 0xFF;
-  const br = (bh >> 16) & 0xFF, bg = (bh >> 8) & 0xFF, bb = bh & 0xFF;
+  function parse(c) {
+    if (c.startsWith('#')) {
+      const v = parseInt(c.slice(1), 16);
+      return [(v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF];
+    } else {
+      const m = c.match(/\d+/g);
+      return m ? [+m[0], +m[1], +m[2]] : [0, 0, 0];
+    }
+  }
+  const [ar, ag, ab] = parse(a);
+  const [br, bg, bb] = parse(b);
   const r = Math.round(ar + (br - ar) * t);
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
-  }
+}
 // ===== ПАТЧ 20: XP И УРОВНИ =====
 
 // Сколько XP нужно для перехода с уровня level на level+1
