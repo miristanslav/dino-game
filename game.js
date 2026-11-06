@@ -1,5 +1,3 @@
-try { tgApp = window.Telegram?.WebApp; isTelegram = tgApp && tgApp.platform && tgApp.platform !== 'unknown'; if (isTelegram) { tgApp.ready(); tgApp.expand(); if (tgApp.disableVerticalSwipes) tgApp.disableVerticalSwipes(); if (tgApp.setHeaderColor) tgApp.setHeaderColor('#E3F2FD'); if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#E3F2FD'); document.body.classList.add('telegram-mode'); } } catch (e) {}
-
 function removeSplash() { const splash = document.getElementById('splashScreen'); if (splash) { splash.classList.add('fade-out'); setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500); } }
 window.addEventListener('load', () => setTimeout(removeSplash, 1000)); setTimeout(removeSplash, 2000);
 
@@ -60,6 +58,10 @@ function gameOver() {
   const earnedThisGame = sessionBones; save.bones += sessionBones; sessionBones = 0;
   const finalScore = Math.floor(score); const isNewRecord = finalScore > save.highScore;
   if (isNewRecord) { save.highScore = finalScore; playSound('record'); newRecordText.classList.remove('hidden'); } else { newRecordText.classList.add('hidden'); }
+  
+  // ПАТЧ 25: Отправляем рекорд в облако Firebase
+  if (finalScore > 0) submitScoreToCloud(finalScore);
+
   save.games.push({ score: finalScore, date: Date.now() }); save.games.sort((a, b) => b.score - a.score); save.games = save.games.slice(0, 10);
   checkAchievements(finalScore);
   if (save.dailyQuest && !save.dailyQuest.claimed) {
