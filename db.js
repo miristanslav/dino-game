@@ -79,7 +79,7 @@ async function submitScoreToCloud(finalScore) {
 async function fetchGlobalLeaderboard() {
   const listEl = document.getElementById('recordsList');
   if (!db) {
-    listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #D32F2F;">База данных не подключена (проверь ключи Firebase)</div>';
+    listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #D32F2F;">База данных не подключена</div>';
     return;
   }
 
@@ -91,6 +91,11 @@ async function fetchGlobalLeaderboard() {
       .limit(50)
       .get();
 
+    if (snapshot.empty) {
+      listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #666;">Пока нет рекордов. Стань первым!</div>';
+      return;
+    }
+
     listEl.innerHTML = '';
     let rank = 1;
     snapshot.forEach((doc) => {
@@ -99,22 +104,27 @@ async function fetchGlobalLeaderboard() {
       
       const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
       
+      // Безопасная проверка фото: если ссылки нет или она битая, ставим эмодзи
+      const photoHtml = (data.photo && data.photo.startsWith('http')) 
+        ? `<img src="${data.photo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentNode.innerHTML='👤'">` 
+        : '👤';
+
       const row = document.createElement('div');
       row.className = 'global-record-row' + (isMe ? ' is-me' : '');
       
       row.innerHTML = `
         <div style="width: 40px; font-weight: bold; color: #78909C; font-size: 14px;">${medal}</div>
         <div class="player-info">
-          <div class="player-avatar">${data.photo ? `<img src="${data.photo}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : '👤'}</div>
+          <div class="player-avatar">${photoHtml}</div>
           <div class="player-name">${data.name} ${isMe ? '(Вы)' : ''}</div>
         </div>
-        <div style="font-weight: 900; color: #1976D2;">${data.highScore}</div>
+        <div style="font-weight: 900; color: #1976D2; font-size: 16px;">${data.highScore}</div>
       `;
       listEl.appendChild(row);
       rank++;
     });
   } catch (e) {
     console.error(e);
-    listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #D32F2F;">Ошибка загрузки. Проверь правила Firestore.</div>';
+    listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #D32F2F;">Ошибка загрузки рейтинга</div>';
   }
-        }
+}
