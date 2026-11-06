@@ -12,7 +12,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 24;
+const CURRENT_VERSION = 25;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -21,8 +21,16 @@ function formatVersion(v) {
 }
 
 // ===== CHANGELOG =====
-const CHANGELOG = [
-  {
+{
+  version: 25,
+  changes: [
+    'Патч 24: Питомцы-компаньоны!',
+    'Добавлена вкладка "Питомцы" в магазине',
+    'Летун: летает рядом с динозавром',
+    'Призрак: спасает от одного кактуса за игру',
+    'Огонёк: даёт +5% к очкам'
+  ]
+},
     version: 24,
     changes: [
       'Патч 23: Редкие события!',
