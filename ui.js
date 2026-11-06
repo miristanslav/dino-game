@@ -70,15 +70,7 @@ function claimDailyReward() {
 }
 
 function renderRecords() {
-  recordsList.innerHTML = '';
-  if (save.games.length === 0) { recordsList.innerHTML = '<div class="empty-records">Пока нет рекордов</div>'; return; }
-  save.games.forEach((g, i) => {
-    const row = document.createElement('div'); row.className = 'record-row';
-    if (i === 0) row.classList.add('top1'); else if (i === 1) row.classList.add('top2'); else if (i === 2) row.classList.add('top3');
-    const date = new Date(g.date); const dateStr = `${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getFullYear()).slice(2)}`;
-    row.innerHTML = `<span class="rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1)}</span><span class="score">${g.score}</span><span class="date">${dateStr}</span>`;
-    recordsList.appendChild(row);
-  });
+  fetchGlobalLeaderboard(); // ПАТЧ 25: Загружаем рейтинг из облака
 }
 
 function renderUpgrades() {
@@ -165,6 +157,7 @@ function showMainMenu() {
   menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0; speedBarContainer.classList.remove('active');
   powerUpHud.classList.add('hidden'); updateHUD(); updateDailyBadge();
   isRaining = false; lightning = null; lightningAmbient = 0; dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0; stopMusic();
+  startPresenceTracking(); // ПАТЧ 25: Начинаем отслеживать онлайн
 }
 
 function showDaily() {
