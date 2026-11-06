@@ -3,6 +3,15 @@
 // Патч 22.1: Динамическая сложность, массив бонусов
 // ============================================================
 
+// ВРЕМЕННЫЙ ПЕРЕХВАТЧИК ОШИБОК
+window.onerror = function(msg, url, line, col, error) {
+  var dbg = document.createElement('div');
+  dbg.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;background:red;color:white;padding:15px;z-index:999999;font-size:14px;border-radius:8px;word-wrap:break-word;';
+  dbg.textContent = 'ОШИБКА: ' + msg + ' (строка ' + line + ')';
+  document.body.appendChild(dbg);
+  return false;
+};
+// ===== TELEGRAM INIT =====
 // ===== TELEGRAM INIT =====
 try {
   tgApp = window.Telegram?.WebApp;
