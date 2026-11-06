@@ -425,3 +425,69 @@ function getLevelFromXp(totalXp) {
 function getCurrentSkin() {
   return SKINS.find(s => s.id === save.currentSkin) || SKINS[0];
 }
+// ===== ПАТЧ 21: ЕЖЕДНЕВНЫЕ ЗАДАНИЯ =====
+
+const DAILY_TYPES = [
+  { type: 'score', icon: '⭐', title: 'Набери очки за одну игру', targets: [300, 400, 500, 600] },
+  { type: 'birds', icon: '🦅', title: 'Съешь птиц за день', targets: [5, 8, 10, 15] },
+  { type: 'bones', icon: '🦴', title: 'Собери кости за день', targets: [15, 25, 40, 60] }
+];
+
+function getTodayString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function generateDailyQuest(todayStr) {
+  const randomType = DAILY_TYPES[Math.floor(Math.random() * DAILY_TYPES.length)];
+  const target = randomType.targets[Math.floor(Math.random() * randomType.targets.length)];
+  return {
+    date: todayStr,
+    type: randomType.type,
+    icon: randomType.icon,
+    title: `${randomType.title} (цель: ${target})`,
+    target: target,
+    progress: 0,
+    completed: false,
+    claimed: false
+  };
+}
+
+function checkDailyAndStreak() {
+  const today = getTodayString();
+  let changed = false;
+
+  // Проверка стрика
+  if (save.lastPlayDate !== today) {
+    if (save.lastPlayDate) {
+      // Вычисляем разницу в днях
+      const last = new Date(save.lastPlayDate);
+      const now = new Date(today);
+      const diffTime = Math.abs(now - last);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        save.streak = (save.streak || 0) + 1;
+      } else {
+        save.streak = 1;
+      }
+    } else {
+      save.streak = 1;
+    }
+    save.lastPlayDate = today;
+    changed = true;
+  }
+
+  // Проверка ежедневного задания
+  if (!save.dailyQuest || save.dailyQuest.date !== today) {
+    save.dailyQuest = generateDailyQuest(today);
+    changed = true;
+  }
+
+  if (changed) {
+    writeSave();
+  }
+   }
