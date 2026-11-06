@@ -583,3 +583,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   padding: 8px 12px;
   font-size: 13px;
 }
+.tab-btn {
+  padding: 8px 12px;
+  font-size: 13px;
+}
