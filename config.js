@@ -353,6 +353,14 @@ const achPopupIcon = document.getElementById('achPopupIcon');
 const achPopupName = document.getElementById('achPopupName');
 const tabUpg = document.getElementById('tabUpg');
 const tabSkins = document.getElementById('tabSkins');
+// ===== ПАТЧ 20: XP и попап уровня =====
+const xpBarContainer = document.getElementById('xpBarContainer');
+const xpLevel = document.getElementById('xpLevel');
+const xpBarFill = document.getElementById('xpBarFill');
+const levelUpPopup = document.getElementById('levelUpPopup');
+const levelUpName = document.getElementById('levelUpName');
+const levelUpReward = document.getElementById('levelUpReward');
+const goXp = document.getElementById('goXp');
 
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
