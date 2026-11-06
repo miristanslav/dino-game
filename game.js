@@ -1,6 +1,6 @@
 // ============================================================
 // GAME.JS — точка входа: Telegram, splash, resize, update, loop
-// Патч 23: Редкие события (исправлена ошибка дублирования hasShield)
+// Патч 24: Питомцы (движение, спасение, бонусы)
 // ============================================================
 
 // ===== TELEGRAM INIT =====
@@ -22,9 +22,7 @@ function removeSplash() {
   const splash = document.getElementById('splashScreen');
   if (splash) {
     splash.classList.add('fade-out');
-    setTimeout(() => {
-      if (splash.parentNode) splash.parentNode.removeChild(splash);
-    }, 500);
+    setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
   }
 }
 window.addEventListener('load', () => setTimeout(removeSplash, 1000));
@@ -88,9 +86,7 @@ if (window.visualViewport) {
 }
 window.addEventListener('orientationchange', () => setTimeout(() => resizeCanvas(), 200));
 if (isTelegram && tgApp?.onEvent) {
-  try {
-    tgApp.onEvent('viewportChanged', () => setTimeout(() => resizeCanvas(), 100));
-  } catch (e) {}
+  try { tgApp.onEvent('viewportChanged', () => setTimeout(() => resizeCanvas(), 100)); } catch (e) {}
 }
 
 // ===== COMBO =====
@@ -175,6 +171,11 @@ function reset() {
   spawnTimer = 40;
   meteorTimer = 15;
   dino.scale = DINO_SCALE_GAME;
+  
+  // Сброс питомцев
+  ghostUsed = false;
+  petX = dino.x - 40;
+  petY = GROUND_Y - 60;
 
   comboCount = 0;
   comboTimer = 0;
@@ -281,12 +282,24 @@ function update(dt) {
   frame++;
   if (gameState === 'playing') {
     const skinBonus = getCurrentSkin().bonus;
-    const scoreBonusMult = (skinBonus.type === 'score') ? skinBonus.value : 1;
+    const petBonus = getCurrentPet().bonus;
+    
+    let scoreBonusMult = 1;
+    if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value;
+    if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
 
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
     
     speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
     speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
+
+    // ПАТЧ 24: Логика движения питомца
+    if (save.currentPet !== 'none') {
+      const targetX = dino.x - 40;
+      const targetY = dino.y - 60 + Math.sin(frame * 0.1) * 10;
+      petX += (targetX - petX) * 0.1;
+      petY += (targetY - petY) * 0.1;
+    }
 
     if (comboCount > 0) {
       comboTimer -= dt;
@@ -331,14 +344,12 @@ function update(dt) {
       spawnDust(dino.x + 10, GROUND_Y, 1, 1);
     }
 
-    // ПАТЧ 23: Спавн метеоритов
     meteorTimer -= dt;
     if (meteorTimer <= 0) {
       spawnMeteor();
       meteorTimer = 20 + Math.random() * 15;
     }
 
-    // ПАТЧ 23: Движение и столкновение метеоритов
     for (let i = meteors.length - 1; i >= 0; i--) {
       const m = meteors[i];
       m.trail.push({ x: m.x, y: m.y });
@@ -347,7 +358,6 @@ function update(dt) {
       m.x += m.vx * (dt * 60);
       m.y += m.vy * (dt * 60);
 
-      // Удар о землю
       if (m.y >= GROUND_Y - m.r) {
         shakeTime = 15;
         spawnDust(m.x, GROUND_Y, 30, 8);
@@ -362,7 +372,6 @@ function update(dt) {
         continue;
       }
 
-      // Удар в динозавра
       const meteorShield = activePowerUps.some(a => a.type === 'shield');
       if (!meteorShield && rectCollide(getDinoBox(), { x: m.x - m.r, y: m.y - m.r, w: m.r * 2, h: m.r * 2 })) {
         gameOver();
@@ -489,11 +498,24 @@ function update(dt) {
     }
     if (powerUpChanged) updatePowerUpHUD();
 
-    // Проверка на кактусы
+    // ПАТЧ 24: Проверка столкновения с кактусами (с учетом питомца)
     const cactusShield = activePowerUps.some(a => a.type === 'shield');
     if (!cactusShield) {
-      for (const o of obstacles) {
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
         if (rectCollide(dinoBox, getCactusBox(o))) {
+          
+          // Спасение Призраком
+          if (save.currentPet === 'ghost' && !ghostUsed) {
+            ghostUsed = true;
+            spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
+            obstacles.splice(i, 1);
+            shakeTime = 10;
+            haptic('eat');
+            playSound('record');
+            continue; // Пропускаем gameOver
+          }
+
           gameOver();
           return;
         }
@@ -609,6 +631,7 @@ function render() {
     drawSnow();
     drawBonesFlying();
     drawDino();
+    drawPet(); // ПАТЧ 24: Рисуем питомца
   } else {
     drawMenuScene(colors);
   }
