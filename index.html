@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -54,6 +54,12 @@
   </div>
 </div>
 
+<!-- Кнопка версии (только в главном меню) -->
+<button id="versionBtn" class="version-btn" data-action="changelog">
+  <span>Версия</span>
+  <strong id="versionNumber">0.0.13</strong>
+</button>
+
 <div id="recordsScreen" class="ui-screen hidden">
   <h1>🏆 РЕКОРДЫ</h1>
   <div class="records-list" id="recordsList"></div>
@@ -66,12 +72,10 @@
     <svg width="28" height="15.5" viewBox="-18 -10 36 20"><rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/><circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="-12" cy="4" r="6" fill="#f0e0b0"/><circle cx="12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="12" cy="4" r="6" fill="#f0e0b0"/></svg>
     <span id="upgradesBones">0</span>
   </div>
-  
   <div class="tab-buttons">
     <button class="tab-btn active" id="tabUpg">Улучшения</button>
     <button class="tab-btn" id="tabSkins">Скины</button>
   </div>
-
   <div class="upgrades-list" id="upgradesList"></div>
   <div class="upgrades-list hidden" id="skinsList"></div>
   <button class="btn btn-back" data-action="back">← НАЗАД</button>
@@ -123,6 +127,14 @@
   </div>
 </div>
 
-<script src="game.js?v=12"></script>
+<div id="changelogDialog" class="hidden">
+  <div class="changelog-box">
+    <h2>📋 Список обновлений</h2>
+    <div id="changelogContent"></div>
+    <button class="btn secondary" data-action="changelog-close" style="margin-top: 16px; width: 100%;">Закрыть</button>
+  </div>
+</div>
+
+<script src="game.js?v=13"></script>
 </body>
 </html>
