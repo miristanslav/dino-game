@@ -188,4 +188,10 @@ function showSettings() {
   if (btnMusic) btnMusic.textContent = musicEnabled ? '🎵 МУЗЫКА: ВКЛ' : '🔇 МУЗЫКА: ВЫКЛ';
 }
 
-if (tabUpg) tabUpg.addEventListener('click', () => { activeTab = 'upg'; tabUpg.classList.add('active'); if
+if (tabUpg) tabUpg.addEventListener('click', () => { activeTab = 'upg'; tabUpg.classList.add('active'); if(tabSkins) tabSkins.classList.remove('active'); if(tabPets) tabPets.classList.remove('active'); renderUpgrades(); });
+if (tabSkins) tabSkins.addEventListener('click', () => { activeTab = 'skins'; tabSkins.classList.add('active'); if(tabUpg) tabUpg.classList.remove('active'); if(tabPets) tabPets.classList.remove('active'); renderUpgrades(); });
+if (tabPets) tabPets.addEventListener('click', () => { activeTab = 'pets'; tabPets.classList.add('active'); if(tabUpg) tabUpg.classList.remove('active'); if(tabSkins) tabSkins.classList.remove('active'); renderUpgrades(); });
+
+versionBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); initAudio(); playSound('click'); showChangelog(); });
+changelogDialog.addEventListener('click', (e) => { if (e.target === changelogDialog) changelogDialog.style.display = 'none'; });
+versionNumber.textContent = formatVersion(CURRENT_VERSION);
