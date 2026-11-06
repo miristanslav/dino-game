@@ -1,6 +1,6 @@
 // ============================================================
 // SPRITES.JS — отрисовка спрайтов: T-Rex, кактусы, птицы, бонусы
-// Использует: ctx, dino, save, SKINS, frame, GROUND_Y, speed
+// Патч 23: + Золотая птица, + Метеорит
 // ============================================================
 
 function getDinoColors() {
@@ -125,7 +125,6 @@ function drawDino() {
   const isDead = gameState === 'gameover';
   drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 6) % 2, isDead, dino.scale);
   
-  // ПАТЧ 22.1: Проверка щита в массиве
   if (activePowerUps.some(a => a.type === 'shield')) {
     ctx.strokeStyle = 'rgba(33,150,243,0.8)';
     ctx.lineWidth = 3;
@@ -174,17 +173,28 @@ function drawBird(b, colors, scale) {
   if (scale === undefined) scale = BIRD_SCALE_GAME;
   const x = b.x, y = b.y;
   const wingUp = Math.floor(frame / 8) % 2 === 0;
+  
+  // ПАТЧ 23: Золотая птица
+  let birdColor = colors.bird;
+  if (b.isGolden) {
+    birdColor = '#FFD700'; // Золотой цвет
+    ctx.shadowColor = '#FF8F00';
+    ctx.shadowBlur = 15;
+  }
+
   ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.beginPath();
   ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2);
   ctx.fill();
+  
   if (b.magnetized) {
     ctx.fillStyle = 'rgba(100,180,255,0.35)';
     ctx.beginPath();
     ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2);
     ctx.fill();
   }
-  ctx.fillStyle = colors.bird;
+  
+  ctx.fillStyle = birdColor;
   ctx.fillRect(x + 12 * scale, y - 2 * scale, 16 * scale, 4 * scale);
   ctx.fillRect(x + 6 * scale, y, 6 * scale, 2 * scale);
   ctx.fillRect(x + 4 * scale, y + 2 * scale, 2 * scale, 2 * scale);
@@ -194,9 +204,11 @@ function drawBird(b, colors, scale) {
   ctx.fillRect(x + 36 * scale, y - 1 * scale, 5 * scale, 1 * scale);
   ctx.fillRect(x + 26 * scale, y - 10 * scale, 3 * scale, 5 * scale);
   ctx.fillRect(x + 23 * scale, y - 8 * scale, 3 * scale, 3 * scale);
+  
   ctx.fillStyle = '#FFF'; ctx.fillRect(x + 30 * scale, y - 3 * scale, 2 * scale, 2 * scale);
   ctx.fillStyle = '#000'; ctx.fillRect(x + 31 * scale, y - 3 * scale, 1 * scale, 1 * scale);
-  ctx.fillStyle = colors.bird;
+  
+  ctx.fillStyle = birdColor;
   if (wingUp) {
     ctx.beginPath();
     ctx.moveTo(x + 14 * scale, y - 2 * scale);
@@ -205,7 +217,7 @@ function drawBird(b, colors, scale) {
     ctx.lineTo(x + 20 * scale, y - 12 * scale);
     ctx.lineTo(x + 28 * scale, y - 2 * scale);
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.beginPath();
     ctx.moveTo(x + 10 * scale, y - 8 * scale);
     ctx.lineTo(x + 14 * scale, y - 18 * scale);
@@ -219,13 +231,43 @@ function drawBird(b, colors, scale) {
     ctx.lineTo(x + 20 * scale, y + 12 * scale);
     ctx.lineTo(x + 28 * scale, y + 2 * scale);
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.beginPath();
     ctx.moveTo(x + 10 * scale, y + 8 * scale);
     ctx.lineTo(x + 14 * scale, y + 18 * scale);
     ctx.lineTo(x + 22 * scale, y + 8 * scale);
     ctx.fill();
   }
+  ctx.shadowBlur = 0; // Сбрасываем тень
+}
+
+// ПАТЧ 23: Отрисовка метеорита
+function drawMeteor(m) {
+  ctx.save();
+  
+  // Хвост (трейл)
+  m.trail.forEach((t, i) => {
+    const alpha = (i / m.trail.length) * 0.8;
+    ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, m.r * (i / m.trail.length), 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Ядро метеорита
+  const gradient = ctx.createRadialGradient(m.x, m.y, 2, m.x, m.y, m.r);
+  gradient.addColorStop(0, '#FFF9C4');
+  gradient.addColorStop(0.4, '#FF9800');
+  gradient.addColorStop(1, '#D84315');
+  
+  ctx.shadowColor = '#FF5722';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
 }
 
 function drawPowerUp(p) {
