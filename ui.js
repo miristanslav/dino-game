@@ -1,6 +1,6 @@
 // ============================================================
 // UI.JS — все экраны меню, changelog, рендер списков, попапы
-// Патч 20: + XP-бар, + бонусы в карточках скинов, + попап уровня
+// Патч 21: + экран ежедневных заданий, + стрик, + бейдж в меню
 // ============================================================
 
 function updateHUD() {
@@ -8,7 +8,6 @@ function updateHUD() {
   hudScore.textContent = String(Math.floor(score)).padStart(5, '0');
   hudBones.textContent = save.bones + sessionBones;
 
-  // ===== ПАТЧ 20: XP-бар =====
   if (xpLevel && xpBarFill) {
     const info = getLevelFromXp(save.xp);
     xpLevel.textContent = `Lv.${info.level}`;
@@ -17,8 +16,17 @@ function updateHUD() {
   }
 }
 
+function updateDailyBadge() {
+  if (save.dailyQuest && !save.dailyQuest.claimed) {
+    dailyBadge.classList.remove('hidden');
+  } else {
+    dailyBadge.classList.add('hidden');
+  }
+}
+
 function hideAllScreens() {
   menuScreen.classList.add('hidden');
+  dailyScreen.classList.add('hidden');
   recordsScreen.classList.add('hidden');
   upgradesScreen.classList.add('hidden');
   achievementsScreen.classList.add('hidden');
@@ -43,6 +51,79 @@ function showChangelog() {
     changelogContent.appendChild(div);
   });
   changelogDialog.style.display = 'flex';
+}
+
+// ===== ПАТЧ 21: Рендер ежедневок =====
+function renderDaily() {
+  if (!save.dailyQuest) return;
+  const q = save.dailyQuest;
+
+  dailyStreak.textContent = save.streak || 0;
+  dailyIcon.textContent = q.icon;
+  dailyTitle.textContent = q.title;
+  dailyProgressText.textContent = q.progress;
+  dailyTargetText.textContent = q.target;
+  
+  const pct = Math.min(100, (q.progress / q.target) * 100);
+  dailyProgressFill.style.width = pct + '%';
+
+  const boneReward = 50 + (save.streak || 0) * 5;
+  const xpReward = 100 + (save.streak || 0) * 10;
+  dailyBoneReward.textContent = boneReward;
+  dailyXpReward.textContent = xpReward;
+
+  if (q.claimed) {
+    btnClaimDaily.textContent = '✓ ПОЛУЧЕНО';
+    btnClaimDaily.disabled = true;
+    btnClaimDaily.style.background = '#4CAF50';
+    btnClaimDaily.style.boxShadow = 'none';
+  } else if (q.completed) {
+    btnClaimDaily.textContent = 'ЗАБРАТЬ НАГРАДУ';
+    btnClaimDaily.disabled = false;
+    btnClaimDaily.style.background = '#4CAF50';
+    btnClaimDaily.style.boxShadow = '0 4px 0 #2E7D32';
+  } else {
+    btnClaimDaily.textContent = 'ВЫПОЛНИТЕ ЗАДАНИЕ';
+    btnClaimDaily.disabled = true;
+    btnClaimDaily.style.background = '#CFD8DC';
+    btnClaimDaily.style.boxShadow = 'none';
+  }
+}
+
+function claimDailyReward() {
+  if (!save.dailyQuest || !save.dailyQuest.completed || save.dailyQuest.claimed) return;
+  
+  const boneReward = 50 + (save.streak || 0) * 5;
+  const xpReward = 100 + (save.streak || 0) * 10;
+
+  save.bones += boneReward;
+  
+  // Проверка на новый уровень при получении XP
+  const oldLevel = getLevelFromXp(save.xp).level;
+  save.xp += xpReward;
+  const newInfo = getLevelFromXp(save.xp);
+  let totalLevelReward = 0;
+  
+  if (newInfo.level > oldLevel) {
+    for (let lv = oldLevel + 1; lv <= newInfo.level; lv++) {
+      totalLevelReward += xpLevelReward(lv);
+    }
+    save.bones += totalLevelReward;
+    save.playerLevel = newInfo.level;
+  }
+
+  save.dailyQuest.claimed = true;
+  writeSave();
+  
+  haptic('eat');
+  playSound('record');
+  renderDaily();
+  updateHUD();
+  updateDailyBadge();
+
+  if (newInfo.level > oldLevel) {
+    setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 500);
+  }
 }
 
 function renderRecords() {
@@ -108,12 +189,9 @@ function renderUpgrades() {
       const card = document.createElement('div');
       card.className = 'upgrade-card';
       if (isEquipped) card.classList.add('equipped');
-
-      // ===== ПАТЧ 20: показываем бонус скина =====
       const bonusText = (skin.bonus && skin.bonus.type !== 'none')
         ? `<div class="skin-bonus">${skin.bonus.desc}</div>`
         : '';
-
       card.innerHTML = `
         <div class="upgrade-icon">
           <div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div>
@@ -210,7 +288,6 @@ function unlockAch(id) {
   }
 }
 
-// ===== ПАТЧ 20: попап нового уровня =====
 function showLevelUpPopup(level, reward) {
   levelUpName.textContent = `Lv.${level}`;
   levelUpReward.textContent = `+${reward} 🦴`;
@@ -234,12 +311,23 @@ function showMainMenu() {
   speedBarContainer.classList.remove('active');
   powerUpHud.classList.add('hidden');
   updateHUD();
+  updateDailyBadge();
   isRaining = false;
   lightning = null;
   lightningAmbient = 0;
   dayNightTime = 0.5 * DAY_NIGHT_CYCLE;
   weatherTime = 0;
   stopMusic();
+}
+
+function showDaily() {
+  gameState = 'daily';
+  hideAllScreens();
+  hud.classList.add('hidden');
+  xpBarContainer.classList.add('hidden');
+  fullscreenBtn.classList.add('hidden');
+  dailyScreen.classList.remove('hidden');
+  renderDaily();
 }
 
 function showRecords() {
@@ -305,7 +393,7 @@ versionBtn.addEventListener('click', (e) => {
   showChangelog();
 });
 
-// ===== Закрытие changelog по клику на фон =====
+// ===== Закрытие changelog =====
 changelogDialog.addEventListener('click', (e) => {
   if (e.target === changelogDialog) changelogDialog.style.display = 'none';
 });
