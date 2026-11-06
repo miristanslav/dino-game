@@ -13,7 +13,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 21;
+const CURRENT_VERSION = 22;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -23,6 +23,19 @@ function formatVersion(v) {
 
 // ===== CHANGELOG =====
 const CHANGELOG = [
+  {
+    version: 22,
+    changes: [
+      'Патч 22: Биомы!',
+      'Введены 4 биома, которые меняются по мере роста счёта:',
+      '🌵 0 очков: Пустыня (жёлтая земля, голубые горы)',
+      '🌲 1000 очков: Лес (зелёная трава, тёмные ели)',
+      '❄️ 2500 очков: Снег (белая земля, снегопад)',
+      '🌋 5000 очков: Вулкан (тёмная земля, красные горы)',
+      'Цвета плавно смешиваются при переходе между биомами',
+      'Добавлен снегопад в снежном биоме'
+    ]
+  },
   {
     version: 21,
     changes: [
@@ -491,3 +504,92 @@ function checkDailyAndStreak() {
     writeSave();
   }
    }
+// ===== ПАТЧ 22: БИОМЫ =====
+
+const BIOMES = [
+  {
+    id: 'desert',
+    name: '🌵 Пустыня',
+    minScore: 0,
+    ground: '#8BC34A',      // светло-зелёная трава (как было)
+    groundLine: '#33691E',
+    dirt: '#795548',
+    mountainFar: '#90CAF9', // голубые горы
+    mountainNear: '#A5D6A7',
+    cactus: '#388E3C',
+    cactusLight: '#4CAF50',
+    bird: '#37474F',
+    cloud: '#FFFFFF',
+    hasSnow: false
+  },
+  {
+    id: 'forest',
+    name: '🌲 Лес',
+    minScore: 1000,
+    ground: '#4CAF50',      // насыщенный зелёный
+    groundLine: '#1B5E20',
+    dirt: '#5D4037',
+    mountainFar: '#2E7D32', // тёмно-зелёные ели
+    mountainNear: '#1B5E20',
+    cactus: '#2E7D32',
+    cactusLight: '#4CAF50',
+    bird: '#263238',
+    cloud: '#E8F5E9',
+    hasSnow: false
+  },
+  {
+    id: 'snow',
+    name: '❄️ Снег',
+    minScore: 2500,
+    ground: '#FFFFFF',      // белый снег
+    groundLine: '#B0BEC5',
+    dirt: '#CFD8DC',
+    mountainFar: '#E3F2FD', // голубоватые сугробы
+    mountainNear: '#BBDEFB',
+    cactus: '#90CAF9',      // сине-зелёные кактусы
+    cactusLight: '#E3F2FD',
+    bird: '#ECEFF1',
+    cloud: '#FAFAFA',
+    hasSnow: true
+  },
+  {
+    id: 'volcano',
+    name: '🌋 Вулкан',
+    minScore: 5000,
+    ground: '#3E2723',      // тёмно-коричневая земля
+    groundLine: '#1B0000',
+    dirt: '#212121',
+    mountainFar: '#BF360C', // красные горы
+    mountainNear: '#FF5722',
+    cactus: '#BF360C',
+    cactusLight: '#FF7043',
+    bird: '#000000',
+    cloud: '#4E342E',
+    hasSnow: false
+  }
+];
+
+// Вычисляет текущий биом и коэффициент перехода к следующему (0..1)
+function getBiomeState(currentScore) {
+  let currentIdx = 0;
+  for (let i = 0; i < BIOMES.length; i++) {
+    if (currentScore >= BIOMES[i].minScore) currentIdx = i;
+  }
+  const current = BIOMES[currentIdx];
+  const next = BIOMES[currentIdx + 1] || null;
+  
+  let transitionT = 0;
+  if (next) {
+    // Переход начинается за 100 очков до следующего биома
+    const transitionStart = next.minScore - 100;
+    if (currentScore >= transitionStart) {
+      transitionT = (currentScore - transitionStart) / 100;
+    }
+  }
+  return { current, next, transitionT };
+}
+
+// Смешивает два цвета с учетом перехода
+function mixBiomeColor(color1, color2, t) {
+  return lerpColor(color1, color2, Math.max(0, Math.min(1, t)));
+  }
