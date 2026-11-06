@@ -168,9 +168,12 @@ function renderUpgrades() {
   upgradesBones.textContent = save.bones;
   upgradesList.innerHTML = '';
   skinsList.innerHTML = '';
+  petsList.innerHTML = '';
+
   if (activeTab === 'upg') {
     upgradesList.classList.remove('hidden');
     skinsList.classList.add('hidden');
+    petsList.classList.add('hidden');
     UPGRADES.forEach(upg => {
       const level = save.upgrades[upg.id] || 0;
       const isMax = level >= upg.maxLevel;
@@ -192,28 +195,25 @@ function renderUpgrades() {
       `;
       if (!isMax) {
         card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-          buyUpgrade(upg.id);
+          e.stopPropagation(); buyUpgrade(upg.id);
         });
       }
       upgradesList.appendChild(card);
     });
-  } else {
+  } 
+  else if (activeTab === 'skins') {
     upgradesList.classList.add('hidden');
     skinsList.classList.remove('hidden');
+    petsList.classList.add('hidden');
     SKINS.forEach(skin => {
       const isUnlocked = save.unlockedSkins.includes(skin.id);
       const isEquipped = save.currentSkin === skin.id;
       const card = document.createElement('div');
       card.className = 'upgrade-card';
       if (isEquipped) card.classList.add('equipped');
-      const bonusText = (skin.bonus && skin.bonus.type !== 'none')
-        ? `<div class="skin-bonus">${skin.bonus.desc}</div>`
-        : '';
+      const bonusText = (skin.bonus && skin.bonus.type !== 'none') ? `<div class="skin-bonus">${skin.bonus.desc}</div>` : '';
       card.innerHTML = `
-        <div class="upgrade-icon">
-          <div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div>
-        </div>
+        <div class="upgrade-icon"><div class="skin-circle" style="background:${skin.body}; box-shadow: inset 0 0 10px ${skin.outline};">🦖</div></div>
         <div class="upgrade-info">
           <div class="upgrade-name">${skin.name}</div>
           <div class="upgrade-desc">${isEquipped ? 'Экипирован' : isUnlocked ? 'Разблокирован' : 'Не куплен'}</div>
@@ -226,23 +226,43 @@ function renderUpgrades() {
       if (!isEquipped) {
         card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => {
           e.stopPropagation();
-          if (isUnlocked) {
-            save.currentSkin = skin.id;
-            writeSave();
-            renderUpgrades();
-            haptic('click');
-          } else if (save.bones >= skin.cost) {
-            save.bones -= skin.cost;
-            save.unlockedSkins.push(skin.id);
-            save.currentSkin = skin.id;
-            writeSave();
-            renderUpgrades();
-            haptic('buy');
-            playSound('eat');
-          }
+          if (isUnlocked) { save.currentSkin = skin.id; writeSave(); renderUpgrades(); haptic('click'); }
+          else if (save.bones >= skin.cost) { save.bones -= skin.cost; save.unlockedSkins.push(skin.id); save.currentSkin = skin.id; writeSave(); renderUpgrades(); haptic('buy'); playSound('eat'); }
         });
       }
       skinsList.appendChild(card);
+    });
+  }
+  else if (activeTab === 'pets') {
+    upgradesList.classList.add('hidden');
+    skinsList.classList.add('hidden');
+    petsList.classList.remove('hidden');
+    PETS.forEach(pet => {
+      const isUnlocked = save.unlockedPets.includes(pet.id);
+      const isEquipped = save.currentPet === pet.id;
+      const card = document.createElement('div');
+      card.className = 'upgrade-card';
+      if (isEquipped) card.classList.add('equipped');
+      const bonusText = (pet.bonus && pet.bonus.desc) ? `<div class="skin-bonus">${pet.bonus.desc}</div>` : '';
+      card.innerHTML = `
+        <div class="upgrade-icon" style="font-size:28px;">${pet.icon}</div>
+        <div class="upgrade-info">
+          <div class="upgrade-name">${pet.name}</div>
+          <div class="upgrade-desc">${isEquipped ? 'Экипирован' : isUnlocked ? 'Разблокирован' : 'Не куплен'}</div>
+          ${bonusText}
+        </div>
+        <button class="upgrade-buy ${isEquipped ? 'maxed' : ''}" ${isEquipped || (!isUnlocked && save.bones < pet.cost) ? 'disabled' : ''}>
+          ${isEquipped ? '✓ НАДЕТ' : isUnlocked ? 'НАДЕТЬ' : `${pet.cost} 🦴`}
+        </button>
+      `;
+      if (!isEquipped) {
+        card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          if (isUnlocked) { save.currentPet = pet.id; writeSave(); renderUpgrades(); haptic('click'); }
+          else if (save.bones >= pet.cost) { save.bones -= pet.cost; save.unlockedPets.push(pet.id); save.currentPet = pet.id; writeSave(); renderUpgrades(); haptic('buy'); playSound('eat'); }
+        });
+      }
+      petsList.appendChild(card);
     });
   }
 }
@@ -390,15 +410,17 @@ function showSettings() {
 // ===== Tab switching =====
 tabUpg.addEventListener('click', () => {
   activeTab = 'upg';
-  tabUpg.classList.add('active');
-  tabSkins.classList.remove('active');
+  tabUpg.classList.add('active'); tabSkins.classList.remove('active'); tabPets.classList.remove('active');
   renderUpgrades();
 });
-
 tabSkins.addEventListener('click', () => {
   activeTab = 'skins';
-  tabSkins.classList.add('active');
-  tabUpg.classList.remove('active');
+  tabSkins.classList.add('active'); tabUpg.classList.remove('active'); tabPets.classList.remove('active');
+  renderUpgrades();
+});
+tabPets.addEventListener('click', () => {
+  activeTab = 'pets';
+  tabPets.classList.add('active'); tabUpg.classList.remove('active'); tabSkins.classList.remove('active');
   renderUpgrades();
 });
 
