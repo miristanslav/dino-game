@@ -1,6 +1,6 @@
 // ============================================================
 // BACKGROUND.JS — фон: небо, солнце, луна, звёзды, горы, земля
-// Патч 22.1: корректное затемнение биомов ночью
+// Патч 26: biomeScore передаётся явно (фикс залипания биома в меню)
 // ============================================================
 
 function getSkyColors(t) {
@@ -41,15 +41,16 @@ function getMoonPos(t) {
   return { x: W / 2 + Math.sin(angle) * W * 0.4, y: GROUND_Y - Math.cos(angle) * H * 0.5 };
 }
 
-// ===== ПАТЧ 22.1: Естественное затемнение биомов =====
-function getObjectColors(t) {
+// ПАТЧ 26: biomeScore — явный параметр (по умолчанию текущий score).
+// В меню передаём 0, чтобы фон не «залипал» в позднем биоме после игры.
+function getObjectColors(t, biomeScore) {
+  if (biomeScore === undefined) biomeScore = score;
   const nightness = 1 - getLightLevel(t);
-  const biomeState = getBiomeState(score);
+  const biomeState = getBiomeState(biomeScore);
   const b1 = biomeState.current;
   const b2 = biomeState.next || b1;
   const mixT = biomeState.transitionT;
 
-  // Базовые цвета
   const baseGround = mixBiomeColor(b1.ground, b2.ground, mixT);
   const baseGroundLine = mixBiomeColor(b1.groundLine, b2.groundLine, mixT);
   const baseDirt = mixBiomeColor(b1.dirt, b2.dirt, mixT);
@@ -60,7 +61,6 @@ function getObjectColors(t) {
   const baseBird = mixBiomeColor(b1.bird, b2.bird, mixT);
   const baseCloud = mixBiomeColor(b1.cloud, b2.cloud, mixT);
 
-  // Функция для смешивания с темнотой
   const toNight = (hex, maxDark = 0.85) => lerpColor(hex, '#0A0E1A', nightness * maxDark);
 
   return {
@@ -113,9 +113,9 @@ function drawMoon(pos, t) {
   ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
 }
 
-function drawBackground(timeOfDay, showCelestial) {
+function drawBackground(timeOfDay, showCelestial, biomeScore) {
   if (showCelestial === undefined) showCelestial = true;
-  const colors = getObjectColors(timeOfDay);
+  const colors = getObjectColors(timeOfDay, biomeScore);
   const skyColors = getSkyColors(timeOfDay);
   const lightLevel = getLightLevel(timeOfDay);
   const grad = ctx.createLinearGradient(0, 0, 0, H);
@@ -166,8 +166,8 @@ function drawBackground(timeOfDay, showCelestial) {
   ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
 }
 
-function drawGround(timeOfDay) {
-  const colors = getObjectColors(timeOfDay);
+function drawGround(timeOfDay, biomeScore) {
+  const colors = getObjectColors(timeOfDay, biomeScore);
   ctx.fillStyle = colors.ground; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
   ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
   ctx.fillStyle = colors.dirt;
@@ -177,4 +177,4 @@ function drawGround(timeOfDay) {
     const gx = (i * 50 - (frame * speed) % 50);
     ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke();
   }
-                                  }
+}
