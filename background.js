@@ -1,7 +1,6 @@
 // ============================================================
 // BACKGROUND.JS — фон: небо, солнце, луна, звёзды, горы, земля
-// Использует: ctx, W, H, GROUND_Y, frame, speed, TIME_KEYS,
-//             stars, clouds, groundDots, dayNightTime, isRaining
+// Патч 22: цвета берутся из текущего биома + плавный переход
 // ============================================================
 
 function getSkyColors(t) {
@@ -49,18 +48,38 @@ function getMoonPos(t) {
   };
 }
 
+// ===== ПАТЧ 22: цвета берутся из биома =====
 function getObjectColors(t) {
   const nightness = 1 - getLightLevel(t);
+  
+  // Получаем текущий биом и переход
+  const biomeState = getBiomeState(score);
+  const b1 = biomeState.current;
+  const b2 = biomeState.next || b1; // если следующего нет, смешиваем с самим собой
+  const mixT = biomeState.transitionT;
+
+  // Смешиваем цвета биомов
+  const baseGround = mixBiomeColor(b1.ground, b2.ground, mixT);
+  const baseGroundLine = mixBiomeColor(b1.groundLine, b2.groundLine, mixT);
+  const baseDirt = mixBiomeColor(b1.dirt, b2.dirt, mixT);
+  const baseMountainFar = mixBiomeColor(b1.mountainFar, b2.mountainFar, mixT);
+  const baseMountainNear = mixBiomeColor(b1.mountainNear, b2.mountainNear, mixT);
+  const baseCactus = mixBiomeColor(b1.cactus, b2.cactus, mixT);
+  const baseCactusLight = mixBiomeColor(b1.cactusLight, b2.cactusLight, mixT);
+  const baseBird = mixBiomeColor(b1.bird, b2.bird, mixT);
+  const baseCloud = mixBiomeColor(b1.cloud, b2.cloud, mixT);
+
+  // Применяем затемнение от ночи
   return {
-    cactus: lerpColor('#388E3C', '#4CAF50', nightness * 0.4),
-    cactusLight: lerpColor('#4CAF50', '#66BB6A', nightness * 0.4),
-    ground: lerpColor('#8BC34A', '#558B2F', nightness * 0.8),
-    groundLine: lerpColor('#33691E', '#1B5E20', nightness * 0.5),
-    dirt: lerpColor('#795548', '#5D4037', nightness * 0.5),
-    bird: lerpColor('#37474F', '#CFD8DC', nightness),
-    cloud: lerpColor('#FFFFFF', '#90A4AE', nightness),
-    mountainFar: lerpColor('#90CAF9', '#3949AB', nightness),
-    mountainNear: lerpColor('#A5D6A7', '#1B5E20', nightness),
+    cactus: lerpColor(baseCactus, '#4CAF50', nightness * 0.4), // можно оставить ночное осветление
+    cactusLight: lerpColor(baseCactusLight, '#66BB6A', nightness * 0.4),
+    ground: lerpColor(baseGround, '#558B2F', nightness * 0.8),
+    groundLine: lerpColor(baseGroundLine, '#1B5E20', nightness * 0.5),
+    dirt: lerpColor(baseDirt, '#5D4037', nightness * 0.5),
+    bird: lerpColor(baseBird, '#CFD8DC', nightness),
+    cloud: lerpColor(baseCloud, '#90A4AE', nightness),
+    mountainFar: lerpColor(baseMountainFar, '#3949AB', nightness),
+    mountainNear: lerpColor(baseMountainNear, '#1B5E20', nightness),
   };
 }
 
@@ -221,4 +240,4 @@ function drawGround(timeOfDay) {
     ctx.lineTo(gx + 2, GROUND_Y - 6);
     ctx.stroke();
   }
-    }
+      }
