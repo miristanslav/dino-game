@@ -124,7 +124,9 @@ function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
 function drawDino() {
   const isDead = gameState === 'gameover';
   drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 6) % 2, isDead, dino.scale);
-  if (powerUpActive && powerUpActive.type === 'shield') {
+  
+  // ПАТЧ 22.1: Проверка щита в массиве
+  if (activePowerUps.some(a => a.type === 'shield')) {
     ctx.strokeStyle = 'rgba(33,150,243,0.8)';
     ctx.lineWidth = 3;
     ctx.beginPath();
