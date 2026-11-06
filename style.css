@@ -304,3 +304,137 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   #comboHud { top: max(55px, calc(env(safe-area-inset-top) + 50px)); font-size: 14px; padding: 4px 12px 6px; min-width: 80px; }
   #powerUpHud { top: max(95px, calc(env(safe-area-inset-top) + 90px)); font-size: 12px; }
   }
+/* ===== ПАТЧ 20: XP-бар и попап уровня ===== */
+
+#xpBarContainer {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 6px 12px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+#xpBarContainer.hidden { display: none; }
+#xpLevel {
+  font-weight: 900;
+  font-size: 13px;
+  color: #FF6F00;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+#xpBar {
+  width: 60px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+#xpBarFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #FFC107, #FF6F00);
+  border-radius: 3px;
+  transition: width 0.4s ease-out;
+}
+
+/* XP в окне gameover */
+.xp-earned {
+  font-size: 16px;
+  color: #FF6F00;
+  font-weight: bold;
+  margin: 4px 0 12px 0;
+}
+
+/* Попап повышения уровня */
+#levelUpPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  background: linear-gradient(135deg, #FFC107, #FF6F00);
+  padding: 24px 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(255, 111, 0, 0.6), 0 0 60px rgba(255, 193, 7, 0.4);
+  z-index: 1500;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#levelUpPopup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.levelup-icon {
+  font-size: 52px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+#levelUpPopup.show .levelup-icon {
+  animation: levelUpSpin 1s ease-out;
+}
+@keyframes levelUpSpin {
+  0% { transform: rotate(0deg) scale(0); }
+  60% { transform: rotate(360deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.levelup-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #FFF;
+  letter-spacing: 2.5px;
+  margin-bottom: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.levelup-name {
+  font-size: 30px;
+  font-weight: 900;
+  color: #FFF;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.levelup-reward {
+  font-size: 16px;
+  font-weight: bold;
+  color: #FFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Бонус скина в карточке */
+.skin-bonus {
+  font-size: 11px;
+  color: #FF6F00;
+  font-weight: bold;
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 193, 7, 0.2);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Адаптация под маленькие ландшафтные экраны */
+@media (orientation: landscape) and (max-height: 520px) {
+  #xpBarContainer {
+    top: max(8px, env(safe-area-inset-top));
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  #xpBar { width: 40px; height: 5px; }
+  #xpLevel { font-size: 11px; }
+  #levelUpPopup { padding: 16px 28px; }
+  .levelup-icon { font-size: 38px; margin-bottom: 4px; }
+  .levelup-title { font-size: 11px; }
+  .levelup-name { font-size: 22px; margin-bottom: 4px; }
+  .levelup-reward { font-size: 13px; }
+  .xp-earned { font-size: 13px; margin: 3px 0 8px 0; }
+}
