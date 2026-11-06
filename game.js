@@ -190,6 +190,12 @@ function playSound(type) {
   const BASE_SPEED = 3.5;
   const MAX_SPEED_BONUS = 4.5;
 
+  // Тайминги (в кадрах при ~60 FPS)
+  const DAY_DURATION = 45 * 60;    // 45 секунд
+  const NIGHT_DURATION = 30 * 60;  // 30 секунд
+  const CLEAR_DURATION = 20 * 60;  // 20 секунд
+  const RAIN_DURATION = 15 * 60;   // 15 секунд
+
   const SKINS = [
     { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
     { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF' },
@@ -218,14 +224,32 @@ function playSound(type) {
 
   let gameState = 'menu';
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
+  
+  // Переменные для времени и погоды
   let currentTheme = 'day';
   let isRaining = false;
+  let timeOfDayTimer = 0;
+  let weatherTimer = 0;
+  let lightningFlash = 0; // Эффект молнии
+  
   let powerUpActive = null;
   let lastPowerUpSecond = -1;
   let birdsEatenThisGame = 0;
 
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
   let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
+  
+  // Массив для звёзд
+  let stars = [];
+  for (let i = 0; i < 60; i++) {
+    stars.push({ 
+      x: Math.random(), 
+      y: Math.random() * 0.6, 
+      size: Math.random() * 1.5 + 0.5, 
+      speed: Math.random() * 0.05 + 0.01,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
 
   const THEMES = {
     day: {
@@ -236,11 +260,11 @@ function playSound(type) {
       cloud: '#FFFFFF', bird: '#37474F'
     },
     night: {
-      skyTop: '#1A237E', skyBot: '#311B92',
-      mountainFar: '#283593', mountainNear: '#1B5E20',
-      ground: '#33691E', groundLine: '#1B5E20', dirt: '#3E2723',
-      cactus: '#1B5E20', cactusLight: '#2E7D32',
-      cloud: '#B0BEC5', bird: '#ECEFF1'
+      skyTop: '#0F172A', skyBot: '#1E1B4B',
+      mountainFar: '#312E81', mountainNear: '#1E1B4B',
+      ground: '#064E3B', groundLine: '#022C22', dirt: '#064E3B',
+      cactus: '#064E3B', cactusLight: '#065F46',
+      cloud: '#64748B', bird: '#94A3B8'
     }
   };
 
@@ -382,21 +406,16 @@ function playSound(type) {
     }
   }
 
-  // ============================================
-  // НОВЫЙ ДИЗАЙН ПТЕРОДАКТИЛЯ
-  // ============================================
   function drawBird(b, scale = BIRD_SCALE_GAME) {
     const x = b.x, y = b.y; 
     const wingUp = Math.floor(frame / 8) % 2 === 0;
     const theme = THEMES[currentTheme];
     
-    // Тень на земле
     ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
     ctx.beginPath(); 
     ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); 
     ctx.fill();
     
-    // Магнит
     if (b.magnetized) { 
       ctx.fillStyle = 'rgba(100,180,255,0.35)'; 
       ctx.beginPath(); 
@@ -406,29 +425,22 @@ function playSound(type) {
     
     ctx.fillStyle = theme.bird;
     
-    // Тело (вытянутое)
     ctx.fillRect(x + 12 * scale, y - 2 * scale, 16 * scale, 4 * scale);
-    // Хвост
     ctx.fillRect(x + 6 * scale, y, 6 * scale, 2 * scale);
     ctx.fillRect(x + 4 * scale, y + 2 * scale, 2 * scale, 2 * scale);
     
-    // Шея и голова
     ctx.fillRect(x + 28 * scale, y - 5 * scale, 6 * scale, 5 * scale);
     ctx.fillRect(x + 34 * scale, y - 4 * scale, 2 * scale, 4 * scale); 
     
-    // Клюв (длинный, направлен вправо)
     ctx.fillRect(x + 36 * scale, y - 3 * scale, 8 * scale, 2 * scale);
     ctx.fillRect(x + 36 * scale, y - 1 * scale, 5 * scale, 1 * scale);
     
-    // Гребень на затылке (направлен назад)
     ctx.fillRect(x + 26 * scale, y - 10 * scale, 3 * scale, 5 * scale);
     ctx.fillRect(x + 23 * scale, y - 8 * scale, 3 * scale, 3 * scale);
     
-    // Глаз
     ctx.fillStyle = '#FFF'; ctx.fillRect(x + 30 * scale, y - 3 * scale, 2 * scale, 2 * scale);
     ctx.fillStyle = '#000'; ctx.fillRect(x + 31 * scale, y - 3 * scale, 1 * scale, 1 * scale);
     
-    // Крылья (перепончатые)
     ctx.fillStyle = theme.bird;
     if (wingUp) {
       ctx.beginPath();
@@ -439,7 +451,6 @@ function playSound(type) {
       ctx.lineTo(x + 28 * scale, y - 2 * scale);
       ctx.closePath(); ctx.fill();
       
-      // Светлая перепонка
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.beginPath();
       ctx.moveTo(x + 10 * scale, y - 8 * scale);
@@ -455,7 +466,6 @@ function playSound(type) {
       ctx.lineTo(x + 28 * scale, y + 2 * scale);
       ctx.closePath(); ctx.fill();
       
-      // Светлая перепонка
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.beginPath();
       ctx.moveTo(x + 10 * scale, y + 8 * scale);
@@ -480,19 +490,47 @@ function playSound(type) {
   let clouds = [{ x: 500, y: 60, s: 1, speed: 0.2 }, { x: 750, y: 90, s: 0.8, speed: 0.3 }];
   let groundDots = []; for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
+  // Отрисовка луны
+  function drawMoon() {
+    if (currentTheme !== 'night') return;
+    const moonX = W - 150;
+    const moonY = 120;
+    
+    // Свечение вокруг луны
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.1)';
+    ctx.beginPath(); ctx.arc(moonX, moonY, 60, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.2)';
+    ctx.beginPath(); ctx.arc(moonX, moonY, 40, 0, Math.PI * 2); ctx.fill();
+    
+    // Сама луна
+    ctx.fillStyle = '#FFF3E0';
+    ctx.beginPath(); ctx.arc(moonX, moonY, 25, 0, Math.PI * 2); ctx.fill();
+    
+    // Кратеры
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.beginPath(); ctx.arc(moonX - 8, moonY - 5, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(moonX + 10, moonY + 8, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(moonX - 2, moonY + 12, 3, 0, Math.PI * 2); ctx.fill();
+  }
+
   function drawBackground() {
     const theme = THEMES[currentTheme];
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, theme.skyTop); grad.addColorStop(1, theme.skyBot);
     ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
 
+    // Звёзды (только ночью)
     if (currentTheme === 'night') {
-      ctx.fillStyle = '#FFF';
-      for (let i = 0; i < 30; i++) {
-        let sx = (i * 137 + frame * 0.05) % W;
-        let sy = (i * 71) % (GROUND_Y - 100) + 20;
-        if (Math.sin(frame * 0.05 + i) > 0.5) ctx.fillRect(sx, sy, 2, 2);
-      }
+      stars.forEach(star => {
+        const opacity = 0.3 + Math.sin(frame * star.speed + star.offset) * 0.7;
+        if (opacity > 0) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+          ctx.beginPath(); 
+          ctx.arc(star.x * W, star.y * H, star.size, 0, Math.PI * 2); 
+          ctx.fill();
+        }
+      });
+      drawMoon();
     }
 
     clouds.forEach(c => {
@@ -526,15 +564,53 @@ function playSound(type) {
   function updateParticles() { particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.04; }); particles = particles.filter(p => p.life > 0); }
   function updateBonesFlying() { bonesFlying.forEach(b => { b.x += b.vx; b.y += b.vy; b.vy += 0.3; b.rot += 0.2; b.life -= 0.02; }); bonesFlying = bonesFlying.filter(b => b.life > 0); }
   
+  function initRain() {
+    rainDrops = [];
+    for (let i = 0; i < 70; i++) {
+      rainDrops.push({ 
+        x: Math.random() * W, 
+        y: Math.random() * H, 
+        vx: -speed * 0.5 - 2, 
+        vy: 15 + Math.random() * 10,
+        len: 10 + Math.random() * 10
+      });
+    }
+  }
+
   function updateRain() {
     if (!isRaining) return;
-    rainDrops.forEach(r => { r.x += r.vx; r.y += r.vy; if (r.y > H || r.x < 0) { r.y = -20; r.x = Math.random() * W; } });
+    rainDrops.forEach(r => { 
+      r.x += r.vx; 
+      r.y += r.vy; 
+      if (r.y > H || r.x < 0) { 
+        r.y = -20; 
+        r.x = Math.random() * W + W * 0.2; 
+      } 
+    });
+    
+    // Случайная молния во время дождя
+    if (Math.random() < 0.005) {
+      lightningFlash = 15;
+    }
   }
   
   function drawRain() {
     if (!isRaining) return;
-    ctx.strokeStyle = 'rgba(150,200,255,0.6)'; ctx.lineWidth = 1.5;
-    rainDrops.forEach(r => { ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + r.vx * 3, r.y + r.vy * 3); ctx.stroke(); });
+    ctx.strokeStyle = 'rgba(150, 200, 255, 0.4)'; 
+    ctx.lineWidth = 2; 
+    ctx.lineCap = 'round';
+    rainDrops.forEach(r => { 
+      ctx.beginPath(); 
+      ctx.moveTo(r.x, r.y); 
+      ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5); 
+      ctx.stroke(); 
+    });
+    
+    // Вспышка молнии
+    if (lightningFlash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash / 15 * 0.7})`;
+      ctx.fillRect(0, 0, W, H);
+    }
   }
 
   function drawBoneShape(x, y, size = 14) {
@@ -559,7 +635,15 @@ function playSound(type) {
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
-    dino.scale = DINO_SCALE_GAME; currentTheme = 'day'; isRaining = false; powerUpActive = null;
+    dino.scale = DINO_SCALE_GAME; powerUpActive = null;
+    
+    // Сброс таймеров времени и погоды
+    currentTheme = 'day';
+    isRaining = false;
+    timeOfDayTimer = 0;
+    weatherTimer = 0;
+    lightningFlash = 0;
+    
     birdsEatenThisGame = 0; lastPowerUpSecond = -1;
     gameState = 'playing'; hideAllScreens(); 
     hud.classList.remove('hidden'); speedBarContainer.classList.add('active'); powerUpHud.classList.add('hidden');
@@ -596,9 +680,8 @@ function playSound(type) {
     const r = Math.random();
     if (r < 0.45) {
       const big = Math.random() < 0.5; 
-      // УМЕНЬШЕННЫЕ БОЛЬШИЕ КАКТУСЫ
-      const h = big ? 25 : 20; // было 30
-      const w = big ? 10 : 8;  // было 12
+      const h = big ? 25 : 20;
+      const w = big ? 10 : 8; 
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: big ? 'cactus_big' : 'cactus_small' });
     } else if (r < 0.85) {
       const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168]; const y = heights[Math.floor(Math.random() * heights.length)];
@@ -624,8 +707,22 @@ function playSound(type) {
       
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
-      if (score > 500 && currentTheme === 'day' && Math.random() < 0.005) { currentTheme = 'night'; isRaining = Math.random() < 0.5; if (isRaining) initRain(); }
-      if (score > 500 && currentTheme === 'night' && Math.random() < 0.002) { currentTheme = 'day'; isRaining = false; }
+      // ============================================
+      // НОВАЯ СИСТЕМА ВРЕМЕНИ И ПОГОДЫ (ПО ТАЙМЕРАМ)
+      // ============================================
+      timeOfDayTimer++;
+      weatherTimer++;
+
+      if (timeOfDayTimer > (currentTheme === 'day' ? DAY_DURATION : NIGHT_DURATION)) {
+        currentTheme = currentTheme === 'day' ? 'night' : 'day';
+        timeOfDayTimer = 0;
+      }
+
+      if (weatherTimer > (isRaining ? RAIN_DURATION : CLEAR_DURATION)) {
+        isRaining = !isRaining;
+        weatherTimer = 0;
+        if (isRaining) initRain();
+      }
 
       if (dino.jumping) {
         dino.vy += GRAVITY; dino.y += dino.vy;
@@ -701,7 +798,6 @@ function playSound(type) {
 
       if (!powerUpActive || powerUpActive.type !== 'shield') {
         for (const o of obstacles) {
-          // Скорректированный хитбокс для уменьшенных больших кактусов
           let oBox = o.type === 'cactus_small' 
             ? { x: o.x - 0.5 * dino.scale, y: o.y - o.h * dino.scale, w: 11 * dino.scale, h: o.h * dino.scale }
             : { x: o.x, y: o.y - o.h * dino.scale, w: 16 * dino.scale, h: o.h * dino.scale };
@@ -711,7 +807,6 @@ function playSound(type) {
 
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
-        // Скорректированный хитбокс для нового птеродактиля (он длиннее)
         const bBox = { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
         if (rectCollide(dinoBox, bBox)) {
           let bonesEarned = 1 + (save.upgrades.doubleBones || 0);
@@ -731,14 +826,8 @@ function playSound(type) {
       updateHUD();
     }
     updateParticles(); updateBonesFlying();
+    if (lightningFlash > 0) lightningFlash--;
     if (shakeTime > 0) shakeTime--;
-  }
-
-  function initRain() {
-    rainDrops = [];
-    for (let i = 0; i < 50; i++) {
-      rainDrops.push({ x: Math.random() * W, y: Math.random() * H, vx: -3, vy: 10 + Math.random() * 5 });
-    }
   }
 
   function updateHUD() {
@@ -844,6 +933,8 @@ function playSound(type) {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
+    // Сбрасываем на день в меню
+    currentTheme = 'day'; isRaining = false; lightningFlash = 0;
   }
   
   function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
