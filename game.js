@@ -39,12 +39,45 @@ function haptic(type) {
 // ===== ЗВУКИ =====
 let audioCtx = null;
 let soundEnabled = true;
+// === ПАТЧ 16: добавлено управление музыкой ===
+let musicEnabled = true;
+let musicInterval = null;
+let musicIndex = 0;
+const MUSIC_NOTES = [261.63, 329.63, 392.00, 329.63, 261.63, 392.00, 523.25, 392.00]; // C E G E C G C5 G
+
 function initAudio() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   } catch (e) {}
 }
+
+// === ПАТЧ 16: простая фоновая мелодия ===
+function startMusic() {
+  if (!musicEnabled || musicInterval) return;
+  musicIndex = 0;
+  musicInterval = setInterval(() => {
+    if (!musicEnabled || gameState !== 'playing' || !audioCtx) return;
+    try {
+      const freq = MUSIC_NOTES[musicIndex % MUSIC_NOTES.length];
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
+      osc.start(now); osc.stop(now + 0.35);
+      musicIndex++;
+    } catch (e) {}
+  }, 400);
+}
+
+function stopMusic() {
+  if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+}
+
 function playSound(type) {
   if (!soundEnabled || !audioCtx) return;
   try {
@@ -122,7 +155,7 @@ function lerpColor(a, b, t) {
 }
 
 // ===== ВЕРСИЯ И CHANGELOG =====
-const CURRENT_VERSION = 15;
+const CURRENT_VERSION = 16; // === ПАТЧ 16: синхронизировано с HTML (было 15) ===
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -131,6 +164,18 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  // === ПАТЧ 16: новая запись в changelog ===
+  {
+    version: 16,
+    changes: [
+      'Патч 16: стабильность и настройки',
+      'Исправлен невидимый символ в кнопке «Сбросить прогресс» (HTML)',
+      'Кнопка «Музыка» теперь работает: включает/выключает фоновую мелодию',
+      'Синхронизирована версия JS с HTML (0.0.16)',
+      'Оптимизация: рекорд сохраняется раз в ~5 сек вместо каждого кадра — меньше лагов на телефоне',
+      'Исправлена очистка canvas при тряске экрана (устранён «шлейф» по краям)'
+    ]
+  },
   {
     version: 15,
     changes: [
@@ -279,6 +324,7 @@ const CHANGELOG = [
   const goBones = document.getElementById('goBones');
   const newRecordText = document.getElementById('newRecordText');
   const btnSound = document.getElementById('btnSound');
+  const btnMusic = document.getElementById('btnMusic');
   const achievementPopup = document.getElementById('achievementPopup');
   const achPopupIcon = document.getElementById('achPopupIcon');
   const achPopupName = document.getElementById('achPopupName');
@@ -394,7 +440,6 @@ const CHANGELOG = [
   let lastPowerUpSecond = -1;
   let birdsEatenThisGame = 0;
 
-  // === ПЕРЕМЕННЫЕ КОМБО ===
   let comboCount = 0;
   let comboTimer = 0;
   const COMBO_TIMEOUT = 5;
@@ -462,9 +507,6 @@ const CHANGELOG = [
     return { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
   }
 
-  // ============================================
-  // ЦВЕТА НЕБА
-  // ============================================
   const TIME_KEYS = [
     { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' },
     { t: 0.10, top: '#0F1432', bot: '#252A4A' },
@@ -959,6 +1001,7 @@ const CHANGELOG = [
     setTimeout(() => el.remove(), 1000);
   }
 
+  // === ПАТЧ 16: в reset() добавлен запуск музыки ===
   function reset() {
     requestTgFullscreen();
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
@@ -978,9 +1021,10 @@ const CHANGELOG = [
     versionBtn.style.display = 'none';
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
-  }
-
-  function jump() {
+    // === ПАТЧ 16: запуск музыки ===
+    startMusic();
+ }
+    function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
     if (!dino.jumping) {
@@ -1031,7 +1075,6 @@ const CHANGELOG = [
       speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
-      // === ТАЙМЕР КОМБО ===
       if (comboCount > 0) {
         comboTimer -= dt;
         if (comboTimer <= 0) {
@@ -1077,7 +1120,6 @@ const CHANGELOG = [
       
       const dinoBox = getDinoBox();
       
-      // === ПРОВЕРКА NEAR-MISS С КАКТУСАМИ ===
       for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
         const oBox = getCactusBox(o);
@@ -1114,7 +1156,6 @@ const CHANGELOG = [
         b.x -= effSpeed;
       });
       
-      // === ПРОВЕРКА NEAR-MISS С ПТИЦАМИ + СБРОС КОМБО ===
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
         const bBox = getBirdBox(b);
@@ -1197,7 +1238,8 @@ const CHANGELOG = [
         }
       }
 
-      if (score > save.highScore) { save.highScore = score; writeSave(); }
+      // === ПАТЧ 16.3: убран writeSave() из каждого кадра (перенос в loop) ===
+      if (score > save.highScore) { save.highScore = score; }
       clouds.forEach(c => { c.x -= c.speed; if (c.x < -80) { c.x = W + Math.random() * 200; c.y = 40 + Math.random() * 60; } });
       groundDots.forEach(d => { d.x -= speed; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
       
@@ -1215,9 +1257,12 @@ const CHANGELOG = [
 
   function rectCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
+  // === ПАТЧ 16.2: остановка музыки при смерти ===
   function gameOver() {
     gameState = 'gameover'; shakeTime = 15; haptic('crash'); playSound('crash');
     spawnDust(dino.x + 30, dino.y - 20, 15, 5); 
+    
+    stopMusic(); // ПАТЧ 16.2
     
     comboCount = 0; comboTimer = 0; updateComboHUD();
     
@@ -1261,8 +1306,9 @@ const CHANGELOG = [
   function render() {
     let shakeX = 0, shakeY = 0;
     if (shakeTime > 0) { shakeX = (Math.random() - 0.5) * shakeTime * 0.6; shakeY = (Math.random() - 0.5) * shakeTime * 0.6; }
+    // === ПАТЧ 16.4: clearRect вне translate — нет шлейфа при тряске ===
+    ctx.clearRect(0, 0, W, H);
     ctx.save(); ctx.translate(shakeX, shakeY);
-    ctx.clearRect(-20, -20, W + 40, H + 40);
     
     const isMenu = gameState === 'menu' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
     const timeOfDay = (gameState === 'playing' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
@@ -1297,11 +1343,13 @@ const CHANGELOG = [
     drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, colors, BIRD_SCALE_MENU);
   }
 
+  // === ПАТЧ 16.3: автосохранение раз в ~5 секунд (каждые 300 кадров) ===
   function loop(ts) {
     const dt = ts - lastTime; lastTime = ts;
     const dtSeconds = Math.min(0.05, dt / 1000);
     const steps = Math.min(3, Math.max(1, Math.round(dt / 16.67)));
     for (let i = 0; i < steps; i++) update(dtSeconds / steps);
+    if (gameState === 'playing' && frame % 300 === 0) writeSave();
     render(); requestAnimationFrame(loop);
   }
 
@@ -1320,6 +1368,7 @@ const CHANGELOG = [
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
     isRaining = false; lightning = null; lightningAmbient = 0; 
     dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
+    stopMusic(); // ПАТЧ 16.2
   }
   
   function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
@@ -1422,6 +1471,7 @@ const CHANGELOG = [
     });
   }
 
+  // === ПАТЧ 16.2: обработчик toggle-music + правильный текст кнопок ===
   document.addEventListener('pointerdown', (e) => {
     const btn = e.target.closest('[data-action]');
     if (btn) {
@@ -1441,7 +1491,12 @@ const CHANGELOG = [
         save = defaultSave(); writeSave(); updateHUD(); renderUpgrades(); renderRecords(); confirmDialog.classList.add('hidden'); showMainMenu();
       } else if (action === 'toggle-sound') {
         soundEnabled = !soundEnabled;
-        btn.textContent = soundEnabled ? '🔊 ЗВУК: ВКЛ' : '🔇 ЗВУК: ВЫКЛ';
+        btn.textContent = soundEnabled ? '🔊 ЗВУКИ: ВКЛ' : '🔇 ЗВУКИ: ВЫКЛ';
+      } else if (action === 'toggle-music') {
+        musicEnabled = !musicEnabled;
+        btn.textContent = musicEnabled ? '🎵 МУЗЫКА: ВКЛ' : '🔇 МУЗЫКА: ВЫКЛ';
+        if (!musicEnabled) stopMusic();
+        else if (gameState === 'playing') startMusic();
       }
       return;
     }
