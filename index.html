@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -41,7 +41,6 @@
   </span>
 </div>
 
-<!-- НОВЫЙ ЭЛЕМЕНТ: индикатор комбо -->
 <div id="comboHud" class="hidden">
   <span id="comboMult">🔥 x2</span>
   <div id="comboTimerBar"><div id="comboTimerFill"></div></div>
@@ -63,7 +62,7 @@
 
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.15</strong>
+  <strong id="versionNumber">0.0.16</strong>
 </button>
 
 <div id="recordsScreen" class="ui-screen hidden">
@@ -96,7 +95,8 @@
 <div id="settingsScreen" class="ui-screen hidden">
   <h1>⚙️ НАСТРОЙКИ</h1>
   <div class="settings-list">
-    <button class="btn secondary" data-action="toggle-sound" id="btnSound">🔊 ЗВУК: ВКЛ</button>
+    <button class="btn secondary" data-action="toggle-sound" id="btnSound">🔊 ЗВУКИ: ВКЛ</button>
+    <button class="btn secondary" data-action="toggle-music" id="btnMusic">🎵 МУЗЫКА: ВКЛ</button>
     <button class="btn danger" data-action="reset">🗑️ СБРОСИТЬ ПРОГРЕСС</button>
   </div>
   <button class="btn btn-back" data-action="back">← НАЗАД</button>
@@ -141,6 +141,6 @@
   </div>
 </div>
 
-<script src="game.js?v=15"></script>
+<script src="game.js?v=16"></script>
 </body>
 </html>
