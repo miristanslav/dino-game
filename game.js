@@ -1,6 +1,6 @@
 // ============================================================
 // GAME.JS — точка входа: Telegram, splash, resize, update, loop
-// Патч 20: + XP при gameover, + бонусы скинов в геймплее
+// Патч 21: + обновление ежедневок при gameover, + init ежедневок
 // ============================================================
 
 // ===== TELEGRAM INIT =====
@@ -228,6 +228,23 @@ function gameOver() {
   save.games = save.games.slice(0, 10);
   checkAchievements(finalScore);
 
+  // ===== ПАТЧ 21: Обновление ежедневного задания =====
+  if (save.dailyQuest && !save.dailyQuest.claimed) {
+    const q = save.dailyQuest;
+    if (q.type === 'score') {
+      q.progress = Math.max(q.progress, finalScore);
+    } else if (q.type === 'birds') {
+      q.progress += birdsEatenThisGame;
+    } else if (q.type === 'bones') {
+      q.progress += earnedThisGame;
+    }
+    
+    if (q.progress >= q.target) {
+      q.progress = q.target;
+      q.completed = true;
+    }
+  }
+
   // ===== ПАТЧ 20: начисление XP и проверка уровня =====
   const xpGained = Math.floor(finalScore / 10) + earnedThisGame * 2;
   const oldLevel = getLevelFromXp(save.xp).level;
@@ -257,7 +274,6 @@ function gameOver() {
   powerUpHud.classList.add('hidden');
   hud.classList.add('hidden');
 
-  // Показать попап нового уровня через 0.9 сек
   if (newInfo.level > oldLevel) {
     setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 900);
   }
@@ -268,7 +284,6 @@ function update(dt) {
   if (isPortraitMode) return;
   frame++;
   if (gameState === 'playing') {
-    // ===== ПАТЧ 20: бонус скина к очкам =====
     const skinBonus = getCurrentSkin().bonus;
     const scoreBonusMult = (skinBonus.type === 'score') ? skinBonus.value : 1;
 
@@ -326,7 +341,6 @@ function update(dt) {
 
     const dinoBox = getDinoBox();
 
-    // Near-miss с кактусами
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
       const oBox = getCactusBox(o);
@@ -347,7 +361,6 @@ function update(dt) {
 
     updateRain(dt);
 
-    // Птицы: магнит + движение
     birds.forEach(b => {
       let effSpeed = speed * 0.5;
       if (save.upgrades.magnet > 0) {
@@ -375,7 +388,6 @@ function update(dt) {
       b.x -= effSpeed;
     });
 
-    // Near-miss с птицами + сброс комбо
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       const bBox = getBirdBox(b);
@@ -396,11 +408,9 @@ function update(dt) {
       }
     }
 
-    // Power-ups подбор
     for (let i = powerUps.length - 1; i >= 0; i--) {
       const p = powerUps[i];
       if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
-        // ===== ПАТЧ 20: бонус скина к длительности бонусов =====
         const puBonusDur = (skinBonus.type === 'powerup') ? skinBonus.value : 0;
         const totalDuration = p.duration + puBonusDur;
         powerUpActive = {
@@ -432,7 +442,6 @@ function update(dt) {
       }
     }
 
-    // Столкновения с кактусами
     if (!powerUpActive || powerUpActive.type !== 'shield') {
       for (const o of obstacles) {
         if (rectCollide(dinoBox, getCactusBox(o))) {
@@ -442,7 +451,6 @@ function update(dt) {
       }
     }
 
-    // Поедание птиц
     for (let i = birds.length - 1; i >= 0; i--) {
       const b = birds[i];
       const bBox = getBirdBox(b);
@@ -451,7 +459,6 @@ function update(dt) {
         comboTimer = COMBO_TIMEOUT;
         const mult = getComboMultiplier();
 
-        // ===== ПАТЧ 20: бонус скина к костям за птицу =====
         const birdBonesBonus = (skinBonus.type === 'bones') ? skinBonus.value : 0;
         const baseBones = 1 + (save.upgrades.doubleBones || 0) + birdBonesBonus;
         const bonesEarned = baseBones * mult;
@@ -532,7 +539,7 @@ function render() {
   ctx.save();
   ctx.translate(shakeX, shakeY);
 
-  const isMenu = gameState === 'menu' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
+  const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
   const timeOfDay = (gameState === 'playing' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
   const colors = getObjectColors(timeOfDay);
 
@@ -568,6 +575,7 @@ function loop(ts) {
 
 // ===== START =====
 resizeCanvas();
+checkDailyAndStreak();
 updateHUD();
 showMainMenu();
 requestAnimationFrame(loop);
