@@ -1,4 +1,8 @@
-// ===== ЗВУКИ И МУЗЫКА =====
+// ============================================================
+// AUDIO.JS — звуковые эффекты и фоновая музыка
+// Использует: gameState, MUSIC_MELODY, MUSIC_BASS, MUSIC_VOLUME
+// ============================================================
+
 let audioCtx = null;
 let soundEnabled = true;
 let musicEnabled = true;
@@ -11,7 +15,6 @@ function initAudio() {
   } catch (e) {}
 }
 
-// === ПАТЧ 18: startMusic теперь видит gameState (глобальная в config.js) ===
 function startMusic() {
   if (!musicEnabled || musicInterval) return;
   let step = 0;
@@ -117,4 +120,4 @@ function playThunder() {
     noise.start(now);
     noise.stop(now + 2);
   } catch (e) {}
-    }
+}
