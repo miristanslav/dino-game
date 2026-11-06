@@ -85,6 +85,18 @@ function playSound(type) {
   } catch (e) {}
 }
 
+// ===== УТИЛИТЫ ДЛЯ ЦВЕТА И ВРЕМЕНИ =====
+function lerpColor(a, b, t) {
+  const ah = parseInt(a.slice(1), 16);
+  const bh = parseInt(b.slice(1), 16);
+  const ar = (ah >> 16) & 0xFF, ag = (ah >> 8) & 0xFF, ab = ah & 0xFF;
+  const br = (bh >> 16) & 0xFF, bg = (bh >> 8) & 0xFF, bb = bh & 0xFF;
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `rgb(${r},${g},${bl})`;
+}
+
 // ===== ИГРА =====
 (() => {
   const canvas = document.getElementById('gameCanvas');
@@ -190,11 +202,10 @@ function playSound(type) {
   const BASE_SPEED = 3.5;
   const MAX_SPEED_BONUS = 4.5;
 
-  // Тайминги (в кадрах при ~60 FPS)
-  const DAY_DURATION = 45 * 60;    // 45 секунд
-  const NIGHT_DURATION = 30 * 60;  // 30 секунд
-  const CLEAR_DURATION = 20 * 60;  // 20 секунд
-  const RAIN_DURATION = 15 * 60;   // 15 секунд
+  // ===== ТАЙМИНГИ (в секундах) =====
+  const DAY_NIGHT_CYCLE = 75;    // Полный цикл: 45с день + 30с ночь
+  const CLEAR_DURATION = 20;     // 20 сек ясной погоды
+  const RAIN_DURATION = 15;      // 15 сек дождя
 
   const SKINS = [
     { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
@@ -225,12 +236,11 @@ function playSound(type) {
   let gameState = 'menu';
   let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
   
-  // Переменные для времени и погоды
-  let currentTheme = 'day';
+  // Время суток и погода (в секундах)
+  let dayNightTime = 0;
+  let weatherTime = 0;
   let isRaining = false;
-  let timeOfDayTimer = 0;
-  let weatherTimer = 0;
-  let lightningFlash = 0; // Эффект молнии
+  let lightningFlash = 0;
   
   let powerUpActive = null;
   let lastPowerUpSecond = -1;
@@ -239,34 +249,99 @@ function playSound(type) {
   const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
   let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [];
   
-  // Массив для звёзд
+  // Звёзды
   let stars = [];
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 80; i++) {
     stars.push({ 
       x: Math.random(), 
-      y: Math.random() * 0.6, 
+      y: Math.random() * 0.65, 
       size: Math.random() * 1.5 + 0.5, 
-      speed: Math.random() * 0.05 + 0.01,
-      offset: Math.random() * Math.PI * 2
+      phase: Math.random() * Math.PI * 2,
+      brightness: Math.random() * 0.5 + 0.5
     });
   }
 
-  const THEMES = {
-    day: {
-      skyTop: '#64B5F6', skyBot: '#E3F2FD',
-      mountainFar: '#90CAF9', mountainNear: '#A5D6A7',
-      ground: '#8BC34A', groundLine: '#33691E', dirt: '#795548',
-      cactus: '#388E3C', cactusLight: '#4CAF50',
-      cloud: '#FFFFFF', bird: '#37474F'
-    },
-    night: {
-      skyTop: '#0F172A', skyBot: '#1E1B4B',
-      mountainFar: '#312E81', mountainNear: '#1E1B4B',
-      ground: '#064E3B', groundLine: '#022C22', dirt: '#064E3B',
-      cactus: '#064E3B', cactusLight: '#065F46',
-      cloud: '#64748B', bird: '#94A3B8'
+  // ============================================
+  // СИСТЕМА ВРЕМЕНИ СУТОК (ПЛАВНАЯ)
+  // ============================================
+  
+  // Возвращает цвета неба на основе времени суток (0..1)
+  function getSkyColors(t) {
+    const keys = [
+      { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
+      { t: 0.10, top: '#2C1B47', bot: '#5E3A73' }, // Предрассвет
+      { t: 0.18, top: '#E57399', bot: '#FFB74D' }, // Рассвет
+      { t: 0.30, top: '#42A5F5', bot: '#BBDEFB' }, // Утро
+      { t: 0.50, top: '#1E88E5', bot: '#90CAF9' }, // Полдень
+      { t: 0.65, top: '#FF7043', bot: '#FFCC80' }, // Закат
+      { t: 0.75, top: '#6A1B9A', bot: '#AD1457' }, // Сумерки
+      { t: 0.85, top: '#0A0E1A', bot: '#1A1F35' }, // Ночь
+      { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
+    ];
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (t >= keys[i].t && t <= keys[i+1].t) {
+        const lt = (t - keys[i].t) / (keys[i+1].t - keys[i].t);
+        return {
+          top: lerpColor(keys[i].top, keys[i+1].top, lt),
+          bot: lerpColor(keys[i].bot, keys[i+1].bot, lt),
+        };
+      }
     }
-  };
+    return { top: keys[0].top, bot: keys[0].bot };
+  }
+
+  // Уровень освещения (0 = ночь, 1 = день)
+  function getLightLevel(t) {
+    if (t >= 0.30 && t <= 0.55) return 1.0;
+    if (t >= 0.85 || t <= 0.10) return 0.25;
+    if (t > 0.10 && t < 0.18) return 0.25 + (t - 0.10) / 0.08 * 0.5;
+    if (t >= 0.18 && t < 0.30) return 0.75 + (t - 0.18) / 0.12 * 0.25;
+    if (t > 0.55 && t < 0.75) return 1.0 - (t - 0.55) / 0.20 * 0.75;
+    return 1.0;
+  }
+
+  // Позиция солнца (видно с 0.15 до 0.72)
+  function getSunPos(t) {
+    if (t < 0.15 || t > 0.72) return null;
+    const localT = (t - 0.15) / 0.57;
+    const angle = -Math.PI / 2 + localT * Math.PI;
+    const radius = H * 0.55;
+    return {
+      x: W / 2 + Math.sin(angle) * radius * 1.3,
+      y: GROUND_Y - Math.cos(angle) * radius
+    };
+  }
+
+  // Позиция луны (видно с 0.72 до 1.15)
+  function getMoonPos(t) {
+    let adjusted = t;
+    if (t < 0.15) adjusted = t + 1;
+    if (adjusted < 0.72) return null;
+    const localT = (adjusted - 0.72) / 0.43;
+    if (localT < 0 || localT > 1) return null;
+    const angle = -Math.PI / 2 + localT * Math.PI;
+    const radius = H * 0.55;
+    return {
+      x: W / 2 + Math.sin(angle) * radius * 1.3,
+      y: GROUND_Y - Math.cos(angle) * radius
+    };
+  }
+
+  // Цвета объектов (интерполируются день↔ночь)
+  function getObjectColors(t) {
+    const night = 1 - getLightLevel(t);
+    return {
+      cactus: lerpColor('#388E3C', '#66BB6A', night),
+      cactusLight: lerpColor('#4CAF50', '#81C784', night),
+      ground: lerpColor('#8BC34A', '#3E5C2A', night),
+      groundLine: lerpColor('#33691E', '#1B3D0F', night),
+      dirt: lerpColor('#795548', '#4E342E', night),
+      bird: lerpColor('#37474F', '#B0BEC5', night),
+      cloud: lerpColor('#FFFFFF', '#64748B', night),
+      mountainFar: lerpColor('#90CAF9', '#312E81', night),
+      mountainNear: lerpColor('#A5D6A7', '#1E1B4B', night),
+    };
+  }
 
   function getDinoColors() { return SKINS.find(s => s.id === save.currentSkin) || SKINS[0]; }
 
@@ -379,12 +454,11 @@ function playSound(type) {
     }
   }
 
-  function drawCactus(o, scale = dino.scale) {
+  function drawCactus(o, colors, scale = dino.scale) {
     const x = o.x, y = o.y, h = o.h, w = o.w, s = scale;
-    const theme = THEMES[currentTheme];
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.beginPath(); ctx.ellipse(x + w * s / 2, y + 3, w * s * 0.4, 4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = theme.cactus;
+    ctx.fillStyle = colors.cactus;
     if (o.type === 'cactus_small') {
       const stemW = 4; const stemX = x + (w / 2 - stemW / 2) * s;
       ctx.fillRect(stemX, y - h * s, stemW * s, h * s);
@@ -392,7 +466,7 @@ function playSound(type) {
       ctx.fillRect(stemX - 4 * s, b1Y, 4 * s, 3 * s); ctx.fillRect(stemX - 4 * s, b1Y - 6 * s, 3 * s, 8 * s);
       const b2Y = y - h * s + h * 0.55 * s;
       ctx.fillRect(stemX + stemW * s, b2Y, 4 * s, 3 * s); ctx.fillRect(stemX + stemW * s + 1 * s, b2Y - 5 * s, 3 * s, 7 * s);
-      ctx.fillStyle = theme.cactusLight;
+      ctx.fillStyle = colors.cactusLight;
       ctx.fillRect(stemX + 1 * s, y - h * s + 2 * s, 1 * s, h * s - 4 * s);
     } else {
       const stemW = 6; const stemX = x + (w / 2 - stemW / 2) * s;
@@ -401,15 +475,14 @@ function playSound(type) {
       ctx.fillRect(stemX - 6 * s, b1Y, 6 * s, 4 * s); ctx.fillRect(stemX - 6 * s, b1Y - 8 * s, 4 * s, 10 * s);
       const b2Y = y - h * s + h * 0.45 * s;
       ctx.fillRect(stemX + stemW * s, b2Y, 6 * s, 4 * s); ctx.fillRect(stemX + stemW * s + 2 * s, b2Y - 8 * s, 4 * s, 10 * s);
-      ctx.fillStyle = theme.cactusLight;
+      ctx.fillStyle = colors.cactusLight;
       ctx.fillRect(stemX + 1.5 * s, y - h * s + 2 * s, 1.5 * s, h * s - 4 * s);
     }
   }
 
-  function drawBird(b, scale = BIRD_SCALE_GAME) {
+  function drawBird(b, colors, scale = BIRD_SCALE_GAME) {
     const x = b.x, y = b.y; 
     const wingUp = Math.floor(frame / 8) % 2 === 0;
-    const theme = THEMES[currentTheme];
     
     ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
     ctx.beginPath(); 
@@ -423,25 +496,21 @@ function playSound(type) {
       ctx.fill(); 
     }
     
-    ctx.fillStyle = theme.bird;
-    
+    ctx.fillStyle = colors.bird;
     ctx.fillRect(x + 12 * scale, y - 2 * scale, 16 * scale, 4 * scale);
     ctx.fillRect(x + 6 * scale, y, 6 * scale, 2 * scale);
     ctx.fillRect(x + 4 * scale, y + 2 * scale, 2 * scale, 2 * scale);
-    
     ctx.fillRect(x + 28 * scale, y - 5 * scale, 6 * scale, 5 * scale);
     ctx.fillRect(x + 34 * scale, y - 4 * scale, 2 * scale, 4 * scale); 
-    
     ctx.fillRect(x + 36 * scale, y - 3 * scale, 8 * scale, 2 * scale);
     ctx.fillRect(x + 36 * scale, y - 1 * scale, 5 * scale, 1 * scale);
-    
     ctx.fillRect(x + 26 * scale, y - 10 * scale, 3 * scale, 5 * scale);
     ctx.fillRect(x + 23 * scale, y - 8 * scale, 3 * scale, 3 * scale);
     
     ctx.fillStyle = '#FFF'; ctx.fillRect(x + 30 * scale, y - 3 * scale, 2 * scale, 2 * scale);
     ctx.fillStyle = '#000'; ctx.fillRect(x + 31 * scale, y - 3 * scale, 1 * scale, 1 * scale);
     
-    ctx.fillStyle = theme.bird;
+    ctx.fillStyle = colors.bird;
     if (wingUp) {
       ctx.beginPath();
       ctx.moveTo(x + 14 * scale, y - 2 * scale);
@@ -450,7 +519,6 @@ function playSound(type) {
       ctx.lineTo(x + 20 * scale, y - 12 * scale);
       ctx.lineTo(x + 28 * scale, y - 2 * scale);
       ctx.closePath(); ctx.fill();
-      
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.beginPath();
       ctx.moveTo(x + 10 * scale, y - 8 * scale);
@@ -465,7 +533,6 @@ function playSound(type) {
       ctx.lineTo(x + 20 * scale, y + 12 * scale);
       ctx.lineTo(x + 28 * scale, y + 2 * scale);
       ctx.closePath(); ctx.fill();
-      
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.beginPath();
       ctx.moveTo(x + 10 * scale, y + 8 * scale);
@@ -490,75 +557,124 @@ function playSound(type) {
   let clouds = [{ x: 500, y: 60, s: 1, speed: 0.2 }, { x: 750, y: 90, s: 0.8, speed: 0.3 }];
   let groundDots = []; for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
-  // Отрисовка луны
-  function drawMoon() {
-    if (currentTheme !== 'night') return;
-    const moonX = W - 150;
-    const moonY = 120;
-    
-    // Свечение вокруг луны
-    ctx.fillStyle = 'rgba(255, 255, 200, 0.1)';
-    ctx.beginPath(); ctx.arc(moonX, moonY, 60, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255, 255, 200, 0.2)';
-    ctx.beginPath(); ctx.arc(moonX, moonY, 40, 0, Math.PI * 2); ctx.fill();
-    
-    // Сама луна
-    ctx.fillStyle = '#FFF3E0';
-    ctx.beginPath(); ctx.arc(moonX, moonY, 25, 0, Math.PI * 2); ctx.fill();
-    
-    // Кратеры
-    ctx.fillStyle = 'rgba(0,0,0,0.05)';
-    ctx.beginPath(); ctx.arc(moonX - 8, moonY - 5, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(moonX + 10, moonY + 8, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(moonX - 2, moonY + 12, 3, 0, Math.PI * 2); ctx.fill();
+  // ============================================
+  // РИСОВАНИЕ СОЛНЦА И ЛУНЫ
+  // ============================================
+  function drawSun(pos) {
+    if (!pos) return;
+    // Свечение
+    const glow = ctx.createRadialGradient(pos.x, pos.y, 10, pos.x, pos.y, 80);
+    glow.addColorStop(0, 'rgba(255, 235, 59, 0.6)');
+    glow.addColorStop(1, 'rgba(255, 235, 59, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 80, 0, Math.PI * 2); ctx.fill();
+    // Солнце
+    ctx.fillStyle = '#FFF59D';
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 30, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFEB3B';
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 24, 0, Math.PI * 2); ctx.fill();
   }
 
-  function drawBackground() {
-    const theme = THEMES[currentTheme];
+  function drawMoon(pos) {
+    if (!pos) return;
+    const glow = ctx.createRadialGradient(pos.x, pos.y, 5, pos.x, pos.y, 60);
+    glow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 60, 0, Math.PI * 2); ctx.fill();
+    // Луна
+    ctx.fillStyle = '#FFF8E1';
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2); ctx.fill();
+    // Кратеры
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.beginPath(); ctx.arc(pos.x - 6, pos.y - 4, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(pos.x + 8, pos.y + 6, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(pos.x - 2, pos.y + 10, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawBackground(timeOfDay) {
+    const colors = getObjectColors(timeOfDay);
+    const skyColors = getSkyColors(timeOfDay);
+    const lightLevel = getLightLevel(timeOfDay);
+    
+    // Небо
     const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, theme.skyTop); grad.addColorStop(1, theme.skyBot);
+    grad.addColorStop(0, skyColors.top);
+    grad.addColorStop(1, skyColors.bot);
     ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
 
-    // Звёзды (только ночью)
-    if (currentTheme === 'night') {
+    // Звёзды
+    if (lightLevel < 0.7) {
+      const starAlpha = Math.max(0, 1 - lightLevel * 1.5);
       stars.forEach(star => {
-        const opacity = 0.3 + Math.sin(frame * star.speed + star.offset) * 0.7;
-        if (opacity > 0) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        const twinkle = 0.6 + Math.sin(frame * 0.03 + star.phase) * 0.4;
+        const alpha = starAlpha * star.brightness * twinkle;
+        if (alpha > 0.05) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.beginPath(); 
           ctx.arc(star.x * W, star.y * H, star.size, 0, Math.PI * 2); 
           ctx.fill();
         }
       });
-      drawMoon();
     }
 
+    // Солнце и луна (с обрезкой по горизонту)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, GROUND_Y);
+    ctx.clip();
+    drawSun(getSunPos(timeOfDay));
+    drawMoon(getMoonPos(timeOfDay));
+    ctx.restore();
+
+    // Облака
     clouds.forEach(c => {
-      const s = c.s; ctx.fillStyle = theme.cloud; ctx.globalAlpha = currentTheme === 'night' ? 0.3 : 0.8;
+      const s = c.s; 
+      ctx.fillStyle = colors.cloud; 
+      ctx.globalAlpha = 0.8;
       ctx.beginPath(); ctx.ellipse(c.x + 20 * s, c.y + 5 * s, 25 * s, 12 * s, 0, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.ellipse(c.x + 10 * s, c.y, 15 * s, 10 * s, 0, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
     });
 
-    ctx.fillStyle = theme.mountainFar; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); 
+    // Горы
+    ctx.fillStyle = colors.mountainFar; 
+    ctx.beginPath(); ctx.moveTo(0, GROUND_Y); 
     const offset = (frame * 0.1) % 400;
-    for (let i = -1; i < 4; i++) { const bx = i * 300 - offset; ctx.lineTo(bx + 80, GROUND_Y - 90); ctx.lineTo(bx + 160, GROUND_Y - 30); ctx.lineTo(bx + 220, GROUND_Y - 110); ctx.lineTo(bx + 300, GROUND_Y); }
+    for (let i = -1; i < 4; i++) { 
+      const bx = i * 300 - offset; 
+      ctx.lineTo(bx + 80, GROUND_Y - 90); 
+      ctx.lineTo(bx + 160, GROUND_Y - 30); 
+      ctx.lineTo(bx + 220, GROUND_Y - 110); 
+      ctx.lineTo(bx + 300, GROUND_Y); 
+    }
     ctx.lineTo(W, GROUND_Y); ctx.lineTo(W, GROUND_Y + 2); ctx.lineTo(0, GROUND_Y + 2); ctx.closePath(); ctx.fill();
 
-    ctx.fillStyle = theme.mountainNear; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+    ctx.fillStyle = colors.mountainNear; 
+    ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
     const offset2 = (frame * 0.25) % 500;
-    for (let i = -1; i < 3; i++) { const bx = i * 400 - offset2; ctx.lineTo(bx + 100, GROUND_Y - 50); ctx.lineTo(bx + 200, GROUND_Y - 15); ctx.lineTo(bx + 300, GROUND_Y - 60); ctx.lineTo(bx + 400, GROUND_Y); }
+    for (let i = -1; i < 3; i++) { 
+      const bx = i * 400 - offset2; 
+      ctx.lineTo(bx + 100, GROUND_Y - 50); 
+      ctx.lineTo(bx + 200, GROUND_Y - 15); 
+      ctx.lineTo(bx + 300, GROUND_Y - 60); 
+      ctx.lineTo(bx + 400, GROUND_Y); 
+    }
     ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
   }
 
-  function drawGround() {
-    const theme = THEMES[currentTheme];
-    ctx.fillStyle = theme.ground; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-    ctx.strokeStyle = theme.groundLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
-    ctx.fillStyle = theme.dirt;
+  function drawGround(timeOfDay) {
+    const colors = getObjectColors(timeOfDay);
+    ctx.fillStyle = colors.ground; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+    ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+    ctx.fillStyle = colors.dirt;
     groundDots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); });
-    ctx.strokeStyle = theme.groundLine; ctx.lineWidth = 1.5;
-    for (let i = 0; i < 30; i++) { const gx = (i * 50 - (frame * speed) % 50); ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke(); }
+    ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 30; i++) { 
+      const gx = (i * 50 - (frame * speed) % 50); 
+      ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke(); 
+    }
   }
 
   function updateParticles() { particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.04; }); particles = particles.filter(p => p.life > 0); }
@@ -572,12 +688,11 @@ function playSound(type) {
         y: Math.random() * H, 
         vx: -speed * 0.5 - 2, 
         vy: 15 + Math.random() * 10,
-        len: 10 + Math.random() * 10
       });
     }
   }
 
-  function updateRain() {
+  function updateRain(dt) {
     if (!isRaining) return;
     rainDrops.forEach(r => { 
       r.x += r.vx; 
@@ -587,16 +702,15 @@ function playSound(type) {
         r.x = Math.random() * W + W * 0.2; 
       } 
     });
-    
-    // Случайная молния во время дождя
-    if (Math.random() < 0.005) {
-      lightningFlash = 15;
+    // Случайная молния
+    if (Math.random() < 0.01 * dt * 60) {
+      lightningFlash = 0.15;
     }
   }
   
   function drawRain() {
     if (!isRaining) return;
-    ctx.strokeStyle = 'rgba(150, 200, 255, 0.4)'; 
+    ctx.strokeStyle = 'rgba(150, 200, 255, 0.5)'; 
     ctx.lineWidth = 2; 
     ctx.lineCap = 'round';
     rainDrops.forEach(r => { 
@@ -606,9 +720,8 @@ function playSound(type) {
       ctx.stroke(); 
     });
     
-    // Вспышка молнии
     if (lightningFlash > 0) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash / 15 * 0.7})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.7, lightningFlash * 4)})`;
       ctx.fillRect(0, 0, W, H);
     }
   }
@@ -637,11 +750,10 @@ function playSound(type) {
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
     dino.scale = DINO_SCALE_GAME; powerUpActive = null;
     
-    // Сброс таймеров времени и погоды
-    currentTheme = 'day';
+    // Сброс таймеров
+    dayNightTime = 0.25 * DAY_NIGHT_CYCLE; // Начинаем с утра (не с полуночи)
+    weatherTime = 0;
     isRaining = false;
-    timeOfDayTimer = 0;
-    weatherTimer = 0;
     lightningFlash = 0;
     
     birdsEatenThisGame = 0; lastPowerUpSecond = -1;
@@ -688,44 +800,45 @@ function playSound(type) {
       birds.push({ x: W + 20, y, w: 10, h: 10, type: 'bird', magnetized: false });
     } else {
       const types = [
-        { type: 'shield', icon: '🛡', color: '#2196F3', duration: 300 },
-        { type: 'doubleJump', icon: '🦘', color: '#FF9800', duration: 400 }
+        { type: 'shield', icon: '🛡', color: '#2196F3', duration: 5 },
+        { type: 'doubleJump', icon: '🦘', color: '#FF9800', duration: 7 }
       ];
       const pu = types[Math.floor(Math.random() * types.length)];
-      powerUps.push({ x: W + 20, y: GROUND_Y - 80 + Math.random() * 40, ...pu });
+      powerUps.push({ x: W + 20, y: GROUND_Y - 80 + Math.random() * 40, ...pu, timer: pu.duration });
     }
   }
 
   function spawnDust(x, y, count, spread) { for (let i = 0; i < count; i++) particles.push({ x: x + (Math.random() - 0.5) * 10, y: y, vx: -speed * 0.3 - Math.random() * 2, vy: -Math.random() * spread, life: 1, r: Math.random() * 2 + 1 }); }
 
-  function update() {
+  function update(dt) {
     if (isPortraitMode) return;
     frame++;
+    
     if (gameState === 'playing') {
-      score += 0.1 * (speed / BASE_SPEED);
+      score += 0.1 * (speed / BASE_SPEED) * (dt * 60);
       speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400);
       
       speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
       // ============================================
-      // НОВАЯ СИСТЕМА ВРЕМЕНИ И ПОГОДЫ (ПО ТАЙМЕРАМ)
+      // НОВАЯ СИСТЕМА ВРЕМЕНИ И ПОГОДЫ (в секундах)
       // ============================================
-      timeOfDayTimer++;
-      weatherTimer++;
-
-      if (timeOfDayTimer > (currentTheme === 'day' ? DAY_DURATION : NIGHT_DURATION)) {
-        currentTheme = currentTheme === 'day' ? 'night' : 'day';
-        timeOfDayTimer = 0;
-      }
-
-      if (weatherTimer > (isRaining ? RAIN_DURATION : CLEAR_DURATION)) {
+      dayNightTime += dt;
+      if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
+      
+      weatherTime += dt;
+      const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION;
+      if (weatherTime >= currentWeatherDuration) {
         isRaining = !isRaining;
-        weatherTimer = 0;
+        weatherTime = 0;
         if (isRaining) initRain();
       }
+      
+      if (lightningFlash > 0) lightningFlash = Math.max(0, lightningFlash - dt);
 
       if (dino.jumping) {
-        dino.vy += GRAVITY; dino.y += dino.vy;
+        dino.vy += GRAVITY * (dt * 60); 
+        dino.y += dino.vy * (dt * 60);
         if (dino.y >= GROUND_Y) { 
           dino.y = GROUND_Y; 
           dino.vy = 0; 
@@ -746,7 +859,7 @@ function playSound(type) {
 
       obstacles.forEach(o => o.x -= speed); obstacles = obstacles.filter(o => o.x + o.w > -20);
       powerUps.forEach(p => p.x -= speed); powerUps = powerUps.filter(p => p.x > -20);
-      updateRain();
+      updateRain(dt);
 
       birds.forEach(b => {
         let effSpeed = speed * 0.5;
@@ -770,7 +883,7 @@ function playSound(type) {
       for (let i = powerUps.length - 1; i >= 0; i--) {
         const p = powerUps[i];
         if (rectCollide(dinoBox, { x: p.x - 15, y: p.y - 15, w: 30, h: 30 })) {
-          powerUpActive = { type: p.type, timer: p.duration, icon: p.icon, color: p.color };
+          powerUpActive = { type: p.type, timer: p.duration, maxTimer: p.duration, icon: p.icon, color: p.color };
           if (p.type === 'doubleJump') {
             dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
           }
@@ -779,13 +892,14 @@ function playSound(type) {
         }
       }
       
+      // Таймер бонусов (в секундах)
       if (powerUpActive) {
-        powerUpActive.timer--;
-        const secondsLeft = Math.ceil(powerUpActive.timer / 60);
+        powerUpActive.timer -= dt;
+        const secondsLeft = Math.ceil(powerUpActive.timer);
         
         if (secondsLeft !== lastPowerUpSecond) {
           lastPowerUpSecond = secondsLeft;
-          powerUpHud.innerHTML = `${powerUpActive.icon} ${secondsLeft}s`;
+          powerUpHud.innerHTML = `${powerUpActive.icon} ${Math.max(0, secondsLeft)}s`;
         }
         
         if (powerUpActive.timer <= 0) {
@@ -826,7 +940,6 @@ function playSound(type) {
       updateHUD();
     }
     updateParticles(); updateBonesFlying();
-    if (lightningFlash > 0) lightningFlash--;
     if (shakeTime > 0) shakeTime--;
   }
 
@@ -889,38 +1002,46 @@ function playSound(type) {
     ctx.save(); ctx.translate(shakeX, shakeY);
     ctx.clearRect(-20, -20, W + 40, H + 40);
     
-    drawBackground();
-    drawGround();
+    // Время суток для отрисовки
+    const timeOfDay = gameState === 'playing' || gameState === 'gameover' 
+      ? dayNightTime / DAY_NIGHT_CYCLE 
+      : 0.5; // В меню — день
+    
+    const colors = getObjectColors(timeOfDay);
+    
+    drawBackground(timeOfDay);
+    drawGround(timeOfDay);
     
     particles.forEach(p => { ctx.fillStyle = `rgba(255,255,255,${p.life * 0.8})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); });
     
     if (gameState === 'playing' || gameState === 'gameover') {
-      obstacles.forEach(o => drawCactus(o, dino.scale));
-      birds.forEach(b => drawBird(b, BIRD_SCALE_GAME));
+      obstacles.forEach(o => drawCactus(o, colors, dino.scale));
+      birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME));
       powerUps.forEach(drawPowerUp);
       drawRain();
       bonesFlying.forEach(b => { ctx.globalAlpha = b.life; ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); drawBoneShape(0, 0, 16); ctx.restore(); ctx.globalAlpha = 1; });
       drawDino();
     } else {
-      drawMenuScene();
+      drawMenuScene(colors);
     }
     ctx.restore();
   }
 
-  function drawMenuScene() {
+  function drawMenuScene(colors) {
     const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30;
     drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 6) % 2, false, DINO_SCALE_MENU);
-    drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, 2);
-    drawCactus({ x: W * 0.9, y: GROUND_Y, w: 10, h: 25, type: 'cactus_big' }, 2);
+    drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, colors, 2);
+    drawCactus({ x: W * 0.9, y: GROUND_Y, w: 10, h: 25, type: 'cactus_big' }, colors, 2);
     const birdX = W * 0.4 + Math.sin(frame * 0.03) * 100; 
     const birdY = H * 0.25 + Math.cos(frame * 0.02) * 40;
-    drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, BIRD_SCALE_MENU);
+    drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, colors, BIRD_SCALE_MENU);
   }
 
   function loop(ts) {
     const dt = ts - lastTime; lastTime = ts;
+    const dtSeconds = Math.min(0.05, dt / 1000);
     const steps = Math.min(3, Math.max(1, Math.round(dt / 16.67)));
-    for (let i = 0; i < steps; i++) update();
+    for (let i = 0; i < steps; i++) update(dtSeconds / steps);
     render(); requestAnimationFrame(loop);
   }
 
@@ -933,8 +1054,7 @@ function playSound(type) {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
-    // Сбрасываем на день в меню
-    currentTheme = 'day'; isRaining = false; lightningFlash = 0;
+    isRaining = false; lightningFlash = 0; dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
   }
   
   function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
