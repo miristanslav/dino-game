@@ -317,3 +317,64 @@ function spawnFloatingText(x, y, text) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1000);
         }
+// ===== ПАТЧ 24: Отрисовка питомцев =====
+function drawPet() {
+  if (save.currentPet === 'none') return;
+  
+  const petType = save.currentPet;
+  const px = petX;
+  const py = petY;
+
+  ctx.save();
+  ctx.translate(px, py);
+
+  if (petType === 'ptero') {
+    // Летун (Летучая мышь / Птеродактиль)
+    const wingUp = Math.floor(frame / 8) % 2 === 0;
+    ctx.fillStyle = '#6A1B9A';
+    ctx.beginPath();
+    if (wingUp) {
+      ctx.moveTo(0, 0); ctx.lineTo(-15, -10); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(15, -10); ctx.lineTo(5, 5); ctx.closePath(); ctx.fill();
+    } else {
+      ctx.moveTo(0, 0); ctx.lineTo(-15, 10); ctx.lineTo(-5, -5); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(15, 10); ctx.lineTo(5, -5); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#4A148C';
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.fillRect(-3, -2, 2, 2); ctx.fillRect(1, -2, 2, 2);
+
+  } else if (petType === 'ghost') {
+    // Призрак
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#E0E0E0';
+    ctx.beginPath();
+    ctx.arc(0, -5, 10, Math.PI, 0);
+    ctx.lineTo(10, 5);
+    // Волнистый низ
+    ctx.lineTo(6, 10); ctx.lineTo(2, 5); ctx.lineTo(-2, 10); ctx.lineTo(-6, 5); ctx.lineTo(-10, 10);
+    ctx.closePath();
+    ctx.fill();
+    // Глаза
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(-4, -5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+  } else if (petType === 'flame') {
+    // Огонёк
+    ctx.shadowColor = '#FF5722';
+    ctx.shadowBlur = 15;
+    const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, 12);
+    grad.addColorStop(0, '#FFEB3B');
+    grad.addColorStop(0.5, '#FF9800');
+    grad.addColorStop(1, 'rgba(255, 87, 34, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 12 + Math.sin(frame * 0.2) * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
