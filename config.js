@@ -13,7 +13,7 @@ let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
 // ===== ВЕРСИЯ =====
-const CURRENT_VERSION = 20;
+const CURRENT_VERSION = 21;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -23,6 +23,19 @@ function formatVersion(v) {
 
 // ===== CHANGELOG =====
 const CHANGELOG = [
+  {
+    version: 21,
+    changes: [
+      'Патч 21: ежедневные испытания и стрик',
+      'Каждый день генерируется новое задание (очки, птицы или кости)',
+      'Стрик (серия дней) растёт при ежедневном входе',
+      'Пропуск дня сбрасывает стрик',
+      'Награда: 50 костей + 100 XP',
+      'Бонус к награде: +5 костей и +10 XP за каждый день стрика',
+      'Огонёк на кнопке «Ежедневки» в меню, если задание не выполнено',
+      'Прогресс заданий суммируется за день (для очков — лучший результат)'
+    ]
+  },
   {
     version: 20,
     changes: [
@@ -361,6 +374,18 @@ const levelUpPopup = document.getElementById('levelUpPopup');
 const levelUpName = document.getElementById('levelUpName');
 const levelUpReward = document.getElementById('levelUpReward');
 const goXp = document.getElementById('goXp');
+// ===== ПАТЧ 21: Ежедневки =====
+const dailyScreen = document.getElementById('dailyScreen');
+const dailyStreak = document.getElementById('dailyStreak');
+const dailyIcon = document.getElementById('dailyIcon');
+const dailyTitle = document.getElementById('dailyTitle');
+const dailyProgressText = document.getElementById('dailyProgressText');
+const dailyTargetText = document.getElementById('dailyTargetText');
+const dailyProgressFill = document.getElementById('dailyProgressFill');
+const dailyBoneReward = document.getElementById('dailyBoneReward');
+const dailyXpReward = document.getElementById('dailyXpReward');
+const btnClaimDaily = document.getElementById('btnClaimDaily');
+const dailyBadge = document.getElementById('dailyBadge');
 
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
