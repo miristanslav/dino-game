@@ -81,6 +81,34 @@ function playSound(type) {
   } catch (e) {}
 }
 
+function playThunder() {
+  if (!soundEnabled || !audioCtx) return;
+  try {
+    const bufferSize = audioCtx.sampleRate * 2;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 250;
+    filter.Q.value = 1;
+    const gain = audioCtx.createGain();
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + 2);
+  } catch (e) {}
+}
+
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
   const ah = parseInt(a.slice(1), 16);
@@ -94,7 +122,7 @@ function lerpColor(a, b, t) {
 }
 
 // ===== ВЕРСИЯ И CHANGELOG =====
-const CURRENT_VERSION = 13;
+const CURRENT_VERSION = 14;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -104,14 +132,24 @@ function formatVersion(v) {
 
 const CHANGELOG = [
   {
+    version: 14,
+    changes: [
+      'Исправлено отображение версии (только в главном меню)',
+      'Клик по версии надёжно открывает список обновлений',
+      'Луна стала мягче — без яркого свечения',
+      'Молния в виде зигзага на горизонте',
+      'Добавлен звук удара грома (тихий)',
+      'Вспышка экрана от молнии сделана едва заметной'
+    ]
+  },
+  {
     version: 13,
     changes: [
       'Плавная смена дня и ночи с восходом и закатом',
       'Красивые цвета неба: рассвет, полдень, закат, сумерки',
       'Солнце и луна движутся по небу и уходят за горизонт',
       'Улучшена видимость ночью (яркие цвета объектов)',
-      'Добавлено отображение версии игры',
-      'Проверены хитбоксы и таймеры'
+      'Добавлено отображение версии игры'
     ]
   },
   {
@@ -234,6 +272,29 @@ const CHANGELOG = [
   // Устанавливаем версию
   versionNumber.textContent = formatVersion(CURRENT_VERSION);
 
+  // ====== ЯВНЫЙ ОБРАБОТЧИК КЛИКА НА КНОПКУ ВЕРСИИ ======
+  function showChangelog() {
+    changelogContent.innerHTML = '';
+    CHANGELOG.forEach((entry, i) => {
+      const div = document.createElement('div');
+      div.className = 'changelog-entry' + (i === 0 ? ' current' : '');
+      let html = `<h3>Версия ${formatVersion(entry.version)}</h3><ul>`;
+      entry.changes.forEach(change => { html += `<li>${change}</li>`; });
+      html += '</ul>';
+      div.innerHTML = html;
+      changelogContent.appendChild(div);
+    });
+    changelogDialog.style.display = 'flex';
+  }
+  
+  versionBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    initAudio();
+    playSound('click');
+    showChangelog();
+  });
+
   // Fullscreen
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function updateFullscreenIcon() {
@@ -271,6 +332,10 @@ const CHANGELOG = [
     if (typeof obstacles !== 'undefined') obstacles.forEach(o => { o.y = GROUND_Y; });
     if (typeof birds !== 'undefined') { const dY = GROUND_Y - oldGroundY; birds.forEach(b => { b.y += dY; }); }
     if (typeof powerUps !== 'undefined') { const dY = GROUND_Y - oldGroundY; powerUps.forEach(p => { p.y += dY; }); }
+    if (typeof lightning !== 'undefined' && lightning) {
+      // Сбрасываем молнию при ресайзе, чтобы не было артефактов
+      lightning = null;
+    }
   }
 
   const GRAVITY = 0.75;
@@ -282,7 +347,6 @@ const CHANGELOG = [
   const BASE_SPEED = 3.5;
   const MAX_SPEED_BONUS = 4.5;
 
-  // Тайминги в секундах
   const DAY_NIGHT_CYCLE = 75;
   const CLEAR_DURATION = 20;
   const RAIN_DURATION = 15;
@@ -319,7 +383,8 @@ const CHANGELOG = [
   let dayNightTime = 0.5 * DAY_NIGHT_CYCLE;
   let weatherTime = 0;
   let isRaining = false;
-  let lightningFlash = 0;
+  let lightning = null;
+  let lightningAmbient = 0;
   
   let powerUpActive = null;
   let lastPowerUpSecond = -1;
@@ -340,23 +405,23 @@ const CHANGELOG = [
   }
 
   // ============================================
-  // ЦВЕТА НЕБА (плавные переходы)
+  // ЦВЕТА НЕБА
   // ============================================
   const TIME_KEYS = [
-    { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
-    { t: 0.10, top: '#0F1432', bot: '#252A4A' }, // Глубокая ночь
-    { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' }, // Предрассвет
-    { t: 0.22, top: '#E8A598', bot: '#FFD89B' }, // Рассвет
-    { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' }, // Восход
-    { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' }, // Утро
-    { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' }, // Полдень
-    { t: 0.65, top: '#FFC947', bot: '#FFE082' }, // После полудня
-    { t: 0.72, top: '#FF8A65', bot: '#FFAB91' }, // Ранний закат
-    { t: 0.78, top: '#FF6B6B', bot: '#FFA451' }, // Закат
-    { t: 0.84, top: '#8B2E5F', bot: '#E85D75' }, // Сумерки
-    { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' }, // Поздние сумерки
-    { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' }, // Ночь
-    { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' }, // Полночь
+    { t: 0.00, top: '#0A0E1A', bot: '#1A1F35' },
+    { t: 0.10, top: '#0F1432', bot: '#252A4A' },
+    { t: 0.16, top: '#2E1A47', bot: '#6B3B7C' },
+    { t: 0.22, top: '#E8A598', bot: '#FFD89B' },
+    { t: 0.28, top: '#FFB88C', bot: '#FFE8B0' },
+    { t: 0.38, top: '#87CEEB', bot: '#E3F2FD' },
+    { t: 0.50, top: '#4AA3DF', bot: '#B3E5FC' },
+    { t: 0.65, top: '#FFC947', bot: '#FFE082' },
+    { t: 0.72, top: '#FF8A65', bot: '#FFAB91' },
+    { t: 0.78, top: '#FF6B6B', bot: '#FFA451' },
+    { t: 0.84, top: '#8B2E5F', bot: '#E85D75' },
+    { t: 0.92, top: '#3D1E5C', bot: '#6B3B8C' },
+    { t: 0.97, top: '#0A0E1A', bot: '#1A1F35' },
+    { t: 1.00, top: '#0A0E1A', bot: '#1A1F35' },
   ];
 
   function getSkyColors(t) {
@@ -372,7 +437,6 @@ const CHANGELOG = [
     return { top: TIME_KEYS[0].top, bot: TIME_KEYS[0].bot };
   }
 
-  // 1 = день, 0 = ночь
   function getLightLevel(t) {
     if (t >= 0.32 && t <= 0.68) return 1.0;
     if (t >= 0.92 || t <= 0.08) return 0.0;
@@ -381,20 +445,16 @@ const CHANGELOG = [
     return 0.5;
   }
 
-  // Позиция солнца
   function getSunPos(t) {
     if (t < 0.18 || t > 0.82) return null;
     const localT = (t - 0.18) / 0.64;
     const angle = -Math.PI / 2 + localT * Math.PI;
-    const radiusX = W * 0.4;
-    const radiusY = H * 0.5;
     return {
-      x: W / 2 + Math.sin(angle) * radiusX,
-      y: GROUND_Y - Math.cos(angle) * radiusY
+      x: W / 2 + Math.sin(angle) * W * 0.4,
+      y: GROUND_Y - Math.cos(angle) * H * 0.5
     };
   }
 
-  // Позиция луны
   function getMoonPos(t) {
     let localT;
     if (t >= 0.82) {
@@ -406,18 +466,14 @@ const CHANGELOG = [
     }
     if (localT < 0 || localT > 1) return null;
     const angle = -Math.PI / 2 + localT * Math.PI;
-    const radiusX = W * 0.4;
-    const radiusY = H * 0.5;
     return {
-      x: W / 2 + Math.sin(angle) * radiusX,
-      y: GROUND_Y - Math.cos(angle) * radiusY
+      x: W / 2 + Math.sin(angle) * W * 0.4,
+      y: GROUND_Y - Math.cos(angle) * H * 0.5
     };
   }
 
-  // Цвета объектов
   function getObjectColors(t) {
-    const lightLevel = getLightLevel(t);
-    const nightness = 1 - lightLevel;
+    const nightness = 1 - getLightLevel(t);
     return {
       cactus: lerpColor('#388E3C', '#4CAF50', nightness * 0.4),
       cactusLight: lerpColor('#4CAF50', '#66BB6A', nightness * 0.4),
@@ -673,25 +729,94 @@ const CHANGELOG = [
     if (t >= 0.78 && t <= 0.90) warmth = 1 - (t - 0.78) / 0.12;
     else if (t >= 0.10 && t <= 0.22) warmth = (t - 0.10) / 0.12;
     warmth = Math.max(0, Math.min(1, warmth));
-    const warmR = Math.round(200 + (255-200) * warmth);
-    const warmG = Math.round(220 + (220-220) * warmth);
-    const warmB = Math.round(255 + (180-255) * warmth);
-    const halo = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 80);
-    halo.addColorStop(0, `rgba(${warmR}, ${warmG}, ${warmB}, 0.4)`);
-    halo.addColorStop(0.5, `rgba(${warmR}, ${warmG}, ${warmB}, 0.15)`);
-    halo.addColorStop(1, `rgba(${warmR}, ${warmG}, ${warmB}, 0)`);
-    ctx.fillStyle = halo;
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 80, 0, Math.PI * 2); ctx.fill();
+    
     const bodyR = Math.round(240 + (255-240) * warmth);
     const bodyG = Math.round(244 + (242-244) * warmth);
     const bodyB = Math.round(255 + (214-255) * warmth);
+    
+    // Очень мягкое свечение (было radius 80 / alpha 0.4)
+    const glowRadius = 38;
+    const halo = ctx.createRadialGradient(pos.x, pos.y, 22, pos.x, pos.y, glowRadius);
+    halo.addColorStop(0, `rgba(${bodyR}, ${bodyG}, ${bodyB}, 0.15)`);
+    halo.addColorStop(0.6, `rgba(${bodyR}, ${bodyG}, ${bodyB}, 0.04)`);
+    halo.addColorStop(1, `rgba(${bodyR}, ${bodyG}, ${bodyB}, 0)`);
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, glowRadius, 0, Math.PI * 2); ctx.fill();
+    
+    // Тело луны
     ctx.fillStyle = `rgb(${bodyR}, ${bodyG}, ${bodyB})`;
     ctx.beginPath(); ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(150, 140, 130, 0.2)';
+    
+    // Кратеры
+    ctx.fillStyle = 'rgba(150, 140, 130, 0.18)';
     ctx.beginPath(); ctx.arc(pos.x - 6, pos.y - 4, 5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x + 8, pos.y + 6, 7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x - 2, pos.y + 10, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ============================================
+  // МОЛНИЯ
+  // ============================================
+  function triggerLightning() {
+    const startX = 50 + Math.random() * (W - 100);
+    const segments = [{ x: startX, y: 0 }];
+    let x = startX;
+    let y = 0;
+    const endY = GROUND_Y - 60;
+    while (y < endY) {
+      const step = 25 + Math.random() * 30;
+      y = Math.min(y + step, endY);
+      x += (Math.random() - 0.5) * 70;
+      segments.push({ x, y });
+    }
+    lightning = { segments, life: 1 };
+    lightningAmbient = 0.3;
+    playThunder();
+  }
+
+  function updateLightning(dt) {
+    if (lightning) {
+      lightning.life -= dt * 3;
+      if (lightning.life <= 0) lightning = null;
+    }
+    if (lightningAmbient > 0) {
+      lightningAmbient = Math.max(0, lightningAmbient - dt * 1.5);
+    }
+  }
+
+  function drawLightning() {
+    // Очень лёгкий голубой подсвет неба
+    if (lightningAmbient > 0) {
+      ctx.fillStyle = `rgba(180, 210, 255, ${lightningAmbient * 0.25})`;
+      ctx.fillRect(0, 0, W, GROUND_Y);
+    }
+    
+    if (!lightning) return;
+    
+    const alpha = Math.max(0, lightning.life);
+    ctx.save();
+    ctx.shadowColor = `rgba(180, 220, 255, ${alpha})`;
+    ctx.shadowBlur = 15;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    const segs = lightning.segments;
+    ctx.moveTo(segs[0].x, segs[0].y);
+    for (let i = 1; i < segs.length; i++) {
+      ctx.lineTo(segs[i].x, segs[i].y);
+    }
+    ctx.stroke();
+    
+    // Тонкое белое ядро
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = `rgba(220, 240, 255, ${alpha * 0.9})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    ctx.restore();
   }
 
   function drawBackground(timeOfDay, showCelestial = true) {
@@ -791,8 +916,9 @@ const CHANGELOG = [
       r.x += r.vx; r.y += r.vy; 
       if (r.y > H || r.x < 0) { r.y = -20; r.x = Math.random() * W + W * 0.2; } 
     });
-    if (Math.random() < 0.01 * dt * 60) {
-      lightningFlash = 0.15;
+    // Молния - шанс, только если нет активной
+    if (!lightning && Math.random() < 0.008) {
+      triggerLightning();
     }
   }
   
@@ -807,10 +933,6 @@ const CHANGELOG = [
       ctx.lineTo(r.x - r.vx * 0.5, r.y - r.vy * 0.5); 
       ctx.stroke(); 
     });
-    if (lightningFlash > 0) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.7, lightningFlash * 4)})`;
-      ctx.fillRect(0, 0, W, H);
-    }
   }
 
   function drawBoneShape(x, y, size = 14) {
@@ -833,16 +955,17 @@ const CHANGELOG = [
   function reset() {
     requestTgFullscreen();
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
+    lightning = null; lightningAmbient = 0;
     dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
     score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40;
     dino.scale = DINO_SCALE_GAME; powerUpActive = null;
-    dayNightTime = 0.25 * DAY_NIGHT_CYCLE; // Начинаем утром
-    weatherTime = 0; isRaining = false; lightningFlash = 0;
+    dayNightTime = 0.25 * DAY_NIGHT_CYCLE;
+    weatherTime = 0; isRaining = false;
     birdsEatenThisGame = 0; lastPowerUpSecond = -1;
     gameState = 'playing'; hideAllScreens(); 
     hud.classList.remove('hidden'); speedBarContainer.classList.add('active'); powerUpHud.classList.add('hidden');
     fullscreenBtn.classList.remove('hidden');
-    versionBtn.classList.add('hidden');
+    versionBtn.style.display = 'none';
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
   }
@@ -908,7 +1031,8 @@ const CHANGELOG = [
         weatherTime = 0;
         if (isRaining) initRain();
       }
-      if (lightningFlash > 0) lightningFlash = Math.max(0, lightningFlash - dt);
+      
+      updateLightning(dt);
 
       if (dino.jumping) {
         dino.vy += GRAVITY * (dt * 60); 
@@ -1033,7 +1157,7 @@ const CHANGELOG = [
     goScore.textContent = finalScore; goHigh.textContent = Math.floor(save.highScore); goBones.textContent = `+${earnedThisGame} 🦴`;
     gameoverScreen.classList.remove('hidden');
     fullscreenBtn.classList.add('hidden');
-    versionBtn.classList.add('hidden');
+    versionBtn.style.display = 'none';
     speedBarContainer.classList.remove('active');
     powerUpHud.classList.add('hidden');
     hud.classList.add('hidden');
@@ -1071,6 +1195,7 @@ const CHANGELOG = [
     const colors = getObjectColors(timeOfDay);
     
     drawBackground(timeOfDay, !isMenu);
+    if (isRaining && !isMenu) drawLightning();
     drawGround(timeOfDay);
     
     particles.forEach(p => { ctx.fillStyle = `rgba(255,255,255,${p.life * 0.8})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); });
@@ -1109,50 +1234,40 @@ const CHANGELOG = [
   function hideAllScreens() {
     menuScreen.classList.add('hidden'); recordsScreen.classList.add('hidden'); upgradesScreen.classList.add('hidden');
     achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden'); gameoverScreen.classList.add('hidden'); 
-    confirmDialog.classList.add('hidden'); changelogDialog.classList.add('hidden');
+    confirmDialog.classList.add('hidden'); changelogDialog.style.display = 'none';
+    // ВАЖНО: кнопка версии скрывается по умолчанию
+    versionBtn.style.display = 'none';
   }
   
   function showMainMenu() {
     gameState = 'menu'; hideAllScreens(); hud.classList.remove('hidden'); fullscreenBtn.classList.remove('hidden');
-    versionBtn.classList.remove('hidden');
+    // Показываем версию ТОЛЬКО в главном меню
+    versionBtn.style.display = 'flex';
     tapHint.classList.add('hidden'); menuScreen.classList.remove('hidden'); menuScreen.scrollTop = 0;
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
-    isRaining = false; lightningFlash = 0; dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
+    isRaining = false; lightning = null; lightningAmbient = 0; 
+    dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
   }
   
   function showRecords() { 
     gameState = 'records'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
     recordsScreen.classList.remove('hidden'); renderRecords(); 
   }
   function showUpgrades() { 
     gameState = 'upgrades'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
     upgradesScreen.classList.remove('hidden'); renderUpgrades(); 
   }
   function showAchievements() { 
     gameState = 'achievements'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
     achievementsScreen.classList.remove('hidden'); renderAchievements(); 
   }
   function showSettings() { 
     gameState = 'settings'; hideAllScreens(); 
-    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); versionBtn.classList.add('hidden');
+    hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden');
     settingsScreen.classList.remove('hidden'); 
-  }
-
-  function showChangelog() {
-    changelogContent.innerHTML = '';
-    CHANGELOG.forEach((entry, i) => {
-      const div = document.createElement('div');
-      div.className = 'changelog-entry' + (i === 0 ? ' current' : '');
-      let html = `<h3>Версия ${formatVersion(entry.version)}</h3><ul>`;
-      entry.changes.forEach(change => { html += `<li>${change}</li>`; });
-      html += '</ul>';
-      div.innerHTML = html;
-      changelogContent.appendChild(div);
-    });
-    changelogDialog.classList.remove('hidden');
   }
 
   function renderRecords() {
@@ -1262,8 +1377,7 @@ const CHANGELOG = [
       else if (action === 'achievements') showAchievements();
       else if (action === 'settings') showSettings();
       else if (action === 'back') showMainMenu();
-      else if (action === 'changelog') showChangelog();
-      else if (action === 'changelog-close') changelogDialog.classList.add('hidden');
+      else if (action === 'changelog-close') changelogDialog.style.display = 'none';
       else if (action === 'reset') confirmDialog.classList.remove('hidden');
       else if (action === 'reset-no') confirmDialog.classList.add('hidden');
       else if (action === 'reset-yes') {
@@ -1276,6 +1390,13 @@ const CHANGELOG = [
     }
     if (gameState === 'playing' && !isPortraitMode) {
       jump();
+    }
+  });
+
+  // Закрытие changelog кликом по фону
+  changelogDialog.addEventListener('click', (e) => {
+    if (e.target === changelogDialog) {
+      changelogDialog.style.display = 'none';
     }
   });
 
