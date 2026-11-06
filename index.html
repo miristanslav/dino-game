@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=25">
+  <link rel="stylesheet" href="style.css?v=26">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -68,7 +68,7 @@
 
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.24</strong>
+  <strong id="versionNumber">0.0.25</strong>
 </button>
 
 <div id="dailyScreen" class="ui-screen hidden">
@@ -100,9 +100,11 @@
   <div class="tab-buttons">
     <button class="tab-btn active" id="tabUpg">Улучшения</button>
     <button class="tab-btn" id="tabSkins">Скины</button>
+    <button class="tab-btn" id="tabPets">Питомцы</button>
   </div>
   <div class="upgrades-list" id="upgradesList"></div>
   <div class="upgrades-list hidden" id="skinsList"></div>
+  <div class="upgrades-list hidden" id="petsList"></div>
   <button class="btn btn-back" data-action="back">← НАЗАД</button>
 </div>
 
@@ -138,7 +140,7 @@
 <div id="confirmDialog" class="hidden">
   <div class="dialog-box">
     <h2>Сбросить прогресс?</h2>
-    <p>Все рекорды, кости, улучшения, скины, уровни и стрик будут удалены!</p>
+    <p>Все рекорды, кости, улучшения, скины, питомцы и уровни будут удалены!</p>
     <div class="dialog-buttons">
       <button class="btn secondary" data-action="reset-no">Нет</button>
       <button class="btn danger" data-action="reset-yes">Да</button>
@@ -170,15 +172,15 @@
 </div>
 
 <!-- ПОРЯДОК ЗАГРУЗКИ КРИТИЧЕН -->
-<script src="config.js?v=25"></script>
-<script src="audio.js?v=25"></script>
-<script src="storage.js?v=25"></script>
-<script src="physics.js?v=25"></script>
-<script src="sprites.js?v=25"></script>
-<script src="background.js?v=25"></script>
-<script src="weather.js?v=25"></script>
-<script src="ui.js?v=25"></script>
-<script src="input.js?v=25"></script>
-<script src="game.js?v=25"></script>
+<script src="config.js?v=26"></script>
+<script src="audio.js?v=26"></script>
+<script src="storage.js?v=26"></script>
+<script src="physics.js?v=26"></script>
+<script src="sprites.js?v=26"></script>
+<script src="background.js?v=26"></script>
+<script src="weather.js?v=26"></script>
+<script src="ui.js?v=26"></script>
+<script src="input.js?v=26"></script>
+<script src="game.js?v=26"></script>
 </body>
 </html>
