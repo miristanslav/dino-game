@@ -31,7 +31,6 @@ function getBirdBox(b) {
 
 function spawnObstacle() {
   const r = Math.random();
-  // ПАТЧ 22.1: Шанс кактуса 35%, птицы 55%, бонуса 10%
   if (r < 0.35) {
     const big = Math.random() < 0.5;
     const h = big ? 25 : 20;
@@ -40,7 +39,11 @@ function spawnObstacle() {
   } else if (r < 0.90) {
     const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168];
     const y = heights[Math.floor(Math.random() * heights.length)];
-    birds.push({ x: W + 20, y, w: 10, h: 10, type: 'bird', magnetized: false });
+    
+    // ПАТЧ 23: 10% шанс на золотую птицу
+    const isGolden = Math.random() < 0.1;
+    
+    birds.push({ x: W + 20, y, w: 10, h: 10, type: 'bird', isGolden, magnetized: false });
   } else {
     const types = [
       { type: 'shield', icon: '🛡', color: '#2196F3', duration: 5 },
@@ -49,6 +52,20 @@ function spawnObstacle() {
     const pu = types[Math.floor(Math.random() * types.length)];
     powerUps.push({ x: W + 20, y: GROUND_Y - 80 + Math.random() * 40, ...pu });
   }
+}
+
+// ===== ПАТЧ 23: Спавн метеорита =====
+function spawnMeteor() {
+  meteors.push({
+    x: W + 100,
+    y: -100,
+    vx: -5 - Math.random() * 3, // Летит влево
+    vy: 4 + Math.random() * 3,  // Летит вниз
+    r: 15,
+    trail: [],
+    hit: false
+  });
+  playThunder(); // Звук гула
 }
 
 function spawnDust(x, y, count, spread) {
