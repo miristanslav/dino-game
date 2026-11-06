@@ -1,8 +1,10 @@
 // ============================================================
 // DB.JS — Подключение к Firebase, Онлайн, Рейтинг
+// Патч 26: XSS-фикс, защита от утечки слушателей
 // ============================================================
 
 let fbApp, db, rtdb;
+let presenceListenersSetup = false; // ПАТЧ 26: не подписываемся на /status повторно
 try {
   fbApp = firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
@@ -29,9 +31,28 @@ try {
   }
 } catch (e) {}
 
+// ПАТЧ 26: экранирование HTML для защиты от XSS в рейтинге
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ПАТЧ 26: строгая проверка фото-URL (только http/https)
+function isValidPhotoUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  return /^https?:\/\//i.test(url);
+}
+
 function startPresenceTracking() {
   if (!rtdb) return;
-  
+  if (presenceListenersSetup) return; // ПАТЧ 26: подписка только один раз
+  presenceListenersSetup = true;
+
   const userStatusRef = rtdb.ref('/status/' + playerUser.id);
   const isOfflineForRTDB = { state: firebase.database.ServerValue.TIMESTAMP, status: 'offline' };
   const isOnlineForRTDB = { state: firebase.database.ServerValue.TIMESTAMP, status: 'online' };
@@ -58,7 +79,7 @@ async function submitScoreToCloud(finalScore) {
   try {
     const playerRef = db.collection('leaderboard').doc(playerUser.id);
     const doc = await playerRef.get();
-    
+
     if (!doc.exists || finalScore > doc.data().highScore) {
       await playerRef.set({
         name: playerUser.name,
@@ -97,21 +118,24 @@ async function fetchGlobalLeaderboard() {
     snapshot.forEach((doc) => {
       const data = doc.data();
       const isMe = doc.id === playerUser.id;
-      
+
       const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-      
-      const photoHtml = (data.photo && data.photo.startsWith('http')) 
-        ? `<img src="${data.photo}" onerror="this.parentNode.innerHTML='👤'">` 
+
+      // ПАТЧ 26: XSS-защита — имя и URL экранируются, URL валидируется
+      const safeName = escapeHtml(data.name || 'Аноним');
+      const safePhotoUrl = isValidPhotoUrl(data.photo) ? escapeHtml(data.photo) : '';
+      const photoHtml = safePhotoUrl
+        ? `<img src="${safePhotoUrl}" alt="" onerror="this.parentNode.innerHTML='👤'">`
         : '👤';
 
       const row = document.createElement('div');
       row.className = 'global-record-row' + (isMe ? ' is-me' : '');
-      
+
       row.innerHTML = `
         <div style="width: 40px; font-weight: bold; color: #78909C; font-size: 14px;">${medal}</div>
         <div class="player-info">
           <div class="player-avatar">${photoHtml}</div>
-          <div class="player-name">${data.name} ${isMe ? '(Вы)' : ''}</div>
+          <div class="player-name">${safeName} ${isMe ? '(Вы)' : ''}</div>
         </div>
         <div style="font-weight: 900; color: #1976D2; font-size: 16px;">${data.highScore}</div>
       `;
