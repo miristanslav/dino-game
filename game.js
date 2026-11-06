@@ -1,6 +1,6 @@
 // ============================================================
 // GAME.JS — точка входа: Telegram, splash, resize, update, loop
-// Патч 21: + обновление ежедневок при gameover, + init ежедневок
+// Патч 22: + управление снегом в зависимости от биома
 // ============================================================
 
 // ===== TELEGRAM INIT =====
@@ -158,6 +158,7 @@ function reset() {
   bonesFlying = [];
   powerUps = [];
   rainDrops = [];
+  snowflakes = [];
   lightning = null;
   lightningAmbient = 0;
   dino.y = GROUND_Y;
@@ -228,7 +229,7 @@ function gameOver() {
   save.games = save.games.slice(0, 10);
   checkAchievements(finalScore);
 
-  // ===== ПАТЧ 21: Обновление ежедневного задания =====
+  // Ежедневное задание
   if (save.dailyQuest && !save.dailyQuest.claimed) {
     const q = save.dailyQuest;
     if (q.type === 'score') {
@@ -245,7 +246,7 @@ function gameOver() {
     }
   }
 
-  // ===== ПАТЧ 20: начисление XP и проверка уровня =====
+  // XP и уровни
   const xpGained = Math.floor(finalScore / 10) + earnedThisGame * 2;
   const oldLevel = getLevelFromXp(save.xp).level;
   save.xp += xpGained;
@@ -303,14 +304,24 @@ function update(dt) {
     dayNightTime += dt;
     if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
 
-    weatherTime += dt;
-    const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION;
-    if (weatherTime >= currentWeatherDuration) {
-      isRaining = !isRaining;
-      weatherTime = 0;
-      if (isRaining) initRain();
+    // ===== ПАТЧ 22: Погода в зависимости от биома =====
+    const biomeInfo = getBiomeState(score);
+    if (biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5)) {
+      // В снежном биоме снег, дождя нет
+      isRaining = false;
+      updateSnow(dt);
+    } else {
+      // Обычная погода (дождь)
+      weatherTime += dt;
+      const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION;
+      if (weatherTime >= currentWeatherDuration) {
+        isRaining = !isRaining;
+        weatherTime = 0;
+        if (isRaining) initRain();
+      }
+      updateLightning(dt);
+      updateRain(dt);
     }
-    updateLightning(dt);
 
     if (dino.jumping) {
       dino.vy += GRAVITY * (dt * 60);
@@ -358,8 +369,6 @@ function update(dt) {
         obstacles.splice(i, 1);
       }
     }
-
-    updateRain(dt);
 
     birds.forEach(b => {
       let effSpeed = speed * 0.5;
@@ -553,6 +562,7 @@ function render() {
     birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME));
     powerUps.forEach(drawPowerUp);
     drawRain();
+    drawSnow(); // <--- Добавлено
     drawBonesFlying();
     drawDino();
   } else {
