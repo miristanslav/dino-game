@@ -2,20 +2,11 @@ const SAVE_KEY = 'trex_color_save_v1';
 
 function defaultSave() {
   return {
-    highScore: 0,
-    bones: 0,
-    games: [],
+    highScore: 0, bones: 0, games: [],
     upgrades: { jump: 0, magnet: 0, doubleBones: 0 },
-    achievements: {},
-    currentSkin: 'default',
-    unlockedSkins: ['default'],
-    currentPet: 'none',
-    unlockedPets: ['none'],
-    xp: 0,
-    playerLevel: 1,
-    lastPlayDate: null,
-    streak: 0,
-    dailyQuest: null
+    achievements: {}, currentSkin: 'default', unlockedSkins: ['default'],
+    currentPet: 'none', unlockedPets: ['none'],
+    xp: 0, playerLevel: 1, lastPlayDate: null, streak: 0, dailyQuest: null
   };
 }
 
