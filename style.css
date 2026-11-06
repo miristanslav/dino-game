@@ -5,8 +5,6 @@
   --secondary-dark: #FFA000;
   --danger: #F44336;
   --danger-dark: #D32F2F;
-  --bg-light: #E3F2FD;
-  --text-dark: #263238;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -68,9 +66,7 @@ html, body {
 #fullscreenBtn.hidden { display: none; }
 body.telegram-mode #fullscreenBtn { display: none !important; }
 
-/* ============================================
-   КНОПКА ВЕРСИИ
-   ============================================ */
+/* КНОПКА ВЕРСИИ */
 .version-btn {
   position: fixed;
   bottom: max(16px, env(safe-area-inset-bottom));
@@ -101,21 +97,16 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   font-weight: bold;
   letter-spacing: 0.5px;
 }
-.version-btn.hidden { display: none; }
 
-/* ============================================
-   CHANGELOG MODAL
-   ============================================ */
+/* CHANGELOG */
 #changelogDialog {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
-  display: flex; justify-content: center; align-items: center;
+  justify-content: center; align-items: center;
   padding: 20px;
 }
-#changelogDialog.hidden { display: none !important; }
-
 #changelogDialog .changelog-box {
   background: #fff;
   padding: 22px;
@@ -128,26 +119,22 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
 #changelogDialog h2 {
   font-size: 20px;
   margin-bottom: 18px;
   color: #263238;
   text-align: center;
 }
-
 .changelog-entry {
   margin-bottom: 18px;
   padding-bottom: 16px;
   border-bottom: 1px solid #EEEEEE;
 }
-
 .changelog-entry:last-child {
   border-bottom: none;
   margin-bottom: 12px;
   padding-bottom: 0;
 }
-
 .changelog-entry h3 {
   font-size: 15px;
   color: #1976D2;
@@ -157,11 +144,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   align-items: center;
   gap: 8px;
 }
-
-.changelog-entry.current h3 {
-  color: #2E7D32;
-}
-
+.changelog-entry.current h3 { color: #2E7D32; }
 .changelog-entry.current h3::after {
   content: "ТЕКУЩАЯ";
   font-size: 9px;
@@ -171,13 +154,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   border-radius: 4px;
   letter-spacing: 0.5px;
 }
-
-.changelog-entry ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+.changelog-entry ul { list-style: none; padding: 0; margin: 0; }
 .changelog-entry li {
   font-size: 13px;
   color: #455A64;
@@ -185,7 +162,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   position: relative;
   line-height: 1.45;
 }
-
 .changelog-entry li::before {
   content: "•";
   color: #4CAF50;
@@ -395,4 +371,4 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   .changelog-entry { margin-bottom: 12px; padding-bottom: 12px; }
   .changelog-entry h3 { font-size: 13px; }
   .changelog-entry li { font-size: 12px; }
-  }
+}
