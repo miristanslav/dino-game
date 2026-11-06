@@ -41,15 +41,32 @@ function jump() {
 }
 function duck(on) { if (gameState !== 'playing' || dino.jumping || isPortraitMode) return; dino.ducking = on; }
 
-function reset() {
-  requestTgFullscreen(); obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
-  dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1; score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
+// ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
+function clearRoundState() {
+  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
+  dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
+  score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
   comboCount = 0; comboTimer = 0; updateComboHUD();
   dayNightTime = 0.25 * DAY_NIGHT_CYCLE; weatherTime = 0; isRaining = false; birdsEatenThisGame = 0; lastPowerUpSecond = -1;
-  gameState = 'playing'; hideAllScreens(); hud.classList.remove('hidden'); xpBarContainer.classList.remove('hidden'); speedBarContainer.classList.add('active'); updatePowerUpHUD(); fullscreenBtn.classList.remove('hidden'); versionBtn.style.display = 'none';
-  tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
-  updateHUD(); initAudio(); startMusic();
+  updatePowerUpHUD();
+}
+
+function reset() {
+  requestTgFullscreen();
+  clearRoundState();
+  gameState = 'playing';
+  hideAllScreens();
+  hud.classList.remove('hidden');
+  xpBarContainer.classList.remove('hidden');
+  speedBarContainer.classList.add('active');
+  fullscreenBtn.classList.remove('hidden');
+  versionBtn.style.display = 'none';
+  tapHint.classList.remove('hidden');
+  setTimeout(() => tapHint.classList.add('hidden'), 2000);
+  updateHUD();
+  initAudio();
+  startMusic();
 }
 
 function gameOver() {
@@ -58,9 +75,9 @@ function gameOver() {
   const earnedThisGame = sessionBones; save.bones += sessionBones; sessionBones = 0;
   const finalScore = Math.floor(score); const isNewRecord = finalScore > save.highScore;
   if (isNewRecord) { save.highScore = finalScore; playSound('record'); newRecordText.classList.remove('hidden'); } else { newRecordText.classList.add('hidden'); }
-  
-  // ПАТЧ 25: Отправляем рекорд в облако Firebase
-  if (finalScore > 0) submitScoreToCloud(finalScore);
+
+  // ПАТЧ 25: отправляем рекорд в облако (ПАТЧ 26: добавили .catch для защиты)
+  if (finalScore > 0) submitScoreToCloud(finalScore).catch((e) => console.warn('submitScore error', e));
 
   save.games.push({ score: finalScore, date: Date.now() }); save.games.sort((a, b) => b.score - a.score); save.games = save.games.slice(0, 10);
   checkAchievements(finalScore);
@@ -72,6 +89,7 @@ function gameOver() {
   save.xp += xpGained; const newInfo = getLevelFromXp(save.xp); let totalLevelReward = 0;
   if (newInfo.level > oldLevel) { for (let lv = oldLevel + 1; lv <= newInfo.level; lv++) totalLevelReward += xpLevelReward(lv); save.bones += totalLevelReward; save.playerLevel = newInfo.level; }
   writeSave(); updateHUD();
+  updateDailyBadge(); // ПАТЧ 26: бейдж ежедневки обновляется сразу после игры
   goScore.textContent = finalScore; goHigh.textContent = Math.floor(save.highScore); goBones.textContent = `+${earnedThisGame} 🦴`; goXp.textContent = `+${xpGained} XP`;
   gameoverScreen.classList.remove('hidden'); fullscreenBtn.classList.add('hidden'); xpBarContainer.classList.add('hidden'); versionBtn.style.display = 'none'; speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); hud.classList.add('hidden');
   if (newInfo.level > oldLevel) setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 900);
@@ -85,7 +103,7 @@ function update(dt) {
     let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
     speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400); speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
-    
+
     if (save.currentPet !== 'none') {
       const targetX = dino.x - 40; const targetY = dino.y - 60 + Math.sin(frame * 0.1) * 10;
       petX += (targetX - petX) * 0.1; petY += (targetY - petY) * 0.1;
@@ -176,7 +194,10 @@ function update(dt) {
       }
     }
 
-    if (score > save.highScore) save.highScore = score;
+    // ПАТЧ 26: highScore хранится как int (был баг с float)
+    const scoreFloored = Math.floor(score);
+    if (scoreFloored > save.highScore) save.highScore = scoreFloored;
+
     clouds.forEach(c => { c.x -= c.speed; if (c.x < -80) { c.x = W + Math.random() * 200; c.y = 40 + Math.random() * 60; } });
     groundDots.forEach(d => { d.x -= speed; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
     updateHUD();
@@ -196,8 +217,10 @@ function render() {
   ctx.clearRect(0, 0, W, H); ctx.save(); ctx.translate(shakeX, shakeY);
   const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
   const timeOfDay = (gameState === 'playing' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
-  const colors = getObjectColors(timeOfDay);
-  drawBackground(timeOfDay, !isMenu); if (isRaining && !isMenu) drawLightning(); drawGround(timeOfDay); drawParticles();
+  // ПАТЧ 26: в меню используем biomeScore=0 — иначе фон залипал в позднем биоме
+  const biomeScore = isMenu ? 0 : score;
+  const colors = getObjectColors(timeOfDay, biomeScore);
+  drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
   if (gameState === 'playing' || gameState === 'gameover') {
     obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); meteors.forEach(drawMeteor); drawRain(); drawSnow(); drawBonesFlying(); drawDino(); drawPet();
   } else { drawMenuScene(colors); }
