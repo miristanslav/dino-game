@@ -83,6 +83,15 @@ const SKINS = [
   { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF', bonus: { type: 'bones', value: 1, desc: '+1 кость за птицу' } }
 ];
 
+// ===== ПИТОМЦЫ =====
+const PETS = [
+  { id: 'none', name: 'Нет', cost: 0, icon: '❌', desc: 'Без питомца', bonus: { type: 'none', desc: '' } },
+  { id: 'ptero', name: 'Летун', cost: 100, icon: '🦇', desc: 'Летает рядом', bonus: { type: 'none', desc: 'Красота' } },
+  { id: 'ghost', name: 'Призрак', cost: 200, icon: '👻', desc: 'Спасает от 1 кактуса', bonus: { type: 'shield_once', desc: '1 спасение' } },
+  { id: 'flame', name: 'Огонёк', cost: 300, icon: '🔥', desc: '+5% к очкам', bonus: { type: 'score', value: 1.05, desc: '+5% очков' } }
+];
+
+function getCurrentPet() { return PETS.find(p => p.id === save.currentPet) || PETS[0]; }
 // ===== УЛУЧШЕНИЯ =====
 const UPGRADES = [
   { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [10, 30, 60, 100, 150] },
@@ -282,6 +291,9 @@ const dailyXpReward = document.getElementById('dailyXpReward');
 const btnClaimDaily = document.getElementById('btnClaimDaily');
 const dailyBadge = document.getElementById('dailyBadge');
 
+const tabPets = document.getElementById('tabPets');
+const petsList = document.getElementById('petsList');
+
 // ===== УТИЛИТЫ =====
 function lerpColor(a, b, t) {
   function parse(c) {
@@ -301,3 +313,6 @@ function lerpColor(a, b, t) {
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
   }
+
+let ghostUsed = false; // Для питомца-призрака
+let petX = 0, petY = 0; // Координаты питомца
