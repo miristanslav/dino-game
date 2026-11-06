@@ -1,6 +1,6 @@
 // ============================================================
 // INPUT.JS — управление: кнопки, клавиатура, тач, fullscreen
-// Патч 21: + обработка кнопок daily и claim-daily
+// Патч 26: сохранение звука, корректный сброс прогресса
 // ============================================================
 
 // ===== FULLSCREEN =====
@@ -52,15 +52,14 @@ window.addEventListener('orientationchange', () => {
 document.addEventListener('pointerdown', (e) => {
   const btn = e.target.closest('[data-action]');
   if (btn) {
-    // Если кнопка заблокирована — игнорируем
     if (btn.disabled) return;
-    
+
     e.preventDefault();
     e.stopPropagation();
     initAudio();
     playSound('click');
     const action = btn.dataset.action;
-    
+
     if (action === 'fullscreen') toggleFullscreen();
     else if (action === 'start') reset();
     else if (action === 'daily') showDaily();
@@ -74,19 +73,30 @@ document.addEventListener('pointerdown', (e) => {
     else if (action === 'reset') confirmDialog.classList.remove('hidden');
     else if (action === 'reset-no') confirmDialog.classList.add('hidden');
     else if (action === 'reset-yes') {
+      // ПАТЧ 26: сохраняем настройки звука, очищаем игровое состояние
+      const keepSound = soundEnabled;
+      const keepMusic = musicEnabled;
       save = defaultSave();
+      save.soundEnabled = keepSound;
+      save.musicEnabled = keepMusic;
       writeSave();
-      checkDailyAndStreak(); // Сброс стрика, генерация новой ежедневки
+      clearRoundState();       // сбрасываем остатки прошлой игры (score, obstacles, meteors…)
+      checkDailyAndStreak();   // новый стрик/ежедневка
       updateHUD();
+      updateDailyBadge();
       renderUpgrades();
       renderRecords();
       confirmDialog.classList.add('hidden');
       showMainMenu();
     } else if (action === 'toggle-sound') {
       soundEnabled = !soundEnabled;
+      save.soundEnabled = soundEnabled;
+      writeSave();
       btn.textContent = soundEnabled ? '🔊 ЗВУКИ: ВКЛ' : '🔇 ЗВУКИ: ВЫКЛ';
     } else if (action === 'toggle-music') {
       musicEnabled = !musicEnabled;
+      save.musicEnabled = musicEnabled;
+      writeSave();
       btn.textContent = musicEnabled ? '🎵 МУЗЫКА: ВКЛ' : '🔇 МУЗЫКА: ВЫКЛ';
       if (!musicEnabled) stopMusic();
       else if (gameState === 'playing') startMusic();
