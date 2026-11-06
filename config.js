@@ -197,10 +197,14 @@ const MUSIC_VOLUME = 0.14;
 
 // ===== СКИНЫ =====
 const SKINS = [
-  { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF' },
-  { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF' },
-  { id: 'ice', name: 'Ледяной', cost: 100, body: '#2196F3', outline: '#0D47A1', belly: '#BBDEFB', claw: '#E1F5FE', eye: '#FFF' },
-  { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF' }
+  { id: 'default', name: 'Зелёный', cost: 0, body: '#4CAF50', outline: '#1B5E20', belly: '#A5D6A7', claw: '#FFF', eye: '#FFF',
+    bonus: { type: 'none', value: 0, desc: 'Без бонуса' } },
+  { id: 'fire', name: 'Огненный', cost: 50, body: '#F44336', outline: '#B71C1C', belly: '#FFCDD2', claw: '#FFE082', eye: '#FFF',
+    bonus: { type: 'score', value: 1.10, desc: '+10% к очкам' } },
+  { id: 'ice', name: 'Ледяной', cost: 100, body: '#2196F3', outline: '#0D47A1', belly: '#BBDEFB', claw: '#E1F5FE', eye: '#FFF',
+    bonus: { type: 'powerup', value: 2, desc: '+2 сек к бонусам' } },
+  { id: 'gold', name: 'Золотой', cost: 200, body: '#FFC107', outline: '#FF6F00', belly: '#FFECB3', claw: '#FFF', eye: '#FFF',
+    bonus: { type: 'bones', value: 1, desc: '+1 кость за птицу' } }
 ];
 
 // ===== УЛУЧШЕНИЯ =====
@@ -361,3 +365,30 @@ function lerpColor(a, b, t) {
   const bl = Math.round(ab + (bb - ab) * t);
   return `rgb(${r},${g},${bl})`;
   }
+// ===== ПАТЧ 20: XP И УРОВНИ =====
+
+// Сколько XP нужно для перехода с уровня level на level+1
+function xpForLevel(level) {
+  return 100 + (level - 1) * 50;
+}
+
+// Награда костями за достижение уровня
+function xpLevelReward(level) {
+  return 10 + level * 5;
+}
+
+// Из общего XP вычислить: текущий уровень, XP внутри уровня, XP до следующего
+function getLevelFromXp(totalXp) {
+  let level = 1;
+  let remaining = Math.max(0, totalXp);
+  while (remaining >= xpForLevel(level) && level < 999) {
+    remaining -= xpForLevel(level);
+    level++;
+  }
+  return { level, currentXp: remaining, xpToNext: xpForLevel(level) };
+}
+
+// Получить текущий скин-объект
+function getCurrentSkin() {
+  return SKINS.find(s => s.id === save.currentSkin) || SKINS[0];
+}
