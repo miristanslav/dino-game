@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=32">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <!-- Firebase SDK (compat версия для обычных скриптов) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -56,10 +61,15 @@
 <div id="menuScreen" class="ui-screen">
   <h1>🦖 T-REX</h1>
   <div class="subtitle">COLOR RUNNER</div>
+  
+  <div class="online-badge">
+    <span class="online-dot"></span> Онлайн: <span id="onlineCount">0</span>
+  </div>
+
   <div class="menu-buttons">
     <button class="btn" data-action="start">▶ НАЧАТЬ ИГРУ</button>
     <button class="btn secondary" data-action="daily">📅 ЕЖЕДНЕВКИ <span id="dailyBadge" class="hidden">🔥</span></button>
-    <button class="btn secondary" data-action="records">🏆 РЕКОРДЫ</button>
+    <button class="btn secondary" data-action="records">🏆 РЕЙТИНГ</button>
     <button class="btn secondary" data-action="upgrades">🦴 УЛУЧШЕНИЯ</button>
     <button class="btn secondary" data-action="achievements">🏅 ДОСТИЖЕНИЯ</button>
     <button class="btn secondary" data-action="settings">⚙️ НАСТРОЙКИ</button>
@@ -68,7 +78,7 @@
 
 <button id="versionBtn" class="version-btn" style="display: none;">
   <span>Версия</span>
-  <strong id="versionNumber">0.0.25</strong>
+  <strong id="versionNumber">0.0.26</strong>
 </button>
 
 <div id="dailyScreen" class="ui-screen hidden">
@@ -86,8 +96,10 @@
 </div>
 
 <div id="recordsScreen" class="ui-screen hidden">
-  <h1>🏆 РЕКОРДЫ</h1>
-  <div class="records-list" id="recordsList"></div>
+  <h1>🏆 МИРОВОЙ РЕЙТИНГ</h1>
+  <div class="records-list" id="recordsList">
+    <div style="text-align:center; padding: 20px; color: #666;">Загрузка рейтинга...</div>
+  </div>
   <button class="btn btn-back" data-action="back">← НАЗАД</button>
 </div>
 
@@ -171,15 +183,18 @@
   </div>
 </div>
 
-<script src="config.js?v=30"></script>
-<script src="audio.js?v=30"></script>
-<script src="storage.js?v=30"></script>
-<script src="physics.js?v=30"></script>
-<script src="sprites.js?v=30"></script>
-<script src="background.js?v=30"></script>
-<script src="weather.js?v=30"></script>
-<script src="ui.js?v=30"></script>
-<script src="input.js?v=30"></script>
-<script src="game.js?v=30"></script>
+<!-- ПОРЯДОК ЗАГРУЗКИ КРИТИЧЕН -->
+<script src="firebase-config.js?v=32"></script>
+<script src="config.js?v=32"></script>
+<script src="db.js?v=32"></script>
+<script src="audio.js?v=32"></script>
+<script src="storage.js?v=32"></script>
+<script src="physics.js?v=32"></script>
+<script src="sprites.js?v=32"></script>
+<script src="background.js?v=32"></script>
+<script src="weather.js?v=32"></script>
+<script src="ui.js?v=32"></script>
+<script src="input.js?v=32"></script>
+<script src="game.js?v=32"></script>
 </body>
 </html>
