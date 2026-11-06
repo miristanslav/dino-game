@@ -39,11 +39,23 @@ function haptic(type) {
 // ===== ЗВУКИ =====
 let audioCtx = null;
 let soundEnabled = true;
-// === ПАТЧ 16: добавлено управление музыкой ===
 let musicEnabled = true;
 let musicInterval = null;
 let musicIndex = 0;
-const MUSIC_NOTES = [261.63, 329.63, 392.00, 329.63, 261.63, 392.00, 523.25, 392.00]; // C E G E C G C5 G
+// === ПАТЧ 17: новая мелодия + бас ===
+const MUSIC_MELODY = [
+  523.25, 587.33, 659.25, 587.33,
+  523.25, 659.25, 783.99, 659.25,
+  698.46, 659.25, 587.33, 523.25,
+  587.33, 523.25, 392.00, 0
+];
+const MUSIC_BASS = [
+  130.81, 0, 146.83, 0,
+  164.81, 0, 130.81, 0,
+  174.61, 0, 146.83, 0,
+  130.81, 0, 196.00, 0
+];
+const MUSIC_VOLUME = 0.14;
 
 function initAudio() {
   try {
@@ -52,26 +64,44 @@ function initAudio() {
   } catch (e) {}
 }
 
-// === ПАТЧ 16: простая фоновая мелодия ===
+// === ПАТЧ 17: усиленная мелодия с басом ===
 function startMusic() {
   if (!musicEnabled || musicInterval) return;
-  musicIndex = 0;
+  let step = 0;
   musicInterval = setInterval(() => {
     if (!musicEnabled || gameState !== 'playing' || !audioCtx) return;
     try {
-      const freq = MUSIC_NOTES[musicIndex % MUSIC_NOTES.length];
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
-      osc.start(now); osc.stop(now + 0.35);
-      musicIndex++;
+      const melodyFreq = MUSIC_MELODY[step % MUSIC_MELODY.length];
+      const bassFreq = MUSIC_BASS[step % MUSIC_BASS.length];
+
+      if (melodyFreq > 0) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(melodyFreq, now);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+
+      if (bassFreq > 0) {
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2); gain2.connect(audioCtx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(bassFreq, now);
+        gain2.gain.setValueAtTime(0, now);
+        gain2.gain.linearRampToValueAtTime(MUSIC_VOLUME * 0.7, now + 0.05);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc2.start(now); osc2.stop(now + 0.4);
+      }
+
+      step++;
     } catch (e) {}
-  }, 400);
+  }, 380);
 }
 
 function stopMusic() {
@@ -155,7 +185,7 @@ function lerpColor(a, b, t) {
 }
 
 // ===== ВЕРСИЯ И CHANGELOG =====
-const CURRENT_VERSION = 16; // === ПАТЧ 16: синхронизировано с HTML (было 15) ===
+const CURRENT_VERSION = 17;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -164,7 +194,17 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
-  // === ПАТЧ 16: новая запись в changelog ===
+  {
+    version: 17,
+    changes: [
+      'Патч 17: музыка теперь слышна!',
+      'Громкость мелодии увеличена в ~3.5 раза (0.04 → 0.14)',
+      'Волна sine заменена на triangle — звук ярче и заметнее',
+      'Добавлена басовая партия — мелодия стала полнее',
+      'Новая мелодия из 16 нот (вместо 8)',
+      'Плавная атака нот — нет щелчков в начале звука'
+    ]
+  },
   {
     version: 16,
     changes: [
@@ -285,7 +325,6 @@ const CHANGELOG = [
     });
   }
 
-  // DOM
   const fullscreenBtn = document.getElementById('fullscreenBtn');
   const fsIconExpand = document.getElementById('fsIconExpand');
   const fsIconCollapse = document.getElementById('fsIconCollapse');
@@ -1001,7 +1040,6 @@ const CHANGELOG = [
     setTimeout(() => el.remove(), 1000);
   }
 
-  // === ПАТЧ 16: в reset() добавлен запуск музыки ===
   function reset() {
     requestTgFullscreen();
     obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = [];
@@ -1021,9 +1059,8 @@ const CHANGELOG = [
     versionBtn.style.display = 'none';
     tapHint.classList.remove('hidden'); setTimeout(() => tapHint.classList.add('hidden'), 2000);
     updateHUD(); initAudio();
-    // === ПАТЧ 16: запуск музыки ===
     startMusic();
- }
+                                           }
     function jump() {
     if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
     const hasDoubleJump = powerUpActive && powerUpActive.type === 'doubleJump';
@@ -1238,7 +1275,6 @@ const CHANGELOG = [
         }
       }
 
-      // === ПАТЧ 16.3: убран writeSave() из каждого кадра (перенос в loop) ===
       if (score > save.highScore) { save.highScore = score; }
       clouds.forEach(c => { c.x -= c.speed; if (c.x < -80) { c.x = W + Math.random() * 200; c.y = 40 + Math.random() * 60; } });
       groundDots.forEach(d => { d.x -= speed; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
@@ -1257,12 +1293,11 @@ const CHANGELOG = [
 
   function rectCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  // === ПАТЧ 16.2: остановка музыки при смерти ===
   function gameOver() {
     gameState = 'gameover'; shakeTime = 15; haptic('crash'); playSound('crash');
     spawnDust(dino.x + 30, dino.y - 20, 15, 5); 
     
-    stopMusic(); // ПАТЧ 16.2
+    stopMusic();
     
     comboCount = 0; comboTimer = 0; updateComboHUD();
     
@@ -1306,7 +1341,6 @@ const CHANGELOG = [
   function render() {
     let shakeX = 0, shakeY = 0;
     if (shakeTime > 0) { shakeX = (Math.random() - 0.5) * shakeTime * 0.6; shakeY = (Math.random() - 0.5) * shakeTime * 0.6; }
-    // === ПАТЧ 16.4: clearRect вне translate — нет шлейфа при тряске ===
     ctx.clearRect(0, 0, W, H);
     ctx.save(); ctx.translate(shakeX, shakeY);
     
@@ -1343,7 +1377,6 @@ const CHANGELOG = [
     drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, colors, BIRD_SCALE_MENU);
   }
 
-  // === ПАТЧ 16.3: автосохранение раз в ~5 секунд (каждые 300 кадров) ===
   function loop(ts) {
     const dt = ts - lastTime; lastTime = ts;
     const dtSeconds = Math.min(0.05, dt / 1000);
@@ -1368,7 +1401,7 @@ const CHANGELOG = [
     speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); updateHUD();
     isRaining = false; lightning = null; lightningAmbient = 0; 
     dayNightTime = 0.5 * DAY_NIGHT_CYCLE; weatherTime = 0;
-    stopMusic(); // ПАТЧ 16.2
+    stopMusic();
   }
   
   function showRecords() { gameState = 'records'; hideAllScreens(); hud.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); recordsScreen.classList.remove('hidden'); renderRecords(); }
@@ -1471,7 +1504,6 @@ const CHANGELOG = [
     });
   }
 
-  // === ПАТЧ 16.2: обработчик toggle-music + правильный текст кнопок ===
   document.addEventListener('pointerdown', (e) => {
     const btn = e.target.closest('[data-action]');
     if (btn) {
