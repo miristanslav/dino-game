@@ -2,7 +2,6 @@
 // DB.JS — Подключение к Firebase, Онлайн, Рейтинг
 // ============================================================
 
-// Инициализация Firebase
 let fbApp, db, rtdb;
 try {
   fbApp = firebase.initializeApp(firebaseConfig);
@@ -12,7 +11,6 @@ try {
   console.warn("Firebase не настроен. Рейтинг не работает.");
 }
 
-// Получаем данные из Telegram или создаем гостя
 let playerUser = { id: 'guest', name: 'Гость', photo: '' };
 try {
   if (isTelegram && tgApp.initDataUnsafe?.user) {
@@ -31,7 +29,6 @@ try {
   }
 } catch (e) {}
 
-// --- ОНЛАЙН ---
 function startPresenceTracking() {
   if (!rtdb) return;
   
@@ -56,7 +53,6 @@ function startPresenceTracking() {
   });
 }
 
-// --- РЕЙТИНГ ---
 async function submitScoreToCloud(finalScore) {
   if (!db) return;
   try {
@@ -104,9 +100,8 @@ async function fetchGlobalLeaderboard() {
       
       const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
       
-      // Безопасная проверка фото: если ссылки нет или она битая, ставим эмодзи
       const photoHtml = (data.photo && data.photo.startsWith('http')) 
-        ? `<img src="${data.photo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentNode.innerHTML='👤'">` 
+        ? `<img src="${data.photo}" onerror="this.parentNode.innerHTML='👤'">` 
         : '👤';
 
       const row = document.createElement('div');
