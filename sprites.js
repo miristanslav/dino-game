@@ -298,39 +298,55 @@ function drawTRexStanding(phase, dead, scale) {
   ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   ctx.restore();
 
-  // Forward-reaching T-Rex forearm with a compact palm and two unmistakable clawed digits.
-  // The hand projects beyond the chest; both fingers point forward and hook down at their tips.
+  // Compact, powerful T-Rex forelimb shifted farther forward.
+  // The upper arm stays close to the chest; the elbow bends and the short forearm
+  // leads into a small wrist, palm and two separate clawed digits.
   ctx.save();
-  ctx.translate(3.4*scale, 0);
-  // Upper arm, elbow and forearm form one strong, continuous silhouette.
-  poly([[23.75,12.95+bob],[24.85,12.15+bob],[26.75,12.28+bob],
-        [28.15,13.05+bob],[29.05,14.05+bob],[29.35,14.75+bob],
-        [30.05,14.55+bob],[30.55,14.85+bob],[30.45,15.55+bob],
-        [29.75,16.05+bob],[29.15,15.65+bob],[28.55,16.35+bob],
-        [27.35,16.55+bob],[26.25,15.55+bob],[25.15,16.0+bob],
-        [24.05,15.35+bob],[24.55,14.1+bob]], c.outline);
-  poly([[24.65,13.08+bob],[25.35,12.62+bob],[26.65,12.72+bob],
-        [27.95,13.38+bob],[28.75,14.25+bob],[29.05,14.85+bob],
-        [29.75,14.82+bob],[29.98,15.18+bob],[29.48,15.55+bob],
-        [28.85,15.35+bob],[28.2,15.92+bob],[27.35,16.0+bob],
-        [26.35,15.08+bob],[25.25,15.35+bob],[24.65,14.82+bob]], c.body);
-  // Rounded muscle planes clarify the upper arm and the bend at the elbow.
-  line([[24.95,13.12+bob],[26.25,13.35+bob],[27.45,14.12+bob],[28.35,14.82+bob]], c.belly, 0.48);
-  line([[27.05,15.15+bob],[27.85,15.72+bob],[28.55,15.52+bob]], c.outline, 0.46);
-  // Two separate forward fingers: each has its own knuckle and tapered hooked claw.
-  poly([[29.45,14.55+bob],[30.25,14.22+bob],[31.05,14.28+bob],
-        [31.55,14.62+bob],[31.42,15.02+bob],[30.92,15.12+bob],
-        [30.35,14.88+bob],[29.75,15.02+bob]], c.outline);
-  poly([[29.62,14.62+bob],[30.28,14.42+bob],[31.0,14.48+bob],
-        [31.28,14.68+bob],[30.9,14.82+bob],[30.25,14.72+bob]], c.body);
-  poly([[29.35,15.12+bob],[30.05,15.0+bob],[30.72,15.25+bob],
-        [31.05,15.68+bob],[30.85,16.02+bob],[30.38,15.95+bob],
-        [30.05,15.58+bob],[29.55,15.55+bob]], c.outline);
-  poly([[29.55,15.2+bob],[30.08,15.18+bob],[30.58,15.42+bob],
-        [30.72,15.68+bob],[30.38,15.7+bob],[30.0,15.42+bob]], c.body);
-  // Pale, sharp tips make the two claws readable at game scale.
-  poly([[31.18,14.55+bob],[31.82,14.55+bob],[31.42,15.05+bob],[31.2,15.0+bob]], c.claw);
-  poly([[30.72,15.62+bob],[31.38,15.88+bob],[30.88,16.32+bob],[30.72,16.02+bob]], c.claw);
+  ctx.translate(5.7*scale, 0);
+  // Continuous outer silhouette: rounded shoulder, tucked elbow and tapered forearm.
+  poly([[23.75,12.9+bob],[24.55,12.25+bob],[25.8,12.18+bob],
+        [27.0,12.65+bob],[27.95,13.45+bob],[28.45,14.25+bob],
+        [29.1,14.38+bob],[29.8,14.65+bob],[30.02,15.08+bob],
+        [29.62,15.48+bob],[28.95,15.35+bob],[28.55,15.92+bob],
+        [27.75,16.15+bob],[26.9,15.78+bob],[26.05,15.88+bob],
+        [25.15,15.42+bob],[24.35,14.72+bob],[24.05,13.85+bob]], c.outline);
+  // Inner mass follows the same muscle direction without a human-like long arm.
+  poly([[24.55,13.02+bob],[25.05,12.62+bob],[25.85,12.58+bob],
+        [26.85,13.02+bob],[27.62,13.72+bob],[28.12,14.42+bob],
+        [28.85,14.68+bob],[29.42,14.82+bob],[29.55,15.08+bob],
+        [29.12,15.18+bob],[28.62,15.12+bob],[28.12,15.62+bob],
+        [27.62,15.82+bob],[26.98,15.42+bob],[26.1,15.5+bob],
+        [25.35,14.98+bob],[24.75,14.35+bob]], c.body);
+  // Shoulder and triceps planes clarify the joint and the tucked upper arm.
+  poly([[24.82,12.92+bob],[25.75,12.72+bob],[26.72,13.22+bob],
+        [27.52,14.05+bob],[27.15,14.42+bob],[26.35,13.95+bob],
+        [25.55,13.68+bob]], c.belly);
+  line([[26.05,14.35+bob],[26.82,14.92+bob],[27.55,15.08+bob]], c.outline, 0.42);
+  // Short wrist and palm; two digits emerge separately from the palm.
+  poly([[28.75,14.48+bob],[29.45,14.38+bob],[30.05,14.72+bob],
+        [30.18,15.12+bob],[29.82,15.48+bob],[29.22,15.35+bob],
+        [28.72,15.08+bob]], c.outline);
+  poly([[29.02,14.65+bob],[29.52,14.62+bob],[29.82,14.85+bob],
+        [29.92,15.08+bob],[29.55,15.22+bob],[29.08,15.02+bob]], c.body);
+  // Upper digit: thick at the knuckle, narrowing into a hooked claw.
+  poly([[29.55,14.62+bob],[30.25,14.35+bob],[31.05,14.38+bob],
+        [31.62,14.68+bob],[31.72,15.02+bob],[31.35,15.22+bob],
+        [30.82,15.02+bob],[30.22,15.05+bob],[29.72,14.92+bob]], c.outline);
+  poly([[29.82,14.68+bob],[30.38,14.48+bob],[31.02,14.52+bob],
+        [31.42,14.75+bob],[31.45,14.9+bob],[30.92,14.82+bob],
+        [30.32,14.82+bob]], c.body);
+  // Lower digit is offset down and slightly forward, with its own knuckle.
+  poly([[29.48,15.02+bob],[30.12,15.02+bob],[30.82,15.28+bob],
+        [31.32,15.72+bob],[31.28,16.08+bob],[30.92,16.22+bob],
+        [30.52,15.88+bob],[30.05,15.55+bob],[29.55,15.48+bob]], c.outline);
+  poly([[29.72,15.18+bob],[30.18,15.2+bob],[30.72,15.48+bob],
+        [31.02,15.78+bob],[30.88,15.92+bob],[30.42,15.62+bob],
+        [29.98,15.42+bob]], c.body);
+  // Distinct pale keratin claws curve forward and down from the two digits.
+  poly([[31.52,14.68+bob],[32.18,14.72+bob],[31.92,15.22+bob],
+        [31.62,15.18+bob],[31.48,14.98+bob]], c.claw);
+  poly([[31.12,15.82+bob],[31.78,16.12+bob],[31.38,16.62+bob],
+        [31.12,16.45+bob],[31.0,16.12+bob]], c.claw);
   ctx.restore();
 
   // Upright dorsal spikes: lift the tail-side run slightly, lower the neck-side run

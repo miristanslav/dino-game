@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 87;
+const CURRENT_VERSION = 88;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,13 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 88,
+    changes: [
+      "Патч 88: Передние лапы смещены ещё дальше вперёд, вправо",
+      "Перестроены плечо, согнутый локоть, короткое предплечье и компактная кисть; два пальца с отдельными загнутыми когтями анатомически разделены"
+    ]
+  },
   {
     version: 87,
     changes: [
