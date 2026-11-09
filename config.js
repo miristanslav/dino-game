@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 67;
+const CURRENT_VERSION = 68;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 68,
+    changes: [
+      'Патч 68: Верхняя часть черепа получила более сложный и выразительный анатомический профиль',
+      'Уточнены надбровный выступ, переход за глазом и дуга носовых костей; убран упрощённый округлый силуэт',
+      'Добавлена сдержанная линия носового костного рельефа для большей глубины морды',
+      'Нижняя челюсть, зубы, глаз, ноздря, корпус, хвост, лапы и анимация бега не менялись'
+    ]
+  },
   {
     version: 67,
     changes: [
