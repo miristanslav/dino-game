@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 53;
+const CURRENT_VERSION = 54;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 54,
+    changes: [
+      'Патч 54: Исправлена ошибка отрисовки игрового поля',
+      'Исправлено обращение к неверной переменной в анимации задних лап',
+      'Восстановлено отображение динозавра и сцены в главном меню и игре'
+    ]
+  },
   {
     version: 53,
     changes: [
