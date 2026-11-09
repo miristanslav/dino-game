@@ -250,6 +250,8 @@ let clouds = [{ x: 500, y: 60, s: 1, speed: 0.2 }, { x: 750, y: 90, s: 0.8, spee
 let groundDots = [];
 for (let i = 0; i < 50; i++) groundDots.push({ x: Math.random() * W, y: GROUND_Y + 6 + Math.random() * 20, r: Math.random() * 1.5 + 0.5 });
 
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseScreen = document.getElementById('pauseScreen');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const fsIconExpand = document.getElementById('fsIconExpand');
 const fsIconCollapse = document.getElementById('fsIconCollapse');
