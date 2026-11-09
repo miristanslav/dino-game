@@ -241,7 +241,7 @@ function drawTRexStanding(phase, dead, scale) {
   };
   // Upper-jaw teeth continue toward the right/front edge of the mouth.
   // They become slightly smaller toward the snout; the lower jaw remains toothless.
-  [[39.55,10.88,0.667,0.552],[41.25,10.76,0.621,0.506],[42.72,10.62,0.575,0.437],[44.02,10.42,0.483,0.345]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
+  [[39.55,10.88,0.9338,0.7728],[41.25,10.76,0.8694,0.7084],[42.72,10.62,0.805,0.6118],[44.02,10.42,0.6762,0.483]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
   // Compact eye beneath the massive brow.
   ctx.fillStyle = "rgba(30,45,33,0.76)";
   ctx.beginPath(); ctx.ellipse(35.18*scale,7.52*scale+bob*scale,1.08*scale,0.82*scale,-0.08,0,Math.PI*2); ctx.fill();
