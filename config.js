@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 49;
+const CURRENT_VERSION = 50;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 50,
+    changes: [
+      'Патч 50: Исправлена форма спинных шипов',
+      'Шипы снова выступают вверх от поверхности тела, а не выглядят плоским узором',
+      'Основания выровнены по верхнему силуэту хвоста и спины; наибольшая высота — в середине спины'
+    ]
+  },
   {
     version: 49,
     changes: [
