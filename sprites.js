@@ -51,8 +51,8 @@ function drawTRexStanding(phase, dead, scale) {
     ['Q',15,14.5+tailLift,11,15.8+tailLift],
     ['Q',6,17.1+tailLift,0,17.9+tailLift],
     ['Q',-5,18.6+tailLift,-10,18.9+tailLift],
-    ['Q',-11.5,20.1+tailLift,-10,21+tailLift],
-    ['Q',-7,22+tailLift,-2,21.8+tailLift],
+    ['Q',-12,19.35+tailLift,-11.2,19.85+tailLift],
+    ['Q',-8.5,20.65+tailLift,-3,20.85+tailLift],
     ['Q',5,21.4+tailLift,11,20.6+tailLift],
     ['Q',16,19.9+tailLift,20,19.35+tailLift],
     ['Q',22,17.2+tailLift,19,14.2+tailLift]
@@ -61,8 +61,8 @@ function drawTRexStanding(phase, dead, scale) {
     [17.5,15+tailLift],
     ['Q',13,15.5+tailLift,8,16.8+tailLift],
     ['Q',2,18.1+tailLift,-4,18.7+tailLift],
-    ['Q',-8,19.8+tailLift,-8.5,20.3+tailLift],
-    ['Q',-6,20.9+tailLift,-1.5,20.8+tailLift],
+    ['Q',-10.1,19.55+tailLift,-9.8,19.95+tailLift],
+    ['Q',-7.5,20.35+tailLift,-3,20.55+tailLift],
     ['Q',5,20.4+tailLift,11,19.7+tailLift],
     ['Q',15.5,19.2+tailLift,19,18.7+tailLift],
     [17.5,15+tailLift]
@@ -105,8 +105,9 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[12,17+bob],[13.5,14.2+bob],[17,11.8+bob],[21,9.8+bob],[25,9.3+bob],[28,10.2+bob],[30.5,12.5+bob],[32,15.5+bob],[31,18.5+bob],[28.5,20.2+bob],[24.5,20.8+bob],[20.5,20.2+bob],[16.5,19.3+bob],[13,18.5+bob]], c.outline);
   poly([[13.2,16.7+bob],[15,14.2+bob],[18,12.2+bob],[21.5,10.8+bob],[25,10.3+bob],[27.8,11.1+bob],[29.8,13.1+bob],[30.8,15.7+bob],[30,18+bob],[27.8,19.2+bob],[24.5,19.7+bob],[20.5,19.2+bob],[17,18.5+bob],[14.2,18+bob]], c.body);
 
-  // Blend the tail root into the rear contour so no internal join reads as a separate piece.
-  poly([[13.4,15.1+bob],[15.2,14.5+bob],[17.4,14.6+bob],[19.1,15.2+bob],[19.2,18.1+bob],[16.8,18.9+bob],[14.2,18.4+bob],[12.9,17.2+bob]], c.body);
+  // Hide the internal overlap line at the pelvis: tail and torso share one continuous body surface.
+  // The patch stays inside the silhouette, preserving the approved outer torso contour.
+  poly([[12.7,15.0+bob],[14.4,14.35+bob],[16.8,14.35+bob],[19.1,14.9+bob],[20.0,16.3+bob],[19.8,18.55+bob],[17.2,19.05+bob],[14.3,18.55+bob],[12.8,17.35+bob]], c.body);
 
   // Subtle planes describe the shoulder, rib cage and underside without a round belly.
   poly([[21.5,11+bob],[25,10.5+bob],[28,11.6+bob],[30,14.1+bob],[29.5,16.5+bob],[27,17.2+bob],[24,15.8+bob],[22,13.8+bob]], c.body);
