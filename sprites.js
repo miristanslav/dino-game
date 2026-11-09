@@ -173,10 +173,11 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(36.72*scale, 4.92*scale+bob*scale, 37.52*scale, 5.08*scale+bob*scale);
     ctx.quadraticCurveTo(38.42*scale, 5.22*scale+bob*scale, 39.22*scale, 5.68*scale+bob*scale);
     ctx.quadraticCurveTo(40.42*scale, 5.92*scale+bob*scale, 41.62*scale, 6.38*scale+bob*scale);
-    ctx.quadraticCurveTo(43.08*scale, 6.88*scale+bob*scale, 44.38*scale, 7.42*scale+bob*scale);
-    ctx.quadraticCurveTo(45.82*scale, 8.02*scale+bob*scale, 47.05*scale, 8.48*scale+bob*scale);
-    ctx.quadraticCurveTo(47.62*scale, 8.72*scale+bob*scale, 47.22*scale, 9.22*scale+bob*scale);
-    ctx.quadraticCurveTo(46.62*scale, 9.88*scale+bob*scale, 45.18*scale, 10.18*scale+bob*scale);
+    ctx.quadraticCurveTo(43.08*scale, 6.88*scale+bob*scale, 44.55*scale, 6.82*scale+bob*scale);
+    ctx.quadraticCurveTo(46.12*scale, 6.82*scale+bob*scale, 47.12*scale, 7.62*scale+bob*scale);
+    ctx.quadraticCurveTo(47.82*scale, 8.18*scale+bob*scale, 47.72*scale, 8.92*scale+bob*scale);
+    ctx.quadraticCurveTo(47.62*scale, 9.62*scale+bob*scale, 46.72*scale, 10.02*scale+bob*scale);
+    ctx.quadraticCurveTo(45.82*scale, 10.42*scale+bob*scale, 44.35*scale, 10.55*scale+bob*scale);
     ctx.quadraticCurveTo(42.92*scale, 10.72*scale+bob*scale, 40.05*scale, 10.88*scale+bob*scale);
     ctx.quadraticCurveTo(36.42*scale, 11.08*scale+bob*scale, 33.02*scale, 10.78*scale+bob*scale);
     ctx.quadraticCurveTo(30.42*scale, 10.58*scale+bob*scale, 29.0*scale, 10.55*scale+bob*scale);
@@ -191,9 +192,10 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(36.18*scale, 6.02*scale+bob*scale, 36.72*scale, 5.72*scale+bob*scale);
     ctx.quadraticCurveTo(37.62*scale, 5.48*scale+bob*scale, 38.55*scale, 5.92*scale+bob*scale);
     ctx.quadraticCurveTo(40.02*scale, 6.22*scale+bob*scale, 41.42*scale, 6.72*scale+bob*scale);
-    ctx.quadraticCurveTo(43.62*scale, 7.42*scale+bob*scale, 46.22*scale, 8.55*scale+bob*scale);
-    ctx.quadraticCurveTo(46.58*scale, 8.78*scale+bob*scale, 45.92*scale, 9.22*scale+bob*scale);
-    ctx.quadraticCurveTo(43.62*scale, 10.02*scale+bob*scale, 40.05*scale, 10.22*scale+bob*scale);
+    ctx.quadraticCurveTo(43.62*scale, 7.42*scale+bob*scale, 45.42*scale, 7.48*scale+bob*scale);
+    ctx.quadraticCurveTo(46.72*scale, 7.58*scale+bob*scale, 47.18*scale, 8.32*scale+bob*scale);
+    ctx.quadraticCurveTo(47.52*scale, 9.02*scale+bob*scale, 46.72*scale, 9.48*scale+bob*scale);
+    ctx.quadraticCurveTo(44.02*scale, 10.12*scale+bob*scale, 40.05*scale, 10.22*scale+bob*scale);
     ctx.quadraticCurveTo(35.72*scale, 10.52*scale+bob*scale, 31.62*scale, 10.22*scale+bob*scale);
     ctx.quadraticCurveTo(30.42*scale, 10.18*scale+bob*scale, 29.92*scale, 9.98*scale+bob*scale);
   });
@@ -219,8 +221,9 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(30.82*scale, 11.22*scale+bob*scale, 31.68*scale, 12.02*scale+bob*scale);
     ctx.quadraticCurveTo(33.02*scale, 13.08*scale+bob*scale, 35.28*scale, 13.68*scale+bob*scale);
     ctx.quadraticCurveTo(38.48*scale, 14.38*scale+bob*scale, 41.82*scale, 14.12*scale+bob*scale);
-    ctx.quadraticCurveTo(44.42*scale, 13.88*scale+bob*scale, 45.68*scale, 12.48*scale+bob*scale);
-    ctx.quadraticCurveTo(46.22*scale, 11.78*scale+bob*scale, 45.72*scale, 10.92*scale+bob*scale);
+    ctx.quadraticCurveTo(44.25*scale, 13.92*scale+bob*scale, 45.72*scale, 12.82*scale+bob*scale);
+    ctx.quadraticCurveTo(46.62*scale, 12.08*scale+bob*scale, 46.42*scale, 11.32*scale+bob*scale);
+    ctx.quadraticCurveTo(46.22*scale, 10.82*scale+bob*scale, 45.42*scale, 10.55*scale+bob*scale);
     ctx.quadraticCurveTo(43.62*scale, 11.28*scale+bob*scale, 41.08*scale, 11.52*scale+bob*scale);
     ctx.quadraticCurveTo(37.72*scale, 11.82*scale+bob*scale, 34.72*scale, 11.28*scale+bob*scale);
     ctx.quadraticCurveTo(32.42*scale, 10.88*scale+bob*scale, 31.18*scale, 10.42*scale+bob*scale);
@@ -228,8 +231,8 @@ function drawTRexStanding(phase, dead, scale) {
   headPath(c.body, () => {
     ctx.moveTo(32.18*scale, 11.48*scale+bob*scale);
     ctx.quadraticCurveTo(34.12*scale, 12.62*scale+bob*scale, 37.05*scale, 13.12*scale+bob*scale);
-    ctx.quadraticCurveTo(40.48*scale, 13.72*scale+bob*scale, 43.22*scale, 12.92*scale+bob*scale);
-    ctx.quadraticCurveTo(44.72*scale, 12.38*scale+bob*scale, 45.02*scale, 11.55*scale+bob*scale);
+    ctx.quadraticCurveTo(40.48*scale, 13.72*scale+bob*scale, 43.22*scale, 13.08*scale+bob*scale);
+    ctx.quadraticCurveTo(44.82*scale, 12.62*scale+bob*scale, 45.42*scale, 11.72*scale+bob*scale);
     ctx.quadraticCurveTo(42.02*scale, 12.02*scale+bob*scale, 39.05*scale, 12.02*scale+bob*scale);
     ctx.quadraticCurveTo(35.42*scale, 12.02*scale+bob*scale, 32.18*scale, 11.48*scale+bob*scale);
   });
@@ -242,8 +245,9 @@ function drawTRexStanding(phase, dead, scale) {
   headPath("#402629", () => {
     ctx.moveTo(31.72*scale, 10.22*scale+bob*scale);
     ctx.quadraticCurveTo(35.02*scale, 11.02*scale+bob*scale, 38.82*scale, 10.92*scale+bob*scale);
-    ctx.quadraticCurveTo(42.72*scale, 10.78*scale+bob*scale, 46.02*scale, 9.92*scale+bob*scale);
-    ctx.quadraticCurveTo(45.22*scale, 10.92*scale+bob*scale, 42.18*scale, 11.32*scale+bob*scale);
+    ctx.quadraticCurveTo(44.42*scale, 10.38*scale+bob*scale, 46.42*scale, 9.82*scale+bob*scale);
+    ctx.quadraticCurveTo(46.32*scale, 10.48*scale+bob*scale, 45.42*scale, 10.82*scale+bob*scale);
+    ctx.quadraticCurveTo(44.12*scale, 11.22*scale+bob*scale, 42.18*scale, 11.32*scale+bob*scale);
     ctx.quadraticCurveTo(38.32*scale, 11.68*scale+bob*scale, 34.92*scale, 11.28*scale+bob*scale);
     ctx.quadraticCurveTo(32.72*scale, 11.02*scale+bob*scale, 31.72*scale, 10.22*scale+bob*scale);
   });
