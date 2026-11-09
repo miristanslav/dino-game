@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 48;
+const CURRENT_VERSION = 49;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 49,
+    changes: [
+      'Патч 49: Непрерывный ряд спинных шипов',
+      'Самые крупные шипы расположены в середине спины, размер плавно уменьшается к кончику хвоста и к шее',
+      'Восстановлены хорошо заметные шипы по всей длине хвоста и в зоне соединения с туловищем'
+    ]
+  },
   {
     version: 48,
     changes: [
