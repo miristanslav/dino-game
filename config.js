@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 72;
+const CURRENT_VERSION = 73;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 73,
+    changes: [
+      'Патч 73: Исправлены ссылки на ресурсы для обновления кэша',
+      'Убраны лишние вопросительные знаки в адресах CSS и JavaScript-файлов',
+      'Сохранены изменения формы пасти из патча 72'
+    ]
+  },
   {
     version: 72,
     changes: [
