@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 59;
+const CURRENT_VERSION = 60;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 60,
+    changes: [
+      'Патч 60: Увеличен объём нижней части дальней задней лапы',
+      'От колена до голеностопа дальняя лапа стала шире и мускулистее, ближе по анатомии к ближней лапе',
+      'Сохранены различие перспективы, пальцеходящий изгиб, поднятая пятка и опора пальцев',
+      'Передняя лапа, пальцы, когти и анимация шага не менялись'
+    ]
+  },
   {
     version: 59,
     changes: [
