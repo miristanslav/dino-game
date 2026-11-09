@@ -80,17 +80,16 @@ function drawTRexStanding(phase, dead, scale) {
   // Restore the dark-green dorsal ridge line, matching the spine contour on the torso.
   line([[4,17.5+tailY],[8,16.7+tailY],[12,15.8+tailY],[16,15.1+tailY]], c.outline, 0.55);
 
-  // Far hind leg: compact secondary silhouette tucked behind the torso.
-  // Static anatomy pass; only the torso's existing subtle bob remains.
-  const farBob = bob * 0.35;
-  poly([[15.1,16.8+farBob],[18.4,17.0+farBob],[20.0,18.4+farBob],[20.2,20.0+farBob],[19.1,21.4+farBob],[18.2,23.9+farBob],[17.7,25.0+farBob],[16.8,25.2+farBob],[16.2,24.4+farBob],[16.8,22.1+farBob],[15.4,20.4+farBob],[14.4,18.8+farBob]], c.outline);
-  poly([[15.7,17.4+farBob],[18.3,17.6+farBob],[19.4,18.8+farBob],[19.5,20.0+farBob],[18.6,21.2+farBob],[17.8,23.8+farBob],[17.2,24.6+farBob],[16.8,24.5+farBob],[17.3,22.0+farBob],[16.0,20.2+farBob],[15.0,18.8+farBob]], c.body);
-  // Compact rear foot with toes pointing forward, not sideways.
-  poly([[16.6,24.5+farBob],[18.0,24.5+farBob],[19.2,25.1+farBob],[20.0,25.8+farBob],[19.7,26.3+farBob],[18.4,26.2+farBob],[17.6,26.7+farBob],[16.8,26.5+farBob],[16.1,25.9+farBob]], c.outline);
-  poly([[17.0,24.9+farBob],[18.0,24.9+farBob],[19.0,25.5+farBob],[19.4,25.9+farBob],[18.3,25.9+farBob],[17.5,26.2+farBob],[16.7,26.0+farBob]], c.body);
-  line([[17.7,22.1+farBob],[17.3,23.5+farBob],[17.0,24.4+farBob]], c.belly, 0.5);
-  poly([[19.2,25.8+farBob],[20.0,26.0+farBob],[20.1,26.4+farBob],[19.3,26.3+farBob]], c.claw);
-  poly([[17.5,26.0+farBob],[18.2,26.2+farBob],[18.2,26.6+farBob],[17.5,26.5+farBob]], c.claw);
+  // Far hind leg: smaller, set behind the near leg, with a long lower segment.
+  const farBob = 0;
+  poly([[14.8,16.5],[18.6,16.7],[20.4,18.1],[20.7,19.8],[19.7,21.3],[18.8,22.0],[17.7,24.8],[17.1,27.6],[16.5,28.1],[15.7,27.7],[16.0,25.0],[16.7,22.5],[15.3,20.6],[14.3,18.8]], c.outline);
+  poly([[15.5,17.2],[18.4,17.3],[19.7,18.4],[20.0,19.7],[19.0,21.0],[18.1,21.8],[17.1,24.7],[16.5,27.4],[16.2,27.4],[16.6,24.9],[17.2,22.3],[15.9,20.3],[14.9,18.7]], c.body);
+  // Rear foot lies flat on the ground line (local y = 30).
+  poly([[16.0,27.3],[17.1,27.1],[18.3,27.8],[19.4,28.5],[20.0,29.2],[19.8,29.7],[18.8,29.6],[17.9,30.0],[16.9,29.8],[16.0,29.3],[15.5,28.5]], c.outline);
+  poly([[16.4,27.7],[17.2,27.6],[18.2,28.2],[19.1,28.8],[19.5,29.2],[18.6,29.2],[17.8,29.5],[16.9,29.4],[16.2,28.9]], c.body);
+  line([[17.8,23.0],[17.1,25.2],[16.6,27.2]], c.belly, 0.5);
+  poly([[19.1,29.0],[20.0,29.2],[20.2,29.7],[19.3,29.7]], c.claw);
+  poly([[17.2,29.3],[18.0,29.5],[18.0,30],[17.2,29.9]], c.claw);
 
   // Main torso: elongated, muscular rib cage with a lifted belly and a defined chest.
   // The silhouette is deliberately asymmetrical: sloping back, deep chest, tighter waist.
@@ -110,20 +109,21 @@ function drawTRexStanding(phase, dead, scale) {
   line([[16.2,15.1+bob],[18.5,13.3+bob],[21,12.5+bob]], c.body, 0.8);
   line([[18.5,18+bob],[21.5,18.4+bob],[24.5,18.2+bob]], c.body, 0.65);
 
-  // Near hind leg: heavy thigh, forward knee, backward-sloping narrow shin and raised ankle.
-  // Static anatomical pose for this pass; gait animation will be designed separately.
-  const legBob = bob;
-  poly([[19.5,17.0+legBob],[23.2,16.8+legBob],[25.4,18.0+legBob],[26.2,19.5+legBob],[26.0,20.8+legBob],[24.9,22.0+legBob],[24.1,24.5+legBob],[23.6,25.2+legBob],[22.5,25.2+legBob],[22.0,24.4+legBob],[22.5,22.1+legBob],[21.3,20.8+legBob],[19.8,19.5+legBob]], c.outline);
-  poly([[20.2,17.6+legBob],[23.1,17.4+legBob],[24.8,18.4+legBob],[25.5,19.7+legBob],[25.2,20.7+legBob],[24.3,21.7+legBob],[23.5,24.3+legBob],[23.1,24.7+legBob],[22.8,24.5+legBob],[23.1,22.0+legBob],[21.9,20.5+legBob],[20.5,19.3+legBob]], c.body);
-  line([[24.8,21.2+legBob],[24.0,22.8+legBob],[23.5,24.3+legBob]], c.belly, 0.65);
-  // Compact foot extends forward from the raised ankle.
-  poly([[22.7,24.3+legBob],[24.0,24.2+legBob],[25.4,24.8+legBob],[26.8,25.7+legBob],[27.2,26.3+legBob],[26.7,26.7+legBob],[25.3,26.4+legBob],[24.4,26.9+legBob],[23.5,26.8+legBob],[22.8,26.2+legBob],[21.8,26.1+legBob],[21.6,25.5+legBob]], c.outline);
-  poly([[23.1,24.8+legBob],[24.0,24.7+legBob],[25.2,25.2+legBob],[26.3,25.9+legBob],[26.5,26.2+legBob],[25.2,26.0+legBob],[24.3,26.5+legBob],[23.6,26.3+legBob],[22.9,25.9+legBob],[22.2,25.8+legBob]], c.body);
-  // Three short forward-pointing toes; no wide lateral spread.
-  line([[24.0,25.5+legBob],[24.9,25.9+legBob],[25.8,26.0+legBob]], c.belly, 0.5);
-  poly([[26.3,25.9+legBob],[27.1,26.2+legBob],[27.3,26.6+legBob],[26.4,26.5+legBob]], c.claw);
-  poly([[24.0,26.3+legBob],[24.8,26.6+legBob],[24.9,27.0+legBob],[24.1,26.9+legBob]], c.claw);
-  poly([[21.9,25.7+legBob],[22.7,25.9+legBob],[22.8,26.3+legBob],[22.0,26.2+legBob]], c.claw);
+  // Near hind leg: enlarged muscular thigh, distinct forward knee and tapered rearward shin.
+  // This is a static anatomical pose; the foot sole reaches local y = 30.
+  const legBob = 0;
+  poly([[18.4,16.5],[21.0,15.9],[24.1,16.1],[26.1,17.2],[27.0,18.8],[27.1,20.2],[26.2,21.5],[25.1,22.0],[24.3,23.0],[23.5,25.2],[22.9,27.8],[22.4,28.4],[21.5,28.1],[21.8,25.7],[22.2,23.6],[22.0,22.5],[20.2,21.4],[18.8,19.8],[18.0,18.1]], c.outline);
+  poly([[19.1,17.1],[21.3,16.6],[24.0,16.7],[25.5,17.7],[26.3,19.0],[26.4,20.1],[25.6,21.2],[24.6,21.7],[23.8,22.8],[23.0,25.1],[22.4,27.6],[22.0,27.8],[22.3,25.5],[22.8,23.4],[22.5,22.2],[20.8,21.0],[19.4,19.5],[18.7,18.1]], c.body);
+  // A clear knee-to-shin transition and narrow ankle tendon.
+  poly([[24.9,20.4],[26.0,20.7],[25.5,22.0],[24.5,22.7],[23.8,24.5],[23.2,26.8],[22.7,28.2],[22.1,28.1],[22.4,26.2],[22.9,23.8],[23.7,22.2]], c.body);
+  line([[25.2,21.3],[24.2,23.1],[23.5,25.2],[22.9,27.7]], c.belly, 0.6);
+  // Compact three-toed foot, with the sole grounded at local y = 30.
+  poly([[21.9,27.5],[23.0,27.3],[24.3,27.8],[25.8,28.4],[27.0,29.1],[27.3,29.6],[26.8,30.0],[25.5,29.8],[24.5,30.0],[23.4,29.8],[22.2,29.5],[21.4,28.8]], c.outline);
+  poly([[22.3,27.9],[23.1,27.8],[24.2,28.2],[25.6,28.8],[26.6,29.3],[26.8,29.6],[25.5,29.4],[24.5,29.6],[23.5,29.4],[22.4,29.1]], c.body);
+  line([[23.5,28.6],[24.5,29.0],[25.6,29.2]], c.belly, 0.5);
+  poly([[26.5,29.1],[27.3,29.5],[27.5,30],[26.6,29.9]], c.claw);
+  poly([[24.2,29.3],[25.0,29.6],[25.0,30],[24.2,29.9]], c.claw);
+  poly([[21.7,28.8],[22.5,29.1],[22.5,29.5],[21.7,29.4]], c.claw);
 
   // Neck slopes forward from the chest; head artwork below remains untouched.
   poly([[25,13+bob],[26,10+bob],[29,8.5+bob],[33,9+bob],[35,12+bob],[33,15+bob],[29,16+bob],[26,15+bob]], c.outline);
