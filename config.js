@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 45;
+const CURRENT_VERSION = 46;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 46,
+    changes: [
+      'Патч 46: Единый цвет линии позвоночника и увеличенные шипы хвоста',
+      'Линия вдоль хвоста теперь использует тот же тёмно-зелёный цвет, что и линия спины',
+      'Шипы увеличены и выстроены по градиенту размера: маленькие у кончика, крупнее к основанию'
+    ]
+  },
   {
     version: 45,
     changes: [
