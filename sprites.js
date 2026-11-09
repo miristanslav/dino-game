@@ -81,6 +81,13 @@ function drawTRexStanding(phase, dead, scale) {
   line([[4,17.5+tailY],[8,16.7+tailY],[12,15.8+tailY],[16,15.1+tailY]], c.outline, 0.55);
 
   // Far hind leg: reuse the near leg's anatomical silhouette at a slightly smaller scale.
+  // The far leg swings opposite to the near leg. Rotate around the hip so the
+  // approved leg silhouette stays intact while the stride becomes readable.
+  const farStride = dead ? 0 : [ -0.17, -0.06, 0.17, 0.06 ][step];
+  ctx.save();
+  ctx.translate(17.1 * scale, 18.0 * scale);
+  ctx.rotate(farStride);
+  ctx.translate(-17.1 * scale, -18.0 * scale);
   // The body is drawn over it below, naturally hiding the upper thigh and preserving depth.
   const farLeg = points => points.map(([x, y]) => [
     18.9 + (x - 24) * 0.90,
@@ -101,6 +108,8 @@ function drawTRexStanding(phase, dead, scale) {
   poly(farLeg([[25.4,29.1],[26.3,29.4],[26.7,29.9],[26.6,30],[25.8,29.8]]), c.claw);
   poly(farLeg([[24.0,28.7],[24.8,29.1],[25.1,29.6],[25.0,29.8],[24.3,29.5]]), c.claw);
 
+  ctx.restore(); // End far-leg swing; the torso remains stable over it.
+
   // Main torso: elongated, muscular rib cage with a lifted belly and a defined chest.
   // The silhouette is deliberately asymmetrical: sloping back, deep chest, tighter waist.
   poly([[12,17+bob],[13.5,14.2+bob],[17,11.8+bob],[21,9.8+bob],[25,9.3+bob],[28,10.2+bob],[30.5,12.5+bob],[32,15.5+bob],[31,18.5+bob],[28.5,20.2+bob],[24.5,20.8+bob],[20.5,20.2+bob],[16.5,19.3+bob],[13,18.5+bob]], c.outline);
@@ -120,6 +129,12 @@ function drawTRexStanding(phase, dead, scale) {
   line([[18.5,18+bob],[21.5,18.4+bob],[24.5,18.2+bob]], c.body, 0.65);
 
   // Near hind leg: fuller thigh flowing gradually into a muscular lower leg.
+  // The near leg alternates with the far leg to create a four-phase running cycle.
+  const nearStride = dead ? 0 : [ 0.17, 0.06, -0.17, -0.06 ][step];
+  ctx.save();
+  ctx.translate(22.0 * scale, 18.0 * scale);
+  ctx.rotate(nearStride);
+  ctx.translate(-22.0 * scale, -18.0 * scale);
   // Digitigrade stance: knee forward, hock/heel raised behind, metatarsus angled forward.
   poly([[18.2,16.5],[20.8,15.9],[23.8,16.0],[25.7,17.0],[26.7,18.5],[26.9,19.9],[26.3,21.2],[25.4,22.0],[24.7,23.0],[24.0,24.0],[23.4,25.0],[22.7,25.9],[21.7,26.2],[21.3,25.6],[21.8,24.5],[22.5,23.2],[22.5,22.1],[20.6,21.0],[19.0,19.6],[18.0,18.1]], c.outline);
   poly([[19.0,17.1],[21.2,16.6],[23.7,16.7],[25.2,17.6],[26.0,18.8],[26.1,19.9],[25.5,21.0],[24.7,21.8],[24.0,22.9],[23.3,24.1],[22.7,25.2],[22.0,25.6],[21.8,25.2],[22.4,24.0],[23.1,22.6],[22.8,21.8],[20.9,20.7],[19.5,19.4],[18.7,18.1]], c.body);
@@ -136,6 +151,8 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[27.6,29.1],[28.5,29.5],[28.9,29.9],[28.8,30],[28.0,29.8]], c.claw);
   poly([[25.4,29.1],[26.3,29.4],[26.7,29.9],[26.6,30],[25.8,29.8]], c.claw);
   poly([[24.0,28.7],[24.8,29.1],[25.1,29.6],[25.0,29.8],[24.3,29.5]], c.claw);
+
+  ctx.restore(); // End near-leg swing before drawing the stable upper body.
 
   // Neck extended upward and forward to support the repositioned skull.
   poly([[25,13+bob],[26,10+bob],[29,7.8+bob],[32,7+bob],[34.8,8.2+bob],[36,11.2+bob],[34,14.8+bob],[29,16+bob],[26,15+bob]], c.outline);

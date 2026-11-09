@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 88;
+const CURRENT_VERSION = 89;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 89,
+    changes: [
+      "Патч 89: Добавлен попеременный четырёхфазный цикл движения задних лап",
+      "Лапы поворачиваются вокруг тазобедренных суставов в противофазе; утверждённая форма и игровой хитбокс не меняются"
+    ]
+  },
+
   {
     version: 88,
     changes: [
