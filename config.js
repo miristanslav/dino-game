@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 41;
+const CURRENT_VERSION = 42;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 42,
+    changes: [
+      'Патч 42: Финальная настройка положения хвоста',
+      'Хвост приподнят ещё немного; утверждённый силуэт и сужение сохранены',
+      'Расширен мягкий переход в области таза, верхний контур позвоночника плавнее переходит в хвост'
+    ]
+  },
   {
     version: 41,
     changes: [
