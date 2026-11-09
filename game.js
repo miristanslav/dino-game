@@ -237,7 +237,7 @@ function update(dt) {
       }
       // Столкнувшееся препятствие убирается всегда; защита решает только, будет ли урон.
       obstacles.splice(i, 1);
-      if (damageCooldown <= 0) takeDamage('obstacle');
+      takeDamage('obstacle');
       if (gameState !== 'playing') return;
     }
 
@@ -301,7 +301,7 @@ function update(dt) {
       } else if (b.kind === 'predator') {
         if (rectCollide(dinoBox, bBox)) {
           const avoided = b.altitude === 'high' ? dino.jumping : dino.ducking;
-          if (!avoided && damageCooldown <= 0) takeDamage('pterodactyl');
+          if (!avoided) takeDamage('pterodactyl');
           birds.splice(i, 1);
           if (gameState !== 'playing') return;
         } else if (b.x < -80) birds.splice(i, 1);
