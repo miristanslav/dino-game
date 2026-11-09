@@ -61,6 +61,9 @@ document.addEventListener('pointerdown', (e) => {
     const action = btn.dataset.action;
 
     if (action === 'fullscreen') toggleFullscreen();
+    else if (action === 'pause') pauseGame();
+    else if (action === 'resume') resumeGame();
+    else if (action === 'pause-menu') showMainMenu();
     else if (action === 'start') reset();
     else if (action === 'daily') showDaily();
     else if (action === 'claim-daily') claimDailyReward();
