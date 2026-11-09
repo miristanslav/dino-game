@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 61;
+const CURRENT_VERSION = 62;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,16 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 62,
+    changes: [
+      'Патч 62: Уменьшена и скруглена форма головы динозавра',
+      'Убраны резкие прямоугольные переходы, силуэт черепа и челюсти стал плавнее',
+      'Скорректированы пропорции морды, нижней челюсти, глаза и ноздри',
+      'Корпус, шея, хвост, шипы, задние лапы и анимация не менялись'
+    ]
+  },
+
   {
     version: 61,
     changes: [
