@@ -142,178 +142,129 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[26,13+bob],[27.5,10.8+bob],[30,9.6+bob],[33,10.2+bob],[34,12.2+bob],[32,14.2+bob],[29,15+bob],[27,14.5+bob]], c.body);
   poly([[27,14+bob],[30,14+bob],[32,13.2+bob],[31,14.8+bob],[28,15+bob]], c.belly);
 
-  // Complete T. rex head redesign: one coherent skull profile with a deep cranium and robust jaws.
-  // The silhouette is based on tyrannosaur skull landmarks rather than a rounded cartoon muzzle.
-  const headPath = (fill, draw) => {
-    ctx.beginPath();
-    draw();
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.fill();
-  };
-  const headLine = (draw, color, width) => {
-    ctx.beginPath();
-    draw();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width * scale;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-  };
-
-  // Upper skull: deep rear cranium, strong brow, postorbital ridge and long nasal region.
+  // Massive tyrannosaur skull: deep cranium and broad, softly squared maxilla.
+  const headPath = (fill, draw) => { ctx.beginPath(); draw(); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); };
+  const headLine = (draw, color, width) => { ctx.beginPath(); draw(); ctx.strokeStyle = color; ctx.lineWidth = width * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); };
+  // Upper skull: tall braincase, heavy brow and deep blunt maxilla.
   headPath(c.outline, () => {
-    ctx.moveTo(29.0*scale, 10.55*scale+bob*scale);
-    ctx.quadraticCurveTo(28.55*scale, 9.35*scale+bob*scale, 29.25*scale, 8.18*scale+bob*scale);
-    ctx.quadraticCurveTo(29.78*scale, 7.25*scale+bob*scale, 30.92*scale, 6.62*scale+bob*scale);
-    ctx.quadraticCurveTo(31.55*scale, 6.22*scale+bob*scale, 31.82*scale, 5.28*scale+bob*scale);
-    ctx.quadraticCurveTo(32.12*scale, 4.15*scale+bob*scale, 33.35*scale, 3.78*scale+bob*scale);
-    ctx.quadraticCurveTo(34.72*scale, 3.38*scale+bob*scale, 35.62*scale, 4.28*scale+bob*scale);
-    ctx.quadraticCurveTo(36.18*scale, 4.82*scale+bob*scale, 36.22*scale, 5.42*scale+bob*scale);
-    ctx.quadraticCurveTo(36.72*scale, 4.92*scale+bob*scale, 37.52*scale, 5.08*scale+bob*scale);
-    ctx.quadraticCurveTo(38.42*scale, 5.22*scale+bob*scale, 39.22*scale, 5.68*scale+bob*scale);
-    ctx.quadraticCurveTo(40.42*scale, 5.92*scale+bob*scale, 41.62*scale, 6.38*scale+bob*scale);
-    ctx.quadraticCurveTo(43.08*scale, 6.88*scale+bob*scale, 44.55*scale, 6.82*scale+bob*scale);
-    ctx.quadraticCurveTo(46.12*scale, 6.82*scale+bob*scale, 47.12*scale, 7.62*scale+bob*scale);
-    ctx.quadraticCurveTo(47.82*scale, 8.18*scale+bob*scale, 47.72*scale, 8.92*scale+bob*scale);
-    ctx.quadraticCurveTo(47.62*scale, 9.62*scale+bob*scale, 46.72*scale, 10.02*scale+bob*scale);
-    ctx.quadraticCurveTo(45.82*scale, 10.42*scale+bob*scale, 44.35*scale, 10.55*scale+bob*scale);
-    ctx.quadraticCurveTo(42.92*scale, 10.72*scale+bob*scale, 40.05*scale, 10.88*scale+bob*scale);
-    ctx.quadraticCurveTo(36.42*scale, 11.08*scale+bob*scale, 33.02*scale, 10.78*scale+bob*scale);
-    ctx.quadraticCurveTo(30.42*scale, 10.58*scale+bob*scale, 29.0*scale, 10.55*scale+bob*scale);
+    ctx.moveTo(28.8*scale,10.72*scale+bob*scale);
+    ctx.quadraticCurveTo(28.15*scale,9.38*scale+bob*scale,29.05*scale,7.82*scale+bob*scale);
+    ctx.quadraticCurveTo(29.72*scale,6.48*scale+bob*scale,31.35*scale,5.72*scale+bob*scale);
+    ctx.quadraticCurveTo(32.35*scale,4.55*scale+bob*scale,33.82*scale,3.92*scale+bob*scale);
+    ctx.quadraticCurveTo(35.72*scale,3.18*scale+bob*scale,37.42*scale,3.92*scale+bob*scale);
+    ctx.quadraticCurveTo(39.02*scale,4.62*scale+bob*scale,39.38*scale,5.82*scale+bob*scale);
+    ctx.quadraticCurveTo(40.52*scale,5.35*scale+bob*scale,42.12*scale,5.78*scale+bob*scale);
+    ctx.quadraticCurveTo(44.12*scale,6.02*scale+bob*scale,46.18*scale,6.48*scale+bob*scale);
+    ctx.quadraticCurveTo(48.02*scale,6.92*scale+bob*scale,48.22*scale,8.12*scale+bob*scale);
+    ctx.quadraticCurveTo(48.42*scale,9.28*scale+bob*scale,47.12*scale,10.02*scale+bob*scale);
+    ctx.quadraticCurveTo(45.72*scale,10.68*scale+bob*scale,43.48*scale,10.88*scale+bob*scale);
+    ctx.quadraticCurveTo(38.18*scale,11.38*scale+bob*scale,32.52*scale,11.18*scale+bob*scale);
+    ctx.quadraticCurveTo(30.12*scale,11.12*scale+bob*scale,28.8*scale,10.72*scale+bob*scale);
   });
   headPath(c.body, () => {
-    ctx.moveTo(29.92*scale, 9.98*scale+bob*scale);
-    ctx.quadraticCurveTo(29.62*scale, 8.95*scale+bob*scale, 30.32*scale, 8.12*scale+bob*scale);
-    ctx.quadraticCurveTo(31.02*scale, 7.22*scale+bob*scale, 32.0*scale, 6.78*scale+bob*scale);
-    ctx.quadraticCurveTo(32.62*scale, 6.32*scale+bob*scale, 32.82*scale, 5.48*scale+bob*scale);
-    ctx.quadraticCurveTo(33.28*scale, 4.58*scale+bob*scale, 34.38*scale, 4.48*scale+bob*scale);
-    ctx.quadraticCurveTo(35.42*scale, 4.52*scale+bob*scale, 35.82*scale, 5.48*scale+bob*scale);
-    ctx.quadraticCurveTo(36.18*scale, 6.02*scale+bob*scale, 36.72*scale, 5.72*scale+bob*scale);
-    ctx.quadraticCurveTo(37.62*scale, 5.48*scale+bob*scale, 38.55*scale, 5.92*scale+bob*scale);
-    ctx.quadraticCurveTo(40.02*scale, 6.22*scale+bob*scale, 41.42*scale, 6.72*scale+bob*scale);
-    ctx.quadraticCurveTo(43.62*scale, 7.42*scale+bob*scale, 45.42*scale, 7.48*scale+bob*scale);
-    ctx.quadraticCurveTo(46.72*scale, 7.58*scale+bob*scale, 47.18*scale, 8.32*scale+bob*scale);
-    ctx.quadraticCurveTo(47.52*scale, 9.02*scale+bob*scale, 46.72*scale, 9.48*scale+bob*scale);
-    ctx.quadraticCurveTo(44.02*scale, 10.12*scale+bob*scale, 40.05*scale, 10.22*scale+bob*scale);
-    ctx.quadraticCurveTo(35.72*scale, 10.52*scale+bob*scale, 31.62*scale, 10.22*scale+bob*scale);
-    ctx.quadraticCurveTo(30.42*scale, 10.18*scale+bob*scale, 29.92*scale, 9.98*scale+bob*scale);
+    ctx.moveTo(29.82*scale,10.02*scale+bob*scale);
+    ctx.quadraticCurveTo(29.42*scale,8.92*scale+bob*scale,30.22*scale,7.98*scale+bob*scale);
+    ctx.quadraticCurveTo(31.02*scale,6.82*scale+bob*scale,32.42*scale,6.22*scale+bob*scale);
+    ctx.quadraticCurveTo(33.28*scale,5.12*scale+bob*scale,34.42*scale,4.78*scale+bob*scale);
+    ctx.quadraticCurveTo(36.18*scale,4.22*scale+bob*scale,37.42*scale,5.02*scale+bob*scale);
+    ctx.quadraticCurveTo(38.38*scale,5.62*scale+bob*scale,38.72*scale,6.62*scale+bob*scale);
+    ctx.quadraticCurveTo(40.18*scale,6.12*scale+bob*scale,42.02*scale,6.58*scale+bob*scale);
+    ctx.quadraticCurveTo(44.42*scale,6.82*scale+bob*scale,46.62*scale,7.42*scale+bob*scale);
+    ctx.quadraticCurveTo(47.52*scale,7.78*scale+bob*scale,47.42*scale,8.58*scale+bob*scale);
+    ctx.quadraticCurveTo(47.32*scale,9.42*scale+bob*scale,45.92*scale,9.88*scale+bob*scale);
+    ctx.quadraticCurveTo(42.72*scale,10.52*scale+bob*scale,38.62*scale,10.58*scale+bob*scale);
+    ctx.quadraticCurveTo(33.52*scale,10.72*scale+bob*scale,30.72*scale,10.38*scale+bob*scale);
+    ctx.quadraticCurveTo(30.08*scale,10.28*scale+bob*scale,29.82*scale,10.02*scale+bob*scale);
   });
-
-  // A shallow antorbital hollow and cheek plane give the skull depth without hard graphic blocks.
-  headPath("rgba(35,55,39,0.24)", () => {
-    ctx.moveTo(37.72*scale, 7.02*scale+bob*scale);
-    ctx.quadraticCurveTo(39.02*scale, 6.68*scale+bob*scale, 40.28*scale, 7.22*scale+bob*scale);
-    ctx.quadraticCurveTo(41.12*scale, 7.62*scale+bob*scale, 41.82*scale, 8.25*scale+bob*scale);
-    ctx.quadraticCurveTo(40.42*scale, 8.02*scale+bob*scale, 39.05*scale, 8.35*scale+bob*scale);
-    ctx.quadraticCurveTo(38.12*scale, 8.58*scale+bob*scale, 37.32*scale, 8.28*scale+bob*scale);
-    ctx.quadraticCurveTo(37.05*scale, 7.62*scale+bob*scale, 37.72*scale, 7.02*scale+bob*scale);
+  headPath("rgba(35,55,39,0.25)", () => {
+    ctx.moveTo(36.72*scale,6.42*scale+bob*scale);
+    ctx.quadraticCurveTo(38.22*scale,5.92*scale+bob*scale,39.58*scale,6.52*scale+bob*scale);
+    ctx.quadraticCurveTo(40.82*scale,7.08*scale+bob*scale,41.42*scale,8.12*scale+bob*scale);
+    ctx.quadraticCurveTo(40.02*scale,7.82*scale+bob*scale,38.62*scale,8.38*scale+bob*scale);
+    ctx.quadraticCurveTo(37.42*scale,8.78*scale+bob*scale,36.42*scale,8.22*scale+bob*scale);
+    ctx.quadraticCurveTo(36.12*scale,7.18*scale+bob*scale,36.72*scale,6.42*scale+bob*scale);
   });
   headLine(() => {
-    ctx.moveTo(38.02*scale, 6.18*scale+bob*scale);
-    ctx.quadraticCurveTo(40.42*scale, 6.42*scale+bob*scale, 42.52*scale, 7.42*scale+bob*scale);
-    ctx.quadraticCurveTo(44.12*scale, 8.02*scale+bob*scale, 45.62*scale, 8.72*scale+bob*scale);
-  }, c.belly, 0.32);
-
-  // The lower jaw is a single deep dentary with a strong rear joint and rounded chin.
+    ctx.moveTo(38.42*scale,5.72*scale+bob*scale);
+    ctx.quadraticCurveTo(40.82*scale,5.92*scale+bob*scale,43.02*scale,6.72*scale+bob*scale);
+    ctx.quadraticCurveTo(45.02*scale,7.22*scale+bob*scale,46.42*scale,7.82*scale+bob*scale);
+  }, c.belly, 0.34);
+  // Deep lower jaw with a broad rounded chin and strong rear joint.
   headPath(c.outline, () => {
-    ctx.moveTo(31.18*scale, 10.42*scale+bob*scale);
-    ctx.quadraticCurveTo(30.82*scale, 11.22*scale+bob*scale, 31.68*scale, 12.02*scale+bob*scale);
-    ctx.quadraticCurveTo(33.02*scale, 13.08*scale+bob*scale, 35.28*scale, 13.68*scale+bob*scale);
-    ctx.quadraticCurveTo(38.48*scale, 14.38*scale+bob*scale, 41.82*scale, 14.12*scale+bob*scale);
-    ctx.quadraticCurveTo(44.25*scale, 13.92*scale+bob*scale, 45.72*scale, 12.82*scale+bob*scale);
-    ctx.quadraticCurveTo(46.62*scale, 12.08*scale+bob*scale, 46.42*scale, 11.32*scale+bob*scale);
-    ctx.quadraticCurveTo(46.22*scale, 10.82*scale+bob*scale, 45.42*scale, 10.55*scale+bob*scale);
-    ctx.quadraticCurveTo(43.62*scale, 11.28*scale+bob*scale, 41.08*scale, 11.52*scale+bob*scale);
-    ctx.quadraticCurveTo(37.72*scale, 11.82*scale+bob*scale, 34.72*scale, 11.28*scale+bob*scale);
-    ctx.quadraticCurveTo(32.42*scale, 10.88*scale+bob*scale, 31.18*scale, 10.42*scale+bob*scale);
+    ctx.moveTo(30.42*scale,10.62*scale+bob*scale);
+    ctx.quadraticCurveTo(29.72*scale,11.72*scale+bob*scale,31.12*scale,13.02*scale+bob*scale);
+    ctx.quadraticCurveTo(33.22*scale,14.72*scale+bob*scale,36.72*scale,15.22*scale+bob*scale);
+    ctx.quadraticCurveTo(41.22*scale,15.82*scale+bob*scale,44.62*scale,14.62*scale+bob*scale);
+    ctx.quadraticCurveTo(46.72*scale,13.88*scale+bob*scale,47.12*scale,12.58*scale+bob*scale);
+    ctx.quadraticCurveTo(47.22*scale,11.42*scale+bob*scale,45.82*scale,10.72*scale+bob*scale);
+    ctx.quadraticCurveTo(43.72*scale,11.42*scale+bob*scale,41.02*scale,11.62*scale+bob*scale);
+    ctx.quadraticCurveTo(36.82*scale,11.92*scale+bob*scale,33.42*scale,11.42*scale+bob*scale);
+    ctx.quadraticCurveTo(31.52*scale,11.12*scale+bob*scale,30.42*scale,10.62*scale+bob*scale);
   });
   headPath(c.body, () => {
-    ctx.moveTo(32.18*scale, 11.48*scale+bob*scale);
-    ctx.quadraticCurveTo(34.12*scale, 12.62*scale+bob*scale, 37.05*scale, 13.12*scale+bob*scale);
-    ctx.quadraticCurveTo(40.48*scale, 13.72*scale+bob*scale, 43.22*scale, 13.08*scale+bob*scale);
-    ctx.quadraticCurveTo(44.82*scale, 12.62*scale+bob*scale, 45.42*scale, 11.72*scale+bob*scale);
-    ctx.quadraticCurveTo(42.02*scale, 12.02*scale+bob*scale, 39.05*scale, 12.02*scale+bob*scale);
-    ctx.quadraticCurveTo(35.42*scale, 12.02*scale+bob*scale, 32.18*scale, 11.48*scale+bob*scale);
+    ctx.moveTo(31.62*scale,11.62*scale+bob*scale);
+    ctx.quadraticCurveTo(34.02*scale,13.42*scale+bob*scale,37.12*scale,13.92*scale+bob*scale);
+    ctx.quadraticCurveTo(41.42*scale,14.52*scale+bob*scale,44.32*scale,13.52*scale+bob*scale);
+    ctx.quadraticCurveTo(45.72*scale,12.92*scale+bob*scale,46.02*scale,11.92*scale+bob*scale);
+    ctx.quadraticCurveTo(42.72*scale,12.42*scale+bob*scale,39.42*scale,12.42*scale+bob*scale);
+    ctx.quadraticCurveTo(35.12*scale,12.32*scale+bob*scale,31.62*scale,11.62*scale+bob*scale);
   });
   headLine(() => {
-    ctx.moveTo(34.12*scale, 12.42*scale+bob*scale);
-    ctx.quadraticCurveTo(38.12*scale, 13.52*scale+bob*scale, 42.02*scale, 13.02*scale+bob*scale);
-  }, c.belly, 0.42);
-
-  // Mouth cavity: a clean continuous opening between the upper maxilla and lower dentary.
+    ctx.moveTo(34.12*scale,13.02*scale+bob*scale);
+    ctx.quadraticCurveTo(38.62*scale,14.32*scale+bob*scale,43.02*scale,13.62*scale+bob*scale);
+  }, c.belly, 0.44);
   headPath("#402629", () => {
-    ctx.moveTo(31.72*scale, 10.22*scale+bob*scale);
-    ctx.quadraticCurveTo(35.02*scale, 11.02*scale+bob*scale, 38.82*scale, 10.92*scale+bob*scale);
-    ctx.quadraticCurveTo(44.42*scale, 10.38*scale+bob*scale, 46.42*scale, 9.82*scale+bob*scale);
-    ctx.quadraticCurveTo(46.32*scale, 10.48*scale+bob*scale, 45.42*scale, 10.82*scale+bob*scale);
-    ctx.quadraticCurveTo(44.12*scale, 11.22*scale+bob*scale, 42.18*scale, 11.32*scale+bob*scale);
-    ctx.quadraticCurveTo(38.32*scale, 11.68*scale+bob*scale, 34.92*scale, 11.28*scale+bob*scale);
-    ctx.quadraticCurveTo(32.72*scale, 11.02*scale+bob*scale, 31.72*scale, 10.22*scale+bob*scale);
+    ctx.moveTo(30.92*scale,10.42*scale+bob*scale);
+    ctx.quadraticCurveTo(35.12*scale,11.22*scale+bob*scale,39.12*scale,11.12*scale+bob*scale);
+    ctx.quadraticCurveTo(44.02*scale,10.92*scale+bob*scale,47.42*scale,9.92*scale+bob*scale);
+    ctx.quadraticCurveTo(47.22*scale,10.72*scale+bob*scale,45.92*scale,11.18*scale+bob*scale);
+    ctx.quadraticCurveTo(42.12*scale,12.02*scale+bob*scale,38.02*scale,11.92*scale+bob*scale);
+    ctx.quadraticCurveTo(33.42*scale,11.72*scale+bob*scale,30.92*scale,10.42*scale+bob*scale);
   });
-
-  // Conical, slightly recurved teeth: larger near the front, smaller toward the jaw hinge.
   const drawHeadTooth = (x, baseY, w, h, pointsUp) => {
     headPath("#F0E3C6", () => {
       if (!pointsUp) {
-        ctx.moveTo(x*scale, baseY*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.48)*scale, (baseY+0.02)*scale+bob*scale, (x+w)*scale, baseY*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.82)*scale, (baseY+h*0.72)*scale+bob*scale, (x+w*0.42)*scale, (baseY+h)*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.12)*scale, (baseY+h*0.62)*scale+bob*scale, x*scale, baseY*scale+bob*scale);
+        ctx.moveTo(x*scale,baseY*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.48)*scale,(baseY+0.02)*scale+bob*scale,(x+w)*scale,baseY*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.82)*scale,(baseY+h*0.72)*scale+bob*scale,(x+w*0.42)*scale,(baseY+h)*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.12)*scale,(baseY+h*0.62)*scale+bob*scale,x*scale,baseY*scale+bob*scale);
       } else {
-        ctx.moveTo(x*scale, baseY*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.5)*scale, (baseY-0.02)*scale+bob*scale, (x+w)*scale, baseY*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.82)*scale, (baseY-h*0.72)*scale+bob*scale, (x+w*0.42)*scale, (baseY-h)*scale+bob*scale);
-        ctx.quadraticCurveTo((x+w*0.12)*scale, (baseY-h*0.62)*scale+bob*scale, x*scale, baseY*scale+bob*scale);
+        ctx.moveTo(x*scale,baseY*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.5)*scale,(baseY-0.02)*scale+bob*scale,(x+w)*scale,baseY*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.82)*scale,(baseY-h*0.72)*scale+bob*scale,(x+w*0.42)*scale,(baseY-h)*scale+bob*scale);
+        ctx.quadraticCurveTo((x+w*0.12)*scale,(baseY-h*0.62)*scale+bob*scale,x*scale,baseY*scale+bob*scale);
       }
     });
   };
-  [[33.0,10.12,0.72,0.92],[35.0,10.42,0.78,0.98],[37.15,10.48,0.82,1.02],[39.35,10.42,0.78,0.94],[41.45,10.18,0.72,0.82],[43.35,9.88,0.62,0.68]]
-    .forEach(t => drawHeadTooth(t[0],t[1],t[2],t[3],false));
-  [[33.9,11.28,0.66,0.72],[36.0,11.48,0.72,0.82],[38.15,11.5,0.76,0.86],[40.35,11.42,0.72,0.78],[42.45,11.2,0.64,0.68],[44.1,10.98,0.52,0.58]]
-    .forEach(t => drawHeadTooth(t[0],t[1],t[2],t[3],true));
-
-  // Recessed eye under a heavy brow; kept compact so the animal reads as a predator.
-  ctx.fillStyle = "rgba(30,45,33,0.72)";
-  ctx.beginPath();
-  ctx.ellipse(34.42*scale, 7.42*scale+bob*scale, 1.02*scale, 0.82*scale, -0.08, 0, Math.PI*2);
-  ctx.fill();
+  [[32.0,10.22,0.78,0.92],[34.2,10.55,0.84,1.02],[36.55,10.68,0.88,1.08],[38.95,10.62,0.84,1.02],[41.25,10.42,0.78,0.90],[43.42,10.12,0.68,0.78],[45.12,9.82,0.56,0.62]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
+  [[33.2,11.62,0.72,0.76],[35.5,11.82,0.78,0.86],[37.9,11.92,0.82,0.90],[40.3,11.88,0.78,0.84],[42.65,11.62,0.70,0.74],[44.62,11.32,0.58,0.64]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
+  // Compact eye beneath the massive brow.
+  ctx.fillStyle = "rgba(30,45,33,0.76)";
+  ctx.beginPath(); ctx.ellipse(35.18*scale,7.52*scale+bob*scale,1.08*scale,0.82*scale,-0.08,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = c.eye;
-  ctx.beginPath();
-  ctx.ellipse(34.48*scale, 7.38*scale+bob*scale, 0.62*scale, 0.55*scale, -0.08, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(35.24*scale,7.48*scale+bob*scale,0.62*scale,0.52*scale,-0.08,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = "#18211B";
-  ctx.beginPath();
-  ctx.ellipse(34.7*scale, 7.38*scale+bob*scale, 0.23*scale, 0.43*scale, 0, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(35.46*scale,7.48*scale+bob*scale,0.23*scale,0.40*scale,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = "#F8E8C8";
-  ctx.beginPath();
-  ctx.arc(34.2*scale, 7.12*scale+bob*scale, 0.14*scale, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(34.96*scale,7.22*scale+bob*scale,0.14*scale,0,Math.PI*2); ctx.fill();
   headLine(() => {
-    ctx.moveTo(32.15*scale, 6.18*scale+bob*scale);
-    ctx.quadraticCurveTo(33.48*scale, 5.48*scale+bob*scale, 34.82*scale, 5.78*scale+bob*scale);
-    ctx.quadraticCurveTo(35.72*scale, 5.98*scale+bob*scale, 36.52*scale, 5.48*scale+bob*scale);
-  }, c.outline, 0.82);
-
-  // Large nasal opening set close to the snout tip, with a small raised rim.
+    ctx.moveTo(32.12*scale,6.02*scale+bob*scale);
+    ctx.quadraticCurveTo(33.82*scale,5.22*scale+bob*scale,35.52*scale,5.62*scale+bob*scale);
+    ctx.quadraticCurveTo(36.72*scale,5.92*scale+bob*scale,38.22*scale,5.42*scale+bob*scale);
+  }, c.outline, 0.92);
+  // Nostrils on the front half of the blunt snout.
   ctx.fillStyle = c.outline;
-  ctx.beginPath();
-  ctx.ellipse(45.28*scale, 8.18*scale+bob*scale, 0.66*scale, 0.38*scale, -0.12, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(46.12*scale,7.98*scale+bob*scale,0.68*scale,0.40*scale,-0.08,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = c.belly;
-  ctx.beginPath();
-  ctx.ellipse(45.16*scale, 8.02*scale+bob*scale, 0.25*scale, 0.10*scale, -0.12, 0, Math.PI*2);
-  ctx.fill();
-
+  ctx.beginPath(); ctx.ellipse(46.00*scale,7.82*scale+bob*scale,0.27*scale,0.12*scale,-0.08,0,Math.PI*2); ctx.fill();
   headLine(() => {
-    ctx.moveTo(31.08*scale, 9.62*scale+bob*scale);
-    ctx.quadraticCurveTo(30.72*scale, 10.38*scale+bob*scale, 31.52*scale, 11.02*scale+bob*scale);
-  }, c.outline, 0.62);
+    ctx.moveTo(30.62*scale,9.52*scale+bob*scale);
+    ctx.quadraticCurveTo(30.22*scale,10.28*scale+bob*scale,31.02*scale,10.92*scale+bob*scale);
+  }, c.outline, 0.64);
   headLine(() => {
-    ctx.moveTo(33.0*scale, 9.22*scale+bob*scale);
-    ctx.quadraticCurveTo(34.22*scale, 9.72*scale+bob*scale, 35.62*scale, 9.82*scale+bob*scale);
-  }, c.belly, 0.34);
+    ctx.moveTo(39.02*scale,9.28*scale+bob*scale);
+    ctx.quadraticCurveTo(42.62*scale,9.62*scale+bob*scale,45.02*scale,9.22*scale+bob*scale);
+  }, c.belly, 0.36);
 
   // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
   poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);
