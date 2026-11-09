@@ -34,7 +34,7 @@ function drawTRexStanding(phase, dead, scale) {
 
   // Tail: preserve the approved silhouette and lift it slightly to follow the spine.
   // A small vertical offset adjusts its placement without changing the approved proportions.
-  const tailY = tailLift - 0.5;
+  const tailY = tailLift - 0.95;
   const tailPath = (fill, commands) => {
     ctx.beginPath();
     ctx.moveTo(commands[0][0] * scale, commands[0][1] * scale);
@@ -106,11 +106,11 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[12,17+bob],[13.5,14.2+bob],[17,11.8+bob],[21,9.8+bob],[25,9.3+bob],[28,10.2+bob],[30.5,12.5+bob],[32,15.5+bob],[31,18.5+bob],[28.5,20.2+bob],[24.5,20.8+bob],[20.5,20.2+bob],[16.5,19.3+bob],[13,18.5+bob]], c.outline);
   poly([[13.2,16.7+bob],[15,14.2+bob],[18,12.2+bob],[21.5,10.8+bob],[25,10.3+bob],[27.8,11.1+bob],[29.8,13.1+bob],[30.8,15.7+bob],[30,18+bob],[27.8,19.2+bob],[24.5,19.7+bob],[20.5,19.2+bob],[17,18.5+bob],[14.2,18+bob]], c.body);
 
-  // Blend the pelvis and tail root as one surface. This covers the torso's inner rear edge
-  // where it crossed the tail, while keeping the outer silhouette and approved tail shape intact.
-  poly([[11.9,14.55+bob],[14.0,13.75+bob],[16.6,13.85+bob],[19.0,14.35+bob],[20.0,15.9+bob],[19.8,18.55+bob],[17.2,19.05+bob],[14.0,18.55+bob],[12.0,17.25+bob]], c.body);
-  // One continuous outline follows the spine into the upper tail instead of outlining the overlap.
-  line([[19.0,13.7+tailY],[16.7,13.85+tailY],[14.5,14.45+tailY],[12.8,15.35+tailY]], c.outline, 0.85);
+  // Broaden the body-colour bridge at the pelvis so the tail root disappears into the torso.
+  // It masks the former internal edge without changing the approved outer tail silhouette.
+  poly([[11.8,14.35+bob],[13.4,13.55+bob],[15.8,13.45+bob],[18.0,13.85+bob],[19.7,14.65+bob],[20.0,16.15+bob],[19.7,18.45+bob],[17.0,19.0+bob],[14.0,18.45+bob],[12.0,17.15+bob]], c.body);
+  // The back contour now flows continuously from the torso onto the raised tail root.
+  line([[13.5,14.2+bob],[15.1,13.9+bob],[16.8,13.55+bob],[18.4,13.35+tailY],[19.7,13.45+tailY]], c.outline, 0.8);
 
   // Subtle planes describe the shoulder, rib cage and underside without a round belly.
   poly([[21.5,11+bob],[25,10.5+bob],[28,11.6+bob],[30,14.1+bob],[29.5,16.5+bob],[27,17.2+bob],[24,15.8+bob],[22,13.8+bob]], c.body);
