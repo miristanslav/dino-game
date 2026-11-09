@@ -161,28 +161,31 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Main cranium and upper jaw: high rear skull, strong brow and gently tapered muzzle.
+  // Main cranium and upper jaw: a defined supraorbital boss flows into the long nasal bones.
   headPath(c.outline, () => {
     ctx.moveTo(29.1*scale, 9.7*scale+bob*scale);
-    ctx.quadraticCurveTo(28.5*scale, 8.5*scale+bob*scale, 29.3*scale, 7.0*scale+bob*scale);
-    ctx.quadraticCurveTo(29.8*scale, 5.1*scale+bob*scale, 32.0*scale, 4.3*scale+bob*scale);
-    ctx.quadraticCurveTo(34.4*scale, 3.5*scale+bob*scale, 36.8*scale, 4.1*scale+bob*scale);
-    ctx.quadraticCurveTo(39.0*scale, 4.5*scale+bob*scale, 40.6*scale, 5.8*scale+bob*scale);
-    ctx.quadraticCurveTo(42.4*scale, 6.4*scale+bob*scale, 44.0*scale, 7.5*scale+bob*scale);
-    ctx.quadraticCurveTo(45.0*scale, 8.2*scale+bob*scale, 44.5*scale, 9.2*scale+bob*scale);
-    ctx.quadraticCurveTo(43.8*scale, 10.0*scale+bob*scale, 41.6*scale, 10.3*scale+bob*scale);
+    ctx.quadraticCurveTo(28.6*scale, 8.55*scale+bob*scale, 29.35*scale, 7.05*scale+bob*scale);
+    ctx.quadraticCurveTo(29.95*scale, 5.45*scale+bob*scale, 31.55*scale, 4.65*scale+bob*scale);
+    ctx.quadraticCurveTo(33.1*scale, 3.95*scale+bob*scale, 34.9*scale, 4.05*scale+bob*scale);
+    ctx.quadraticCurveTo(36.15*scale, 4.08*scale+bob*scale, 37.05*scale, 4.75*scale+bob*scale);
+    ctx.quadraticCurveTo(37.7*scale, 4.95*scale+bob*scale, 38.35*scale, 5.15*scale+bob*scale);
+    ctx.quadraticCurveTo(40.35*scale, 5.65*scale+bob*scale, 42.25*scale, 6.55*scale+bob*scale);
+    ctx.quadraticCurveTo(44.15*scale, 7.35*scale+bob*scale, 45.0*scale, 8.15*scale+bob*scale);
+    ctx.quadraticCurveTo(45.35*scale, 8.55*scale+bob*scale, 44.95*scale, 9.05*scale+bob*scale);
+    ctx.quadraticCurveTo(44.3*scale, 9.72*scale+bob*scale, 41.6*scale, 10.3*scale+bob*scale);
     ctx.quadraticCurveTo(38.5*scale, 10.8*scale+bob*scale, 35.4*scale, 10.8*scale+bob*scale);
     ctx.quadraticCurveTo(32.3*scale, 10.7*scale+bob*scale, 30.2*scale, 10.4*scale+bob*scale);
     ctx.quadraticCurveTo(29.3*scale, 10.2*scale+bob*scale, 29.1*scale, 9.7*scale+bob*scale);
   });
   headPath(c.body, () => {
     ctx.moveTo(30.0*scale, 9.5*scale+bob*scale);
-    ctx.quadraticCurveTo(29.5*scale, 8.3*scale+bob*scale, 30.2*scale, 7.1*scale+bob*scale);
-    ctx.quadraticCurveTo(30.7*scale, 5.6*scale+bob*scale, 32.4*scale, 4.9*scale+bob*scale);
-    ctx.quadraticCurveTo(34.6*scale, 4.2*scale+bob*scale, 36.6*scale, 4.8*scale+bob*scale);
-    ctx.quadraticCurveTo(38.7*scale, 5.1*scale+bob*scale, 40.1*scale, 6.2*scale+bob*scale);
-    ctx.quadraticCurveTo(42.2*scale, 6.9*scale+bob*scale, 43.5*scale, 7.8*scale+bob*scale);
-    ctx.quadraticCurveTo(44.1*scale, 8.3*scale+bob*scale, 43.8*scale, 9.0*scale+bob*scale);
+    ctx.quadraticCurveTo(29.6*scale, 8.4*scale+bob*scale, 30.3*scale, 7.2*scale+bob*scale);
+    ctx.quadraticCurveTo(30.85*scale, 5.95*scale+bob*scale, 32.15*scale, 5.25*scale+bob*scale);
+    ctx.quadraticCurveTo(33.65*scale, 4.55*scale+bob*scale, 35.1*scale, 4.72*scale+bob*scale);
+    ctx.quadraticCurveTo(36.35*scale, 4.75*scale+bob*scale, 37.25*scale, 5.25*scale+bob*scale);
+    ctx.quadraticCurveTo(39.2*scale, 5.8*scale+bob*scale, 41.1*scale, 6.65*scale+bob*scale);
+    ctx.quadraticCurveTo(43.1*scale, 7.4*scale+bob*scale, 44.35*scale, 8.15*scale+bob*scale);
+    ctx.quadraticCurveTo(44.6*scale, 8.5*scale+bob*scale, 44.15*scale, 8.95*scale+bob*scale);
     ctx.quadraticCurveTo(41.0*scale, 9.9*scale+bob*scale, 37.8*scale, 10.1*scale+bob*scale);
     ctx.quadraticCurveTo(34.1*scale, 10.3*scale+bob*scale, 31.0*scale, 10.0*scale+bob*scale);
     ctx.quadraticCurveTo(30.2*scale, 9.9*scale+bob*scale, 30.0*scale, 9.5*scale+bob*scale);
@@ -263,14 +266,15 @@ function drawTRexStanding(phase, dead, scale) {
   ctx.arc(34.72*scale, 6.02*scale+bob*scale, 0.22*scale, 0, Math.PI*2);
   ctx.fill();
   headLine(() => {
-    ctx.moveTo(33.6*scale, 5.15*scale+bob*scale);
-    ctx.quadraticCurveTo(35.1*scale, 4.55*scale+bob*scale, 36.8*scale, 5.2*scale+bob*scale);
-  }, c.outline, 0.8);
+    ctx.moveTo(33.1*scale, 5.35*scale+bob*scale);
+    ctx.quadraticCurveTo(34.45*scale, 4.72*scale+bob*scale, 35.65*scale, 4.9*scale+bob*scale);
+    ctx.quadraticCurveTo(36.55*scale, 5.02*scale+bob*scale, 37.3*scale, 5.45*scale+bob*scale);
+  }, c.outline, 0.85);
 
   // Nostril sits close to the rounded tip, above the mouth line.
   ctx.fillStyle = c.outline;
   ctx.beginPath();
-  ctx.ellipse(42.8*scale, 7.95*scale+bob*scale, 0.48*scale, 0.27*scale, -0.12, 0, Math.PI*2);
+  ctx.ellipse(42.85*scale, 7.9*scale+bob*scale, 0.62*scale, 0.34*scale, -0.16, 0, Math.PI*2);
   ctx.fill();
   // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
   poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);

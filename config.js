@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 66;
+const CURRENT_VERSION = 67;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 67,
+    changes: [
+      'Патч 67: Уточнена анатомия верхней части черепа T-Rex от надбровной области до кончика морды',
+      'Надбровная дуга получила более выраженный костный рельеф, а линия переносицы и носовых костей стала плавнее',
+      'Ноздря немного увеличена без изменения её расположения относительно кончика морды',
+      'Нижняя челюсть, зубы, корпус, хвост, лапы и анимация бега не менялись'
+    ]
+  },
   {
     version: 66,
     changes: [
