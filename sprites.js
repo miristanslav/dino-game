@@ -214,13 +214,15 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(38.62*scale,14.32*scale+bob*scale,43.02*scale,13.62*scale+bob*scale);
   }, c.belly, 0.44);
   headPath("#402629", () => {
-    // Shorter opening at the rear and a tighter slit between the jaws.
-    ctx.moveTo(33.12*scale,10.72*scale+bob*scale);
+    // The mouth opening begins on the vertical line of the eye.
+    // All contours to the right of this point retain their previous shape.
+    ctx.moveTo(35.24*scale,10.94*scale+bob*scale);
     ctx.quadraticCurveTo(36.02*scale,11.12*scale+bob*scale,39.42*scale,11.02*scale+bob*scale);
     ctx.quadraticCurveTo(44.12*scale,10.82*scale+bob*scale,47.12*scale,10.02*scale+bob*scale);
     ctx.quadraticCurveTo(47.02*scale,10.48*scale+bob*scale,45.82*scale,10.78*scale+bob*scale);
     ctx.quadraticCurveTo(42.02*scale,11.38*scale+bob*scale,38.22*scale,11.42*scale+bob*scale);
-    ctx.quadraticCurveTo(35.12*scale,11.38*scale+bob*scale,33.12*scale,10.72*scale+bob*scale);
+    ctx.quadraticCurveTo(36.57*scale,11.40*scale+bob*scale,35.24*scale,11.20*scale+bob*scale);
+    ctx.quadraticCurveTo(35.24*scale,11.08*scale+bob*scale,35.24*scale,10.94*scale+bob*scale);
   });
   const drawHeadTooth = (x, baseY, w, h, pointsUp) => {
     headPath("#F0E3C6", () => {
@@ -237,8 +239,8 @@ function drawTRexStanding(phase, dead, scale) {
       }
     });
   };
-  [[32.0,10.22,0.78,0.92],[34.2,10.55,0.84,1.02],[36.55,10.68,0.88,1.08],[38.95,10.62,0.84,1.02],[41.25,10.42,0.78,0.90],[43.42,10.12,0.68,0.78],[45.12,9.82,0.56,0.62]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
-  [[33.2,11.62,0.72,0.76],[35.5,11.82,0.78,0.86],[37.9,11.92,0.82,0.90],[40.3,11.88,0.78,0.84],[42.65,11.62,0.70,0.74],[44.62,11.32,0.58,0.64]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
+  [[36.55,10.68,0.88,1.08],[38.95,10.62,0.84,1.02],[41.25,10.42,0.78,0.90],[43.42,10.12,0.68,0.78],[45.12,9.82,0.56,0.62]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
+  [[35.5,11.82,0.78,0.86],[37.9,11.92,0.82,0.90],[40.3,11.88,0.78,0.84],[42.65,11.62,0.70,0.74],[44.62,11.32,0.58,0.64]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
   // Compact eye beneath the massive brow.
   ctx.fillStyle = "rgba(30,45,33,0.76)";
   ctx.beginPath(); ctx.ellipse(35.18*scale,7.52*scale+bob*scale,1.08*scale,0.82*scale,-0.08,0,Math.PI*2); ctx.fill();

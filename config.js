@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 73;
+const CURRENT_VERSION = 74;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 74,
+    changes: [
+      'Патч 74: Разрез пасти начинается на вертикали глаза',
+      'Удалён участок ротового разреза слева от вертикали глаза',
+      'Убраны зубы только из удалённой левой части; геометрия пасти справа от глаза сохранена'
+    ]
+  },
   {
     version: 73,
     changes: [
