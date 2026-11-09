@@ -179,17 +179,17 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[19,10.2+bob],[20,9.5+bob],[21,10.1+bob],[20.5,10.8+bob]], c.outline);
   poly([[22,9.3+bob],[23,8.8+bob],[24,9.4+bob],[23.5,10+bob]], c.outline);
 
-  // Tail scutes are larger and rooted into the upper contour, then gradually taper toward the tip.
-  poly([[14.0,14.7+tailY],[15.1,13.35+tailY],[16.0,14.95+tailY]], c.outline);
-  poly([[10.3,16.05+tailY],[11.4,14.65+tailY],[12.3,16.3+tailY]], c.outline);
-  poly([[7.1,16.9+tailY],[8.2,15.55+tailY],[9.1,17.1+tailY]], c.outline);
-  poly([[3.7,17.6+tailY],[4.7,16.35+tailY],[5.5,17.8+tailY]], c.outline);
-  poly([[0.5,18.1+tailY],[1.4,16.95+tailY],[2.2,18.25+tailY]], c.outline);
-  poly([[-2.7,18.5+tailY],[-3.0,17.55+tailY],[-3.6,18.6+tailY]], c.outline);
-  poly([[-5.9,18.8+tailY],[-6.3,18.0+tailY],[-6.9,18.9+tailY]], c.outline);
+  // Tail scutes grow progressively larger from the tip toward the base, rooted into the upper contour.
+  poly([[14.0,14.7+tailY],[15.1,12.75+tailY],[16.0,14.95+tailY]], c.outline);
+  poly([[10.3,16.05+tailY],[11.4,13.95+tailY],[12.3,16.3+tailY]], c.outline);
+  poly([[7.1,16.9+tailY],[8.2,14.9+tailY],[9.1,17.1+tailY]], c.outline);
+  poly([[3.7,17.6+tailY],[4.7,15.75+tailY],[5.5,17.8+tailY]], c.outline);
+  poly([[0.5,18.1+tailY],[1.4,16.45+tailY],[2.2,18.25+tailY]], c.outline);
+  poly([[-2.7,18.5+tailY],[-3.0,17.3+tailY],[-3.6,18.6+tailY]], c.outline);
+  poly([[-5.9,18.8+tailY],[-6.3,17.95+tailY],[-6.9,18.9+tailY]], c.outline);
 
-  // Continue the subtle dorsal ridge marking from the back along the tail to its tip.
-  line([[19.0,14.75+tailY],[15.5,15.45+tailY],[11.5,16.25+tailY],[7.5,17.0+tailY],[3.5,17.7+tailY],[-0.5,18.25+tailY],[-4.5,18.65+tailY],[-9.2,19.0+tailY]], c.belly, 0.55);
+  // Match the dark-green dorsal spine line and carry it continuously to the tail tip.
+  line([[19.0,14.75+tailY],[15.5,15.45+tailY],[11.5,16.25+tailY],[7.5,17.0+tailY],[3.5,17.7+tailY],[-0.5,18.25+tailY],[-4.5,18.65+tailY],[-9.2,19.0+tailY]], c.outline, 0.65);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
