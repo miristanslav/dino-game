@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 32;
+const CURRENT_VERSION = 33;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 33,
+    changes: [
+      'Патч 33: Художественная доработка T-Rex',
+      'Обновлён силуэт персонажа: более плавный контур, выраженная грудь, голова и сужающийся хвост',
+      'Добавлены отдельные пиксельные светотени, детали морды и челюсти',
+      'Сохранены четыре фазы бега, игровые коллизии и управление'
+    ]
+  },
   {
     version: 32,
     changes: [
