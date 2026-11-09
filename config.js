@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 56;
+const CURRENT_VERSION = 57;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 57,
+    changes: [
+      'Патч 57: Уточнена пальцеходящая анатомия задних лап T-Rex',
+      'Смягчён переход от массивного бедра к голени, добавлен плавный объём икроножной части',
+      'Пятка и голеностоп подняты и отведены назад; плюсна направлена вперёд к опорным пальцам',
+      'Опора перенесена на подушечки пальцев, а не на всю стопу; анимация не менялась'
+    ]
+  },
   {
     version: 56,
     changes: [
