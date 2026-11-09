@@ -54,7 +54,12 @@ function drawTRexStanding(phase, dead, scale) {
       [-0.18, 0.32,-0.18],
       [-0.27, 0.40,-0.22]
     ];
-    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12];
+    const strideStep=((Math.floor(phase)%12)+12)%12;
+    const [hipAngle,kneeAngle,ankleAngle]=poses[strideStep];
+    // The planted foot travels backward relative to the pelvis during stance;
+    // the quick return arc lifts it and carries it forward for the next contact.
+    const footTravel=[2.4,1.8,1.1,0.3,-0.6,-1.5,-2.1,-1.6,-0.3,1.0,2.0,2.5][strideStep];
+    const footLift=[0,0,0,0,0,0,0.08,0.62,1.28,1.48,1.02,0.38][strideStep];
     const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
     const rotate=(p,pivot,a)=>{
       const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);
@@ -87,7 +92,14 @@ function drawTRexStanding(phase, dead, scale) {
       const kneeWeight=smooth(20.5,25.5,source[1]);
       const afterKnee=rotate(afterHip,kneeAfterHip,kneeAngle*kneeWeight);
       const ankleWeight=smooth(25.5,28.5,source[1]);
-      return rotate(afterKnee,hockAfterKnee,ankleAngle*ankleWeight);
+      const articulated=rotate(afterKnee,hockAfterKnee,ankleAngle*ankleWeight);
+      // Keep the toe/foot trajectory distinct from a simple knee lift:
+      // planted phases sweep rearward; swing phases rise and recover forward.
+      const footWeight=smooth(23.5,27.5,source[1]);
+      return [
+        articulated[0]+footTravel*footWeight,
+        articulated[1]-footLift*footWeight
+      ];
     };
     const drawPoly=(points,fill)=>poly(smoothPath(points).map(deform),fill);
     const drawLine=(points,color,width)=>line(smoothPath(points).map(deform),color,width);
@@ -157,6 +169,10 @@ function drawTRexStanding(phase, dead, scale) {
 
   // Original far-leg artwork, articulated behind the torso.
   drawArticulatedLeg(phase, true);
+
+  // The pelvis and torso shift subtly over the supporting leg to transfer weight.
+  const bodyShift=[-0.28,-0.18,-0.02,0.16,0.27,0.20,0.02,-0.16,-0.27,-0.18,0.02,0.22][step];
+  ctx.translate((dead?0:bodyShift)*scale,0);
 
   // Main torso: elongated, muscular rib cage with a lifted belly and a defined chest.
   // The silhouette is deliberately asymmetrical: sloping back, deep chest, tighter waist.
