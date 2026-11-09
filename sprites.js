@@ -32,13 +32,51 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Tail: deep, muscular root flowing into a long, steadily tapering counterbalance.
-  // Its upper and lower contours converge gradually; the tip stays narrow without becoming needle-like.
-  poly([[1,18.4+tailLift],[3.5,17.2+tailLift],[6.5,15.9+tailLift],[10,14.9+tailLift],[13.5,14.4+tailLift],[16.5,14.6+tailLift],[19.5,15.6+tailLift],[21,16.9+tailLift],[20,19.2+tailLift],[17.5,19.1+tailLift],[14.5,18.8+tailLift],[11,18.8+tailLift],[7.5,19.1+tailLift],[4.5,19.4+tailLift],[1.5,19.2+tailLift]], c.outline);
-  poly([[2.5,18.35+tailLift],[5,17.2+tailLift],[8,16.1+tailLift],[11.5,15.3+tailLift],[14.5,15+tailLift],[17.5,15.6+tailLift],[19.5,16.7+tailLift],[19,18.3+tailLift],[16.5,18.4+tailLift],[13.5,18.2+tailLift],[10,18.3+tailLift],[6.5,18.7+tailLift],[3.5,19+tailLift]], c.body);
-  // Soft underside plane gives the tail volume instead of a flat, ribbon-like shape.
-  poly([[4,18.4+tailLift],[7.5,18.2+tailLift],[11,18+tailLift],[14.5,17.9+tailLift],[17.5,18+tailLift],[15.5,18.6+tailLift],[12,18.8+tailLift],[8,19+tailLift]], c.belly);
-  line([[4.5,17.2+tailLift],[8,16.2+tailLift],[11.5,15.5+tailLift],[14.5,15.2+tailLift]], c.belly, 0.6);
+  // Tail: keep the approved silhouette, but extend its root into the pelvis and lengthen the taper.
+  // Curved contours make the tail read as one continuous extension of the spine, with a softly rounded tip.
+  const tailPath = (fill, commands) => {
+    ctx.beginPath();
+    ctx.moveTo(commands[0][0] * scale, commands[0][1] * scale);
+    for (let i = 1; i < commands.length; i++) {
+      const p = commands[i];
+      if (p[0] === 'Q') ctx.quadraticCurveTo(p[1] * scale, p[2] * scale, p[3] * scale, p[4] * scale);
+      else ctx.lineTo(p[0] * scale, p[1] * scale);
+    }
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+  };
+  tailPath(c.outline, [
+    [19,14.2+tailLift],
+    ['Q',15,14.5+tailLift,11,15.8+tailLift],
+    ['Q',6,17.1+tailLift,0,17.9+tailLift],
+    ['Q',-5,18.6+tailLift,-10,18.9+tailLift],
+    ['Q',-11.5,19.1+tailLift,-10,19.8+tailLift],
+    ['Q',-7,20.7+tailLift,-2,20.6+tailLift],
+    ['Q',5,20.3+tailLift,11,19.5+tailLift],
+    ['Q',16,19+tailLift,20,18.7+tailLift],
+    ['Q',22,17.2+tailLift,19,14.2+tailLift]
+  ]);
+  tailPath(c.body, [
+    [17.5,15+tailLift],
+    ['Q',13,15.5+tailLift,8,16.8+tailLift],
+    ['Q',2,18.1+tailLift,-4,18.7+tailLift],
+    ['Q',-7,19+tailLift,-8.5,19.3+tailLift],
+    ['Q',-6,19.9+tailLift,-1.5,19.8+tailLift],
+    ['Q',5,19.5+tailLift,11,18.8+tailLift],
+    ['Q',15.5,18.4+tailLift,19,17.9+tailLift],
+    [17.5,15+tailLift]
+  ]);
+  // Subtle underside shading follows the same curve and preserves the existing skin palette.
+  tailPath(c.belly, [
+    [5,18.5+tailLift],
+    ['Q',10,17.9+tailLift,15,17.8+tailLift],
+    ['Q',17,18+tailLift,18,18.2+tailLift],
+    ['Q',13,18.9+tailLift,8,19.2+tailLift],
+    ['Q',3,19.6+tailLift,-1,19.6+tailLift],
+    ['Q',2,18.9+tailLift,5,18.5+tailLift]
+  ]);
+  line([[4,17.5+tailLift],[8,16.7+tailLift],[12,15.8+tailLift],[16,15.1+tailLift]], c.belly, 0.55);
 
   // Far leg: visible hip, bent knee, narrow ankle and three toes.
   const farLegs = [
