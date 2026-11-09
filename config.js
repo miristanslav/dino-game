@@ -637,7 +637,7 @@ const PETS = [
 
 const UPGRADES = [
   { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [100, 300, 650, 1500, 3750] },
-  { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притяжение птиц', maxLevel: 5, costs: [750, 3750, 18750, 93750, 468750] },
+  { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притягивает птеродактилей средней высоты', maxLevel: 5, costs: [750, 3750, 18750, 93750, 468750] },
   { id: 'doubleBones', icon: '✨', name: 'Кости за птеродактиля', desc: '+1 кость за птеродактиля за уровень', maxLevel: 5, costs: [440, 1540, 5390, 18865, 66028] },
   { id: 'lives', icon: '❤️', name: 'Дополнительная жизнь', desc: '+1 жизнь в каждом новом забеге; цена растёт на 50%', maxLevel: null, initialCost: 150, costMultiplier: 1.5 }
 ];

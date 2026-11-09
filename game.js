@@ -56,7 +56,7 @@ function jump() {
   duckTimer = 0;
   const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump');
   if (!dino.jumping) {
-    dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08); dino.jumping = true; dino.jumpsLeft = hasDoubleJump ? 1 : 0;
+    const jumpPower = Math.min(15.8, Math.abs(JUMP_FORCE) + (save.upgrades.jump * 0.64)); dino.vy = -jumpPower; dino.jumping = true; dino.jumpsLeft = hasDoubleJump ? 1 : 0;
     haptic('jump'); playSound('jump'); spawnDust(dino.x + 30, GROUND_Y, 6, 3);
   } else if (dino.jumpsLeft > 0) {
     dino.vy = JUMP_FORCE * 0.9; dino.jumpsLeft--; haptic('jump'); playSound('jump'); spawnDust(dino.x + 30, dino.y, 6, 3);
