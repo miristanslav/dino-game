@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 31;
+const CURRENT_VERSION = 32;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,32 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 32,
+    changes: [
+      'Патч 32: Единая анимация T-Rex и исправленная история версий',
+      'Главное меню использует те же четыре фазы бега, что и игровой режим',
+      'Исправлена отметка «ТЕКУЩАЯ» в истории обновлений',
+      'Добавлены пропущенные записи патчей 30 и 31',
+      'Уточнены детали пиксельного силуэта T-Rex без изменения игровой физики'
+    ]
+  },
+  {
+    version: 31,
+    changes: [
+      'Патч 31: Стилизованный T-Rex и компактная пауза',
+      'Улучшен силуэт динозавра и детали головы',
+      'Кнопка паузы уменьшена до 38×38 px и опущена ближе к нижнему краю'
+    ]
+  },
+  {
+    version: 30,
+    changes: [
+      'Патч 30: Перерисовка T-Rex и удобная пауза',
+      'Обновлён пиксельный силуэт динозавра и четыре фазы бега',
+      'Кнопка паузы перенесена в нижнюю левую часть экрана'
+    ]
+  },
   {
     version: 29,
     changes: [
