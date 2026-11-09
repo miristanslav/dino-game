@@ -33,36 +33,48 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Twelve-pose articulated hind-leg cycle: hip, knee, hock and toes move independently.
+  // Deform the approved original leg contours smoothly around hip, knee and hock.
+  // This preserves the existing muscle volume, metatarsus, toe pads and claws.
   const drawArticulatedLeg = (phase, far) => {
     const poses = [
-      [25.0,21.0,22.8,26.0,28.0,30.0],[25.5,21.3,23.2,26.2,28.2,30.0],
-      [25.8,21.8,23.8,25.8,28.0,29.7],[25.4,22.2,24.2,25.1,27.2,28.8],
-      [24.8,22.1,24.0,24.5,26.0,27.7],[24.0,21.6,23.3,24.1,24.8,26.8],
-      [23.2,21.0,22.6,24.0,24.0,26.0],[22.5,20.4,21.9,24.2,23.6,26.4],
-      [22.3,20.0,21.7,24.8,24.0,27.8],[22.8,20.2,22.0,25.5,25.0,29.0],
-      [23.8,20.6,22.3,26.0,26.5,30.0],[24.5,20.8,22.5,26.0,27.5,30.0]
+      [0.02,-0.02,0.00],[0.05,-0.05,0.01],[0.08,-0.12,0.04],
+      [0.07,-0.22,0.08],[0.03,-0.34,0.12],[-0.03,-0.40,0.08],
+      [-0.07,-0.34,0.02],[-0.08,-0.24,-0.05],[-0.05,-0.14,-0.08],
+      [-0.01,-0.07,-0.06],[0.01,-0.03,-0.03],[0.02,-0.02,-0.01]
     ];
-    const p=poses[((Math.floor(phase)%12)+12)%12];
-    const map=(x,y)=>far?[18.9+(x-24)*0.90,29.5+(y-29.5)*0.98]:[x,y];
-    const hip=map(22,18), knee=map(p[0],p[1]), hock=map(p[2],p[3]);
-    const ankle=map(p[4]-2.3,p[5]-2.5);
-    const segment=(a,b,outer,inner)=>{line([a,b],c.outline,outer*2+0.9);line([a,b],c.body,inner*2);};
-    segment(hip,knee,2.55,2.05);
-    segment(knee,hock,1.75,1.25);
-    segment(hock,ankle,1.15,0.72);
-    const joint=(pt,r)=>{
-      ctx.beginPath();ctx.arc(pt[0]*scale,pt[1]*scale,r*scale,0,Math.PI*2);ctx.fillStyle=c.outline;ctx.fill();
-      ctx.beginPath();ctx.arc(pt[0]*scale,pt[1]*scale,Math.max(0.2,r-0.45)*scale,0,Math.PI*2);ctx.fillStyle=c.body;ctx.fill();
+    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12];
+    const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
+    const rotate=(p,pivot,a)=>{
+      const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);
+      return [pivot[0]+x*co-y*si,pivot[1]+x*si+y*co];
     };
-    joint(knee,1.45);joint(hock,1.0);
-    const base=map(p[4]-1.5,p[5]-0.35);
-    const toes=[
-      [base,map(p[4]+0.65,p[5]+0.05),map(p[4]+1.0,p[5]+0.35)],
-      [map(base[0]-1,base[1]+0.05),map(p[4]-0.15,p[5]+0.42),map(p[4]+0.05,p[5]+0.62)],
-      [map(base[0]-2,base[1]-0.12),map(p[4]-1.1,p[5]+0.25),map(p[4]-0.95,p[5]+0.48)]
-    ];
-    toes.forEach(t=>{line([t[0],t[1]],c.outline,1.55);line([t[0],t[1]],c.body,0.85);line([t[1],t[2]],c.claw,0.72);});
+    const smooth=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
+    const hip=map([22,18]), knee=map([25.0,21.5]), hock=map([22.4,25.8]);
+    const kneeAfterHip=rotate(knee,hip,hipAngle);
+    const hockAfterHip=rotate(hock,hip,hipAngle);
+    const hockAfterKnee=rotate(hockAfterHip,kneeAfterHip,kneeAngle);
+    const deform=source=>{
+      const p=map(source),afterHip=rotate(p,hip,hipAngle);
+      const afterKnee=rotate(afterHip,kneeAfterHip,kneeAngle*smooth(19,26,source[1]));
+      return rotate(afterKnee,hockAfterKnee,ankleAngle*smooth(24,29.5,source[1]));
+    };
+    const drawPoly=(points,fill)=>poly(points.map(deform),fill);
+    const drawLine=(points,color,width)=>line(points.map(deform),color,width);
+    const outline=[[18.2,16.5],[20.8,15.9],[23.8,16.0],[25.7,17.0],[26.7,18.5],[26.9,19.9],[26.3,21.2],[25.4,22.0],[24.7,23.0],[24.0,24.0],[23.4,25.0],[22.7,25.9],[21.7,26.2],[21.3,25.6],[21.8,24.5],[22.5,23.2],[22.5,22.1],[20.6,21.0],[19.0,19.6],[18.0,18.1]];
+    const inner=[[19.0,17.1],[21.2,16.6],[23.7,16.7],[25.2,17.6],[26.0,18.8],[26.1,19.9],[25.5,21.0],[24.7,21.8],[24.0,22.9],[23.3,24.1],[22.7,25.2],[22.0,25.6],[21.8,25.2],[22.4,24.0],[23.1,22.6],[22.8,21.8],[20.9,20.7],[19.5,19.4],[18.7,18.1]];
+    const calf=[[25.2,20.4],[26.1,20.8],[25.8,22.0],[25.1,22.9],[24.5,24.0],[23.9,25.1],[23.1,26.0],[22.1,26.1],[21.9,25.7],[22.5,24.8],[23.2,23.7],[23.9,22.5],[24.5,21.5]];
+    const metatarsus=[[21.6,25.5],[22.5,25.3],[23.2,25.9],[24.1,26.7],[25.2,27.5],[26.4,28.4],[27.2,29.2],[27.3,29.7],[26.7,30],[25.8,29.8],[24.9,30],[24.0,29.8],[23.1,29.6],[22.1,28.9],[21.3,27.9],[20.9,26.8]];
+    const metatarsusInner=[[22.2,25.8],[22.8,25.8],[23.4,26.5],[24.3,27.2],[25.4,28.0],[26.5,28.9],[26.8,29.3],[26.2,29.3],[25.2,29.0],[24.3,28.7],[23.4,28.1],[22.5,27.3],[21.7,26.5]];
+    const toeOutline=[[25.0,28.3],[26.4,28.6],[27.8,29.1],[28.4,29.6],[28.3,29.9],[27.7,30],[26.7,29.8],[25.8,30],[24.9,29.8],[24.5,29.2]];
+    const toeInner=[[25.5,28.7],[26.5,28.9],[27.5,29.3],[27.8,29.6],[27.1,29.6],[26.1,29.8],[25.2,29.5]];
+    drawPoly(outline,c.outline); drawPoly(inner,c.body); drawPoly(calf,c.body);
+    drawLine([[25.4,21.1],[24.7,22.5],[24.0,23.9],[23.1,25.2],[22.2,25.8]],c.belly,0.6);
+    drawPoly(metatarsus,c.outline); drawPoly(metatarsusInner,c.body);
+    drawLine([[23.3,27.0],[24.5,27.9],[25.8,28.8]],c.belly,0.5);
+    drawPoly(toeOutline,c.outline); drawPoly(toeInner,c.body);
+    drawPoly([[27.6,29.1],[28.5,29.5],[28.9,29.9],[28.8,30],[28.0,29.8]],c.claw);
+    drawPoly([[25.4,29.1],[26.3,29.4],[26.7,29.9],[26.6,30],[25.8,29.8]],c.claw);
+    drawPoly([[24.0,28.7],[24.8,29.1],[25.1,29.6],[25.0,29.8],[24.3,29.5]],c.claw);
   };
 
   // Tail: preserve the approved silhouette and lift it slightly to follow the spine.
@@ -113,10 +125,8 @@ function drawTRexStanding(phase, dead, scale) {
   // Restore the dark-green dorsal ridge line, matching the spine contour on the torso.
   line([[4,17.5+tailY],[8,16.7+tailY],[12,15.8+tailY],[16,15.1+tailY]], c.outline, 0.55);
 
-  // Far leg stays behind the torso.
+  // Original far-leg artwork, articulated behind the torso.
   drawArticulatedLeg(phase, true);
-
-
 
   // Main torso: elongated, muscular rib cage with a lifted belly and a defined chest.
   // The silhouette is deliberately asymmetrical: sloping back, deep chest, tighter waist.
@@ -136,10 +146,8 @@ function drawTRexStanding(phase, dead, scale) {
   line([[16.2,15.1+bob],[18.5,13.3+bob],[21,12.5+bob]], c.body, 0.8);
   line([[18.5,18+bob],[21.5,18.4+bob],[24.5,18.2+bob]], c.body, 0.65);
 
-  // Near leg is drawn in front and runs half a cycle out of phase.
+  // Original foreground leg artwork, six phases out of step with the far leg.
   drawArticulatedLeg(dead ? 0 : phase + 6, false);
-
-
 
   // Neck extended upward and forward to support the repositioned skull.
   poly([[25,13+bob],[26,10+bob],[29,7.8+bob],[32,7+bob],[34.8,8.2+bob],[36,11.2+bob],[34,14.8+bob],[29,16+bob],[26,15+bob]], c.outline);

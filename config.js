@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 91;
+const CURRENT_VERSION = 92;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 92,
+    changes: [
+      "Патч 92: Восстановлена исходная утверждённая геометрия задних лап",
+      "Суставное движение деформирует исходные контуры и мышечные плоскости, сохраняя форму плюсны, пальцев и когтей",
+      "Колено и голеностоп сгибаются плавно в 12-фазном цикле"
+    ]
+  },
+
   {
     version: 91,
     changes: [
