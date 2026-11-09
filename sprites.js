@@ -161,35 +161,49 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Main cranium and upper jaw: a defined supraorbital boss flows into the long nasal bones.
+  // Sculpted T. rex cranium: layered brow, shallow post-orbital notch and arched nasal bones.
+  // The profile uses several restrained changes of curvature rather than one soft oval.
   headPath(c.outline, () => {
     ctx.moveTo(29.1*scale, 9.7*scale+bob*scale);
-    ctx.quadraticCurveTo(28.6*scale, 8.55*scale+bob*scale, 29.35*scale, 7.05*scale+bob*scale);
-    ctx.quadraticCurveTo(29.95*scale, 5.45*scale+bob*scale, 31.55*scale, 4.65*scale+bob*scale);
-    ctx.quadraticCurveTo(33.1*scale, 3.95*scale+bob*scale, 34.9*scale, 4.05*scale+bob*scale);
-    ctx.quadraticCurveTo(36.15*scale, 4.08*scale+bob*scale, 37.05*scale, 4.75*scale+bob*scale);
-    ctx.quadraticCurveTo(37.7*scale, 4.95*scale+bob*scale, 38.35*scale, 5.15*scale+bob*scale);
-    ctx.quadraticCurveTo(40.35*scale, 5.65*scale+bob*scale, 42.25*scale, 6.55*scale+bob*scale);
-    ctx.quadraticCurveTo(44.15*scale, 7.35*scale+bob*scale, 45.0*scale, 8.15*scale+bob*scale);
-    ctx.quadraticCurveTo(45.35*scale, 8.55*scale+bob*scale, 44.95*scale, 9.05*scale+bob*scale);
-    ctx.quadraticCurveTo(44.3*scale, 9.72*scale+bob*scale, 41.6*scale, 10.3*scale+bob*scale);
-    ctx.quadraticCurveTo(38.5*scale, 10.8*scale+bob*scale, 35.4*scale, 10.8*scale+bob*scale);
-    ctx.quadraticCurveTo(32.3*scale, 10.7*scale+bob*scale, 30.2*scale, 10.4*scale+bob*scale);
-    ctx.quadraticCurveTo(29.3*scale, 10.2*scale+bob*scale, 29.1*scale, 9.7*scale+bob*scale);
+    ctx.quadraticCurveTo(28.45*scale, 8.9*scale+bob*scale, 28.95*scale, 7.75*scale+bob*scale);
+    ctx.quadraticCurveTo(29.25*scale, 6.9*scale+bob*scale, 30.15*scale, 6.35*scale+bob*scale);
+    ctx.quadraticCurveTo(30.9*scale, 5.95*scale+bob*scale, 31.25*scale, 5.05*scale+bob*scale);
+    ctx.quadraticCurveTo(31.65*scale, 4.15*scale+bob*scale, 33.0*scale, 3.92*scale+bob*scale);
+    ctx.quadraticCurveTo(34.25*scale, 3.68*scale+bob*scale, 35.25*scale, 4.12*scale+bob*scale);
+    ctx.quadraticCurveTo(36.05*scale, 4.42*scale+bob*scale, 36.48*scale, 5.08*scale+bob*scale);
+    ctx.quadraticCurveTo(36.78*scale, 5.48*scale+bob*scale, 37.42*scale, 5.42*scale+bob*scale);
+    ctx.quadraticCurveTo(38.02*scale, 5.25*scale+bob*scale, 38.62*scale, 5.42*scale+bob*scale);
+    ctx.quadraticCurveTo(39.55*scale, 5.62*scale+bob*scale, 40.45*scale, 6.08*scale+bob*scale);
+    ctx.quadraticCurveTo(41.55*scale, 6.42*scale+bob*scale, 42.62*scale, 6.95*scale+bob*scale);
+    ctx.quadraticCurveTo(43.82*scale, 7.48*scale+bob*scale, 44.72*scale, 8.02*scale+bob*scale);
+    ctx.quadraticCurveTo(45.48*scale, 8.48*scale+bob*scale, 45.08*scale, 9.02*scale+bob*scale);
+    ctx.quadraticCurveTo(44.62*scale, 9.58*scale+bob*scale, 42.78*scale, 10.02*scale+bob*scale);
+    ctx.quadraticCurveTo(40.15*scale, 10.62*scale+bob*scale, 37.25*scale, 10.76*scale+bob*scale);
+    ctx.quadraticCurveTo(34.05*scale, 10.86*scale+bob*scale, 31.15*scale, 10.35*scale+bob*scale);
+    ctx.quadraticCurveTo(29.55*scale, 10.08*scale+bob*scale, 29.1*scale, 9.7*scale+bob*scale);
   });
   headPath(c.body, () => {
-    ctx.moveTo(30.0*scale, 9.5*scale+bob*scale);
-    ctx.quadraticCurveTo(29.6*scale, 8.4*scale+bob*scale, 30.3*scale, 7.2*scale+bob*scale);
-    ctx.quadraticCurveTo(30.85*scale, 5.95*scale+bob*scale, 32.15*scale, 5.25*scale+bob*scale);
-    ctx.quadraticCurveTo(33.65*scale, 4.55*scale+bob*scale, 35.1*scale, 4.72*scale+bob*scale);
-    ctx.quadraticCurveTo(36.35*scale, 4.75*scale+bob*scale, 37.25*scale, 5.25*scale+bob*scale);
-    ctx.quadraticCurveTo(39.2*scale, 5.8*scale+bob*scale, 41.1*scale, 6.65*scale+bob*scale);
-    ctx.quadraticCurveTo(43.1*scale, 7.4*scale+bob*scale, 44.35*scale, 8.15*scale+bob*scale);
-    ctx.quadraticCurveTo(44.6*scale, 8.5*scale+bob*scale, 44.15*scale, 8.95*scale+bob*scale);
-    ctx.quadraticCurveTo(41.0*scale, 9.9*scale+bob*scale, 37.8*scale, 10.1*scale+bob*scale);
-    ctx.quadraticCurveTo(34.1*scale, 10.3*scale+bob*scale, 31.0*scale, 10.0*scale+bob*scale);
-    ctx.quadraticCurveTo(30.2*scale, 9.9*scale+bob*scale, 30.0*scale, 9.5*scale+bob*scale);
+    ctx.moveTo(30.0*scale, 9.48*scale+bob*scale);
+    ctx.quadraticCurveTo(29.45*scale, 8.72*scale+bob*scale, 30.08*scale, 7.82*scale+bob*scale);
+    ctx.quadraticCurveTo(30.58*scale, 7.05*scale+bob*scale, 31.42*scale, 6.58*scale+bob*scale);
+    ctx.quadraticCurveTo(32.12*scale, 6.12*scale+bob*scale, 32.42*scale, 5.38*scale+bob*scale);
+    ctx.quadraticCurveTo(33.35*scale, 4.62*scale+bob*scale, 34.72*scale, 4.62*scale+bob*scale);
+    ctx.quadraticCurveTo(35.72*scale, 4.72*scale+bob*scale, 36.35*scale, 5.45*scale+bob*scale);
+    ctx.quadraticCurveTo(36.82*scale, 5.92*scale+bob*scale, 37.55*scale, 5.78*scale+bob*scale);
+    ctx.quadraticCurveTo(38.45*scale, 5.65*scale+bob*scale, 39.32*scale, 6.02*scale+bob*scale);
+    ctx.quadraticCurveTo(40.62*scale, 6.38*scale+bob*scale, 41.72*scale, 6.88*scale+bob*scale);
+    ctx.quadraticCurveTo(43.18*scale, 7.48*scale+bob*scale, 44.28*scale, 8.12*scale+bob*scale);
+    ctx.quadraticCurveTo(44.62*scale, 8.48*scale+bob*scale, 44.12*scale, 8.9*scale+bob*scale);
+    ctx.quadraticCurveTo(41.52*scale, 9.82*scale+bob*scale, 38.05*scale, 10.12*scale+bob*scale);
+    ctx.quadraticCurveTo(34.42*scale, 10.34*scale+bob*scale, 31.0*scale, 9.98*scale+bob*scale);
+    ctx.quadraticCurveTo(30.22*scale, 9.85*scale+bob*scale, 30.0*scale, 9.48*scale+bob*scale);
   });
+  // A fine nasal ridge and a shallow cheek-to-rostrum transition add bone structure.
+  headLine(() => {
+    ctx.moveTo(37.72*scale, 5.82*scale+bob*scale);
+    ctx.quadraticCurveTo(39.55*scale, 6.12*scale+bob*scale, 41.15*scale, 6.92*scale+bob*scale);
+    ctx.quadraticCurveTo(42.72*scale, 7.52*scale+bob*scale, 44.05*scale, 8.22*scale+bob*scale);
+  }, c.belly, 0.34);
 
   // Rebuilt mandible: one continuous, anatomically grounded silhouette.
   // The rear joint sits behind the orbit; the dentary deepens toward the chin,
