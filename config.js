@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 46;
+const CURRENT_VERSION = 47;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 47,
+    changes: [
+      'Патч 47: Исправлен градиент размера спинных шипов и линия хвоста',
+      'Шипы плавно увеличиваются от кончика хвоста вдоль всей спины в направлении шеи',
+      'Тёмно-зелёная линия ограничена видимой поверхностью хвоста и больше не проходит поверх корпуса'
+    ]
+  },
   {
     version: 46,
     changes: [
