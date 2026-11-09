@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 27;
+const CURRENT_VERSION = 28;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 28,
+    changes: [
+      'Патч 28: Компактное меню у правого края экрана',
+      'Кнопки меню собраны в полупрозрачную панель с размытием фона',
+      'Центральная и левая часть экрана освобождены для игровой сцены',
+      'Размеры панели и кнопок адаптируются под небольшие и низкие экраны'
+    ]
+  },
   {
     version: 27,
     changes: [
