@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 33;
+const CURRENT_VERSION = 34;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,17 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 34,
+    changes: [
+      'Патч 34: Новая анатомия T-Rex',
+      'Полностью переработано тело: глубокая грудь, более узкая талия и естественный переход к шее',
+      'Добавлены объёмные бёдра, голени и ступни с чередованием четырёх фаз бега',
+      'Хвост получил более длинный сужающийся силуэт и плавный изгиб',
+      'Удачная голова сохранена; физика, коллизии, управление и интерфейс не менялись'
+    ]
+  },
+
   {
     version: 33,
     changes: [
