@@ -32,11 +32,13 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Tail sits behind the hips and follows the spine in a smooth taper.
-  poly([[2,18+tailLift],[5,16.2+tailLift],[9,14.8+tailLift],[13,14+tailLift],[17,14.5+tailLift],[20,16+tailLift],[17,17.8+tailLift],[13,18.8+tailLift],[9,19.6+tailLift],[5,20+tailLift],[2,19.5+tailLift]], c.outline);
-  poly([[3,18+tailLift],[6,16.9+tailLift],[10,15.7+tailLift],[14,15.1+tailLift],[18,15.6+tailLift],[16,17+tailLift],[12,18+tailLift],[8,18.9+tailLift],[4,19+tailLift]], c.body);
-  poly([[5,18.3+tailLift],[9,17.8+tailLift],[13,16.9+tailLift],[16,16.4+tailLift],[12,18+tailLift],[8,18.7+tailLift]], c.belly);
-  line([[5,16.9+tailLift],[9,15.8+tailLift],[13,15.2+tailLift]], c.belly, 0.65);
+  // Tail: deep, muscular root flowing into a long, steadily tapering counterbalance.
+  // Its upper and lower contours converge gradually; the tip stays narrow without becoming needle-like.
+  poly([[1,18.4+tailLift],[3.5,17.2+tailLift],[6.5,15.9+tailLift],[10,14.9+tailLift],[13.5,14.4+tailLift],[16.5,14.6+tailLift],[19.5,15.6+tailLift],[21,16.9+tailLift],[20,19.2+tailLift],[17.5,19.1+tailLift],[14.5,18.8+tailLift],[11,18.8+tailLift],[7.5,19.1+tailLift],[4.5,19.4+tailLift],[1.5,19.2+tailLift]], c.outline);
+  poly([[2.5,18.35+tailLift],[5,17.2+tailLift],[8,16.1+tailLift],[11.5,15.3+tailLift],[14.5,15+tailLift],[17.5,15.6+tailLift],[19.5,16.7+tailLift],[19,18.3+tailLift],[16.5,18.4+tailLift],[13.5,18.2+tailLift],[10,18.3+tailLift],[6.5,18.7+tailLift],[3.5,19+tailLift]], c.body);
+  // Soft underside plane gives the tail volume instead of a flat, ribbon-like shape.
+  poly([[4,18.4+tailLift],[7.5,18.2+tailLift],[11,18+tailLift],[14.5,17.9+tailLift],[17.5,18+tailLift],[15.5,18.6+tailLift],[12,18.8+tailLift],[8,19+tailLift]], c.belly);
+  line([[4.5,17.2+tailLift],[8,16.2+tailLift],[11.5,15.5+tailLift],[14.5,15.2+tailLift]], c.belly, 0.6);
 
   // Far leg: visible hip, bent knee, narrow ankle and three toes.
   const farLegs = [
