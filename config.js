@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 90;
+const CURRENT_VERSION = 91;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 91,
+    changes: [
+      "Патч 91: Задние лапы переведены на двенадцатикадровый цикл с независимыми суставами",
+      "Бедро, колено, голень, голеностоп, плюсна и пальцы двигаются отдельными сегментами; лапы работают в противофазе",
+      "Анимация в главном меню замедлена вдвое"
+    ]
+  },
+
   {
     version: 90,
     changes: [

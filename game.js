@@ -225,7 +225,7 @@ function update(dt) {
 }
 
 function drawMenuScene(colors) {
-  const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30; drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 3) % 8, false, DINO_SCALE_MENU);
+  const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30; drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 6) % 12, false, DINO_SCALE_MENU);
   drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, colors, 2); drawCactus({ x: W * 0.9, y: GROUND_Y, w: 10, h: 25, type: 'cactus_big' }, colors, 2);
   const birdX = W * 0.4 + Math.sin(frame * 0.03) * 100; const birdY = H * 0.25 + Math.cos(frame * 0.02) * 40;
   drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, colors, BIRD_SCALE_MENU);
