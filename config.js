@@ -22,13 +22,13 @@ const CURRENT_VERSION = 101;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
-  const tens = v % 100;
-  return `${thousands}.${hundreds}.${tens}`;
+  const patch = String(v % 100).padStart(2, '0');
+  return `${thousands}.${hundreds}.${patch}`;
 }
 
 const CHANGELOG = [
   {
-    version: 100,
+    version: 101,
     changes: [
       "Патч 101: Переключение четырёх биомов привязано к набранным очкам; длина каждого следующего круга удваивается",
       "Золотые яйца оставляют на земле отдельный особый бонус, который нужно подобрать для активации",
