@@ -62,8 +62,16 @@ function drawTRexStanding(phase, dead, scale) {
     // The planted foot travels backward relative to the pelvis during stance;
     // the quick return arc lifts it and carries it forward for the next contact.
     const footTravel=[2.4,1.8,1.1,0.3,-0.6,-1.5,-2.1,-1.6,-0.3,1.0,2.0,2.5][strideStep];
-    const footLift=[0,0,0,0,0,0,0.08,0.62,1.28,1.48,1.02,0.38][strideStep];
-    const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
+    // Shift the whole leg at the hip as it swings: forward on recovery,
+    // then progressively backward through the planted push-off. The other
+    // leg receives phase + 6, so its root travels in the opposite direction.
+    const rootShift=[1.05,0.82,0.42,0,-0.42,-0.82,-1.05,-0.82,-0.42,0,0.42,0.82][strideStep];
+    // Phase 6 is the next ground contact; keep the foot at floor level there.
+    const footLift=[0,0,0,0,0,0,0,0.62,1.28,1.48,1.02,0.38][strideStep];
+    const map=p=>{
+      const mapped=far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
+      return [mapped[0]+rootShift,mapped[1]];
+    };
     const rotate=(p,pivot,a)=>{
       const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);
       return [pivot[0]+x*co-y*si,pivot[1]+x*si+y*co];
@@ -99,9 +107,12 @@ function drawTRexStanding(phase, dead, scale) {
       // Keep the toe/foot trajectory distinct from a simple knee lift:
       // planted phases sweep rearward; swing phases rise and recover forward.
       const footWeight=smooth(23.5,27.5,source[1]);
+      // The far leg's 0.98 vertical scale otherwise leaves its toe a
+      // fraction above the floor. Match both feet to the same ground line.
+      const groundFix=far?0.01*footWeight:0;
       return [
         articulated[0]+footTravel*footWeight,
-        articulated[1]-footLift*footWeight
+        articulated[1]-footLift*footWeight+groundFix
       ];
     };
     const drawPoly=(points,fill)=>poly(smoothPath(points).map(deform),fill);
