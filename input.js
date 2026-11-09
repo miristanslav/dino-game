@@ -147,10 +147,10 @@ document.addEventListener('touchmove', (e) => {
   const touch = e.changedTouches[0];
   const dy = touch.clientY - touchStartY;
   const dx = Math.abs(touch.clientX - touchStartX);
-  if (dy > 32 && dy > dx * 1.15 && !touchMoved && gameState === 'playing' && !dino.jumping) {
-    // Swipe down triggers a short slide even if the player lifts their finger.
-    duck(true, 0.85);
+  if (dy > 32 && dy > dx * 1.15 && !touchMoved && gameState === 'playing') {
+    // Consume a downward swipe even in mid-air, so it cannot accidentally trigger a double jump.
     touchMoved = true;
+    if (!dino.jumping) duck(true, 0.85);
     if (e.cancelable) e.preventDefault();
   }
 }, { passive: false });

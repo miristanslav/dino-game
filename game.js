@@ -36,7 +36,7 @@ function resetCombo() { if (comboCount > 0) { comboCount = 0; comboTimer = 0; up
 function pauseGame() {
   if (gameState !== 'playing') return;
   gameState = 'paused';
-  dino.ducking = false;
+  dino.ducking = false; duckTimer = 0;
   pauseScreen.classList.remove('hidden');
   pauseBtn.classList.add('hidden');
   stopMusic();

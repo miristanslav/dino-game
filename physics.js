@@ -84,7 +84,7 @@ function resolveGoldenEgg() {
   } else {
     let count = 0;
     birds = birds.filter(b => {
-      if (b.kind === 'peaceful' || b.kind === 'predator') {
+      if (b.kind && b.x > -60 && b.x < W + 60) {
         spawnGroundBone(Math.max(dino.x + 55, b.x), 1 + (save.upgrades.doubleBones || 0));
         count++; return false;
       }
