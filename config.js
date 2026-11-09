@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 50;
+const CURRENT_VERSION = 51;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 51,
+    changes: [
+      'Патч 51: Посадка спинных шипов по силуэту',
+      'Шипы от середины спины к основанию хвоста немного приподняты',
+      'Шипы от середины спины к шее опущены ближе к поверхности тела'
+    ]
+  },
   {
     version: 50,
     changes: [
