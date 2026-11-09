@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 99;
+const CURRENT_VERSION = 100;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,17 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 100,
+    changes: [
+      "Патч 100: Новая перспектива игрового поля 2,5D с видом сбоку-сверху; управление бегом и прыжком сохранено",
+      "Добавлены уклонение свайпом вниз на мобильных устройствах и приседание клавишами на компьютере",
+      "Добавлены четыре биома с тематическими пейзажами и препятствиями; биомы переключаются по дистанции, длина каждого следующего круга удваивается",
+      "Добавлены мирные, хищные и золотые бонусные птеродактили, яйца и особые награды",
+      "Добавлены жизни с бесконечной прокачкой, временный щит и щит на пять столкновений",
+      "Настроены цены улучшений, таймеры бонусов и совместимость со старыми сохранениями"
+    ]
+  },
   {
     version: 94,
     changes: [
