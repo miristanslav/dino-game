@@ -298,6 +298,9 @@ function drawTRexStanding(phase, dead, scale) {
   ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   ctx.restore();
 
+  // Forearms are carried forward beyond the chest silhouette.
+  ctx.save();
+  ctx.translate(3.4*scale, 0);
   // Enlarged, clearly articulated T-Rex forearms: strong upper arm, bent elbow,
   // short wrist and two distinct hooked fingers. Keep the classic two-claw silhouette.
   poly([[23.9,12.9+bob],[25.1,12.15+bob],[27.1,12.45+bob],[28.7,13.65+bob],
@@ -313,6 +316,7 @@ function drawTRexStanding(phase, dead, scale) {
   // Two separated, downward-curving claws at the wrist.
   line([[26.25,15.0+bob],[25.8,16.15+bob],[24.95,16.55+bob]], c.claw, 1.0);
   line([[27.15,15.35+bob],[27.0,16.45+bob],[27.65,16.95+bob]], c.claw, 1.0);
+  ctx.restore();
 
   // Upright dorsal spikes: lift the tail-side run slightly, lower the neck-side run
   // so every base sits against the back silhouette rather than appearing suspended.
