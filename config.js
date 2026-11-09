@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 51;
+const CURRENT_VERSION = 52;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 52,
+    changes: [
+      'Патч 52: Возвращена линия позвоночника и смягчены шипы',
+      'На хвост возвращена тёмно-зелёная линия, совпадающая по цвету с контуром спины',
+      'Высота всех спинных шипов слегка уменьшена без изменения их оснований и плавного градиента'
+    ]
+  },
   {
     version: 51,
     changes: [
