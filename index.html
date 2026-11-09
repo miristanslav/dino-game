@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=110">
+  <link rel="stylesheet" href="style.css?v=111">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
   <!-- Firebase SDK (compat версия) -->
@@ -13,6 +13,37 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
+
+<script>
+(function () {
+  function reportRuntimeProblem(message) {
+    function show() {
+      var panel = document.getElementById('runtimeErrorPanel');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'runtimeErrorPanel';
+        panel.style.cssText = 'position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:45vh;overflow:auto;padding:14px;background:#300;color:#fff;border:2px solid #ff7777;border-radius:8px;font:14px/1.45 monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 3px 18px #0008';
+        document.body.appendChild(panel);
+      }
+      panel.textContent = 'ОШИБКА ЗАПУСКА ИГРЫ\\n' + String(message || 'Неизвестная ошибка') + '\\n\\nПерепиши этот текст в чат.';
+    }
+    if (document.body) show();
+    else document.addEventListener('DOMContentLoaded', show, { once: true });
+  }
+  window.addEventListener('error', function (event) {
+    if (event.target && event.target !== window) {
+      var target = event.target;
+      reportRuntimeProblem('Не загрузился файл: ' + (target.src || target.href || target.tagName));
+    } else {
+      reportRuntimeProblem((event.message || 'JavaScript error') + (event.filename ? '\\nФайл: ' + event.filename : '') + (event.lineno ? '\\nСтрока: ' + event.lineno : ''));
+    }
+  }, true);
+  window.addEventListener('unhandledrejection', function (event) {
+    var reason = event.reason;
+    reportRuntimeProblem('Unhandled promise rejection: ' + (reason && (reason.stack || reason.message) || reason));
+  });
+})();
+</script>
 
 <div id="splashScreen">
   <h1 class="splash-title">🦖 T-REX</h1>
@@ -196,17 +227,17 @@
   </div>
 </div>
 
-<script src="firebase-config.js?v=110"></script>
-<script src="config.js?v=110"></script>
-<script src="db.js?v=110"></script>
-<script src="audio.js?v=110"></script>
-<script src="storage.js?v=110"></script>
-<script src="physics.js?v=110"></script>
-<script src="sprites.js?v=110"></script>
-<script src="background.js?v=110"></script>
-<script src="weather.js?v=110"></script>
-<script src="ui.js?v=110"></script>
-<script src="input.js?v=110"></script>
-<script src="game.js?v=110"></script>
+<script src="firebase-config.js?v=111"></script>
+<script src="config.js?v=111"></script>
+<script src="db.js?v=111"></script>
+<script src="audio.js?v=111"></script>
+<script src="storage.js?v=111"></script>
+<script src="physics.js?v=111"></script>
+<script src="sprites.js?v=111"></script>
+<script src="background.js?v=111"></script>
+<script src="weather.js?v=111"></script>
+<script src="ui.js?v=111"></script>
+<script src="input.js?v=111"></script>
+<script src="game.js?v=111"></script>
 </body>
   </html>
