@@ -174,25 +174,24 @@ function drawTRexStanding(phase, dead, scale) {
   line([[28,16+bob],[29,17+bob],[30,16.5+bob]], c.claw, 0.8);
   line([[27,16+bob],[28,17+bob],[29,16.8+bob]], c.claw, 0.65);
 
-  // Upright dorsal spikes follow the actual upper silhouette of tail and back.
-  // Each polygon has a narrow embedded base and a clearly raised tip; size peaks mid-back.
-  // Tail-root spike uses an interpolated motion offset to bridge tailLift and torso bob.
+  // Upright dorsal spikes: lift the tail-side run slightly, lower the neck-side run
+  // so every base sits against the back silhouette rather than appearing suspended.
   const seamY = (tailY + bob) * 0.5;
-  poly([[-9.7,19.05+tailY],[-9.05,18.15+tailY],[-8.35,18.95+tailY]], c.outline);
-  poly([[-7.1,18.75+tailY],[-6.25,17.75+tailY],[-5.35,18.65+tailY]], c.outline);
-  poly([[-4.5,18.45+tailY],[-3.55,17.25+tailY],[-2.55,18.3+tailY]], c.outline);
-  poly([[-1.7,18.05+tailY],[-0.65,16.7+tailY],[0.45,17.9+tailY]], c.outline);
-  poly([[1.2,17.65+tailY],[2.35,16.05+tailY],[3.55,17.5+tailY]], c.outline);
-  poly([[4.2,17.15+tailY],[5.45,15.35+tailY],[6.7,17.0+tailY]], c.outline);
-  poly([[7.2,16.55+tailY],[8.5,14.65+tailY],[9.8,16.35+tailY]], c.outline);
-  poly([[10.1,15.85+tailY],[11.45,13.95+tailY],[12.85,15.65+tailY]], c.outline);
-  poly([[13.0,14.85+seamY],[14.35,13.0+seamY],[15.7,14.75+seamY]], c.outline);
+  poly([[-9.7,18.65+tailY],[-9.05,17.75+tailY],[-8.35,18.55+tailY]], c.outline);
+  poly([[-7.1,18.35+tailY],[-6.25,17.35+tailY],[-5.35,18.25+tailY]], c.outline);
+  poly([[-4.5,18.05+tailY],[-3.55,16.85+tailY],[-2.55,17.9+tailY]], c.outline);
+  poly([[-1.7,17.65+tailY],[-0.65,16.3+tailY],[0.45,17.5+tailY]], c.outline);
+  poly([[1.2,17.25+tailY],[2.35,15.65+tailY],[3.55,17.1+tailY]], c.outline);
+  poly([[4.2,16.75+tailY],[5.45,14.95+tailY],[6.7,16.6+tailY]], c.outline);
+  poly([[7.2,16.15+tailY],[8.5,14.25+tailY],[9.8,15.95+tailY]], c.outline);
+  poly([[10.1,15.45+tailY],[11.45,13.55+tailY],[12.85,15.25+tailY]], c.outline);
+  poly([[13.0,14.45+seamY],[14.35,12.6+seamY],[15.7,14.35+seamY]], c.outline);
   poly([[15.4,13.2+bob],[16.8,11.1+bob],[18.2,13.0+bob]], c.outline);
   poly([[17.7,11.5+bob],[19.25,9.0+bob],[20.8,11.35+bob]], c.outline);
-  poly([[20.0,9.7+bob],[21.5,7.0+bob],[23.0,9.6+bob]], c.outline);
-  poly([[22.1,9.2+bob],[23.25,7.15+bob],[24.4,9.1+bob]], c.outline);
-  poly([[24.0,9.2+bob],[25.0,7.75+bob],[26.0,9.15+bob]], c.outline);
-  poly([[25.5,9.25+bob],[26.25,8.15+bob],[27.0,9.2+bob]], c.outline);
+  poly([[20.0,10.05+bob],[21.5,7.35+bob],[23.0,9.95+bob]], c.outline);
+  poly([[22.1,9.65+bob],[23.25,7.95+bob],[24.4,9.55+bob]], c.outline);
+  poly([[24.0,9.85+bob],[25.0,8.55+bob],[26.0,9.8+bob]], c.outline);
+  poly([[25.5,9.9+bob],[26.25,8.95+bob],[27.0,9.85+bob]], c.outline);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
