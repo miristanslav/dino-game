@@ -174,23 +174,25 @@ function drawTRexStanding(phase, dead, scale) {
   line([[28,16+bob],[29,17+bob],[30,16.5+bob]], c.claw, 0.8);
   line([[27,16+bob],[28,17+bob],[29,16.8+bob]], c.claw, 0.65);
 
-  // Dorsal scutes peak in the middle of the back, then taper smoothly in both directions.
-  // Tail scutes stop before the pelvis overlap; back scutes begin beyond it so they cannot
-  // collide or cross one another as tailLift and bob move independently during the run cycle.
-  poly([[-5.9,18.8+tailY],[-6.3,18.35+tailY],[-6.9,18.9+tailY]], c.outline);
-  poly([[-2.8,18.55+tailY],[-3.0,17.95+tailY],[-3.6,18.65+tailY]], c.outline);
-  poly([[0.4,18.15+tailY],[1.2,17.35+tailY],[2.0,18.25+tailY]], c.outline);
-  poly([[3.6,17.7+tailY],[4.6,16.75+tailY],[5.4,17.85+tailY]], c.outline);
-  poly([[6.9,17.0+tailY],[8.0,15.85+tailY],[8.9,17.15+tailY]], c.outline);
-  poly([[10.1,16.15+tailY],[11.2,14.8+tailY],[12.1,16.35+tailY]], c.outline);
-  poly([[12.1,15.65+tailY],[13.0,14.35+tailY],[13.8,15.85+tailY]], c.outline);
-
-  // A small clear gap at the tail/torso overlap prevents adjacent scutes from interpenetrating.
-  // The largest scute sits near the middle of the back; sizes decrease toward both tail and neck.
-  poly([[17.0,11.9+bob],[17.8,10.45+bob],[18.6,11.85+bob],[18.1,12.35+bob]], c.outline);
-  poly([[19.0,10.9+bob],[20.0,8.8+bob],[21.0,10.9+bob],[20.5,11.45+bob]], c.outline);
-  poly([[22.0,9.65+bob],[22.8,8.05+bob],[23.6,9.7+bob],[23.1,10.25+bob]], c.outline);
-  poly([[24.0,9.35+bob],[24.7,8.15+bob],[25.4,9.55+bob],[24.9,10.0+bob]], c.outline);
+  // Continuous dorsal scute row: largest at mid-back, smoothly tapering toward tail tip and neck.
+  // Tail-root scutes use an interpolated offset so the row stays visually connected as the
+  // tail and torso move independently during the four running poses.
+  const seamY = (tailY + bob) * 0.5;
+  poly([[-9.6,19.25+tailY],[-9.0,18.65+tailY],[-8.4,19.2+tailY]], c.outline);
+  poly([[-7.0,19.05+tailY],[-6.2,18.35+tailY],[-5.4,19.0+tailY]], c.outline);
+  poly([[-4.5,18.8+tailY],[-3.6,17.95+tailY],[-2.7,18.75+tailY]], c.outline);
+  poly([[-1.8,18.45+tailY],[-0.8,17.45+tailY],[0.2,18.35+tailY]], c.outline);
+  poly([[1.0,18.1+tailY],[2.1,16.95+tailY],[3.2,18.0+tailY]], c.outline);
+  poly([[4.0,17.65+tailY],[5.2,16.35+tailY],[6.4,17.55+tailY]], c.outline);
+  poly([[7.0,17.05+tailY],[8.3,15.55+tailY],[9.6,16.95+tailY]], c.outline);
+  poly([[10.0,16.35+tailY],[11.4,14.75+tailY],[12.8,16.2+tailY]], c.outline);
+  poly([[13.0,15.45+seamY],[14.5,13.8+seamY],[16.0,15.35+seamY]], c.outline);
+  poly([[15.7,13.75+bob],[17.2,11.95+bob],[18.7,13.65+bob]], c.outline);
+  poly([[17.9,12.25+bob],[19.5,10.25+bob],[21.1,12.15+bob]], c.outline);
+  poly([[20.0,10.4+bob],[21.5,8.65+bob],[23.0,10.3+bob]], c.outline);
+  poly([[22.0,9.55+bob],[23.2,8.05+bob],[24.4,9.5+bob]], c.outline);
+  poly([[24.0,9.35+bob],[25.0,8.15+bob],[26.0,9.4+bob]], c.outline);
+  poly([[25.5,9.25+bob],[26.3,8.25+bob],[27.1,9.35+bob]], c.outline);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
