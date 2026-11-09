@@ -500,6 +500,28 @@ function drawCactus(o, colors, scale) {
   if (scale === undefined) scale = dino.scale;
   const x = o.x, y = o.y, h = o.h, w = o.w, s = scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(x + w * s / 2, y + 3, w * s * 0.4, 4, 0, 0, Math.PI * 2); ctx.fill();
+  if (o.type === 'rock') {
+    ctx.fillStyle = colors.dirt || '#8D6E63';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w * s * 0.18, y - h * s * 0.72);
+    ctx.lineTo(x + w * s * 0.68, y - h * s); ctx.lineTo(x + w * s, y - h * s * 0.35);
+    ctx.lineTo(x + w * s * 0.82, y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(x + w * s * 0.35, y - h * s * 0.7, 3 * s, 2 * s);
+    return;
+  }
+  if (o.type === 'stump') {
+    ctx.fillStyle = '#795548'; ctx.fillRect(x + 2 * s, y - h * s, (w - 4) * s, h * s);
+    ctx.fillStyle = '#A1887F'; ctx.beginPath(); ctx.ellipse(x + w * s / 2, y - h * s, w * s * 0.48, 4 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#5D4037'; ctx.lineWidth = 1.5 * s; ctx.beginPath(); ctx.ellipse(x + w * s / 2, y - h * s, w * s * 0.22, 2 * s, 0, 0, Math.PI * 2); ctx.stroke();
+    return;
+  }
+  if (o.type === 'poisonFlower') {
+    const cx = x + w * s / 2, cy = y - h * s * 0.55;
+    ctx.fillStyle = '#2E7D32'; ctx.fillRect(cx - 1.5 * s, cy, 3 * s, h * s * 0.6);
+    ctx.fillStyle = '#E53935';
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * 5 * s, cy + Math.sin(a) * 5 * s, 3.5 * s, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#FFEB3B'; ctx.beginPath(); ctx.arc(cx, cy, 3.2 * s, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
   ctx.fillStyle = colors.cactus;
   if (o.type === 'cactus_small') {
     const stemW = 4; const stemX = x + (w / 2 - stemW / 2) * s; ctx.fillRect(stemX, y - h * s, stemW * s, h * s);

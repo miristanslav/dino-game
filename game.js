@@ -75,7 +75,7 @@ function takeDamage() {
 function clearRoundState() {
   obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
-  score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
+  score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; poisonOverlayTimer = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
   comboCount = 0; comboTimer = 0; updateComboHUD();
   dayNightTime = 0.25 * DAY_NIGHT_CYCLE; weatherTime = 0; isRaining = false; birdsEatenThisGame = 0; lastPowerUpSecond = -1;
@@ -131,6 +131,7 @@ function update(dt) {
   frame++;
   if (gameState === 'playing') {
     damageCooldown = Math.max(0, damageCooldown - dt);
+    poisonOverlayTimer = Math.max(0, poisonOverlayTimer - dt);
     const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
     let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
@@ -205,7 +206,9 @@ function update(dt) {
     if (!cactusShield) {
       for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
-        if (damageCooldown <= 0 && rectCollide(dinoBox, getCactusBox(o))) {
+        if (rectCollide(dinoBox, getCactusBox(o))) {
+          if (o.type === 'poisonFlower') { poisonOverlayTimer = 5; obstacles.splice(i, 1); continue; }
+          if (damageCooldown > 0) continue;
           if (save.currentPet === 'ghost' && !ghostUsed) { ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻'); obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue; }
           obstacles.splice(i, 1);
           takeDamage();
@@ -259,6 +262,12 @@ function render() {
   if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
     obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); meteors.forEach(drawMeteor); drawRain(); drawSnow(); drawBonesFlying(); drawDino(); drawPet();
   } else { drawMenuScene(colors); }
+  if (poisonOverlayTimer > 0) {
+    const poison = ctx.createLinearGradient(0, 0, W, H);
+    poison.addColorStop(0, 'rgba(255, 35, 0, 0.5)');
+    poison.addColorStop(1, 'rgba(255, 205, 0, 0.5)');
+    ctx.fillStyle = poison; ctx.fillRect(0, 0, W, H);
+  }
   ctx.restore();
 }
 

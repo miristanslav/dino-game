@@ -757,7 +757,7 @@ let H = window.innerHeight;
 let GROUND_Y = H * 0.8;
 
 let score = 0, distance = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
-let currentLives = 1, damageCooldown = 0;
+let currentLives = 1, damageCooldown = 0, poisonOverlayTimer = 0;
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
