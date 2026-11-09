@@ -203,18 +203,15 @@ function update(dt) {
     if (powerUpChanged) updatePowerUpHUD();
 
     const cactusShield = activePowerUps.some(a => a.type === 'shield');
-    if (!cactusShield) {
-      for (let i = obstacles.length - 1; i >= 0; i--) {
-        const o = obstacles[i];
-        if (rectCollide(dinoBox, getCactusBox(o))) {
-          if (o.type === 'poisonFlower') { poisonOverlayTimer = 5; obstacles.splice(i, 1); continue; }
-          if (damageCooldown > 0) continue;
-          if (save.currentPet === 'ghost' && !ghostUsed) { ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻'); obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue; }
-          obstacles.splice(i, 1);
-          takeDamage();
-          if (gameState !== 'playing') return;
-        }
-      }
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      if (!rectCollide(dinoBox, getCactusBox(o))) continue;
+      if (o.type === 'poisonFlower') { poisonOverlayTimer = 5; obstacles.splice(i, 1); continue; }
+      if (cactusShield || damageCooldown > 0) continue;
+      if (save.currentPet === 'ghost' && !ghostUsed) { ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻'); obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue; }
+      obstacles.splice(i, 1);
+      takeDamage();
+      if (gameState !== 'playing') return;
     }
 
     for (let i = birds.length - 1; i >= 0; i--) {
