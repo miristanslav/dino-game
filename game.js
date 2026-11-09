@@ -74,12 +74,14 @@ function takeDamage(source = 'obstacle') {
   const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
   if (timedShield) {
     timedShield.hitPulse = 1;
+    damageCooldown = 0;
     spawnFloatingText(dino.x + 20, dino.y - 55, '🛡 ЗАЩИТА');
     return false;
   }
   if (cactusGuardHits > 0) {
     cactusGuardHits--;
     guardPulse = 1;
+    damageCooldown = 0;
     updateHUD();
     spawnFloatingText(dino.x + 20, dino.y - 55, cactusGuardHits > 0 ? '🛡 ' + cactusGuardHits : '🛡 БЛОК!');
     if (cactusGuardHits === 0) spawnFloatingText(dino.x + 20, dino.y - 82, 'ЩИТ ИСЧЕЗ');
