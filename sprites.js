@@ -536,6 +536,25 @@ function drawCactus(o, colors, scale) {
   }
 }
 
+function drawPterodactyl(b, colors) {
+  const scale = 1.35, facingRight = b.kind === 'peaceful', direction = facingRight ? 1 : -1;
+  const x = b.x, y = b.y, wingUp = Math.floor(frame / 5) % 2 === 0;
+  const body = b.kind === 'peaceful' ? '#687D45' : b.kind === 'predator' ? '#C62828' : '#FFD700';
+  const wing = b.kind === 'peaceful' ? '#82965A' : b.kind === 'predator' ? '#8E1717' : '#FFCA28';
+  ctx.save(); if (b.kind === 'bonus') { ctx.shadowColor = '#FFC107'; ctx.shadowBlur = 16; }
+  ctx.translate(x + 24 * scale, y); ctx.scale(direction, 1); ctx.fillStyle = body;
+  ctx.beginPath(); ctx.ellipse(-2 * scale, 0, 15 * scale, 5.5 * scale, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(7 * scale, -2 * scale); ctx.lineTo(17 * scale, -12 * scale); ctx.lineTo(24 * scale, -12 * scale); ctx.lineTo(19 * scale, -4 * scale); ctx.lineTo(11 * scale, 3 * scale); ctx.fill();
+  ctx.beginPath(); ctx.arc(21 * scale, -13 * scale, 5 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = b.kind === 'predator' ? '#111' : '#E6B85C'; ctx.beginPath(); ctx.moveTo(24 * scale, -14 * scale); ctx.lineTo(39 * scale, -12 * scale); ctx.lineTo(24 * scale, -9 * scale); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.arc(22 * scale, -14 * scale, 1.6 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(22.5 * scale, -14 * scale, 0.8 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = wing; ctx.beginPath(); ctx.moveTo(-5 * scale, -1 * scale);
+  if (wingUp) { ctx.lineTo(-15 * scale, -27 * scale); ctx.lineTo(-7 * scale, -22 * scale); ctx.lineTo(2 * scale, -16 * scale); ctx.lineTo(9 * scale, -3 * scale); }
+  else { ctx.lineTo(-15 * scale, 24 * scale); ctx.lineTo(-7 * scale, 19 * scale); ctx.lineTo(2 * scale, 13 * scale); ctx.lineTo(9 * scale, 3 * scale); }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
 function drawBird(b, colors, scale) {
   if (scale === undefined) scale = BIRD_SCALE_GAME;
   const x = b.x, y = b.y; const wingUp = Math.floor(frame / 8) % 2 === 0;

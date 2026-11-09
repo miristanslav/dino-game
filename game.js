@@ -240,7 +240,8 @@ function update(dt) {
           effSpeed = 0.2;
         } else b.magnetized = false;
       }
-      b.x -= effSpeed;
+      if (b.kind === 'peaceful') b.x += speed * factor;
+      else b.x -= effSpeed;
       if (b.kind === 'bonus' && !b.eggDropped && b.x <= W * 0.5) {
         b.eggDropped = true; eggs.push({ x: b.x + 18, y: b.y + 10, rotation: 0 });
       }
@@ -270,14 +271,11 @@ function update(dt) {
           }
           birds.splice(i, 1); resetCombo(); continue;
         }
-        if (b.x + b.w * BIRD_SCALE_GAME < dino.x - 15) {
-          if (b.wasClose && Math.random() < b.dropChance) {
-            const bonesEarned = 1 + (save.upgrades.doubleBones || 0);
-            sessionBones += bonesEarned; updateHUD();
-            spawnFloatingText(b.x + 20, b.y - 20, `+${bonesEarned} 🦴`);
-          }
-          resetCombo(); birds.splice(i, 1); continue;
+        if (b.x <= dino.x + 36 && b.x + b.w * BIRD_SCALE_GAME >= dino.x + 20 && !b.dropChecked) {
+          b.dropChecked = true;
+          if (Math.random() < b.dropChance) spawnGroundBone(dino.x + 55, 1 + (save.upgrades.doubleBones || 0));
         }
+        if (b.x > W + 80) { resetCombo(); birds.splice(i, 1); continue; }
         if (!b.wasClose && boxDistance(dinoBox, bBox) < 12) b.wasClose = true;
       } else if (b.kind === 'predator') {
         if (rectCollide(dinoBox, bBox)) {
@@ -380,7 +378,7 @@ function render() {
   const colors = getObjectColors(timeOfDay, biomeScore);
   drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
   if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
-    obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); meteors.forEach(drawMeteor); drawRain(); drawSnow(); drawBonesFlying(); drawGroundBones(); drawEggs(); drawDino(); drawPet();
+    obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => b.kind ? drawPterodactyl(b, colors) : drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); meteors.forEach(drawMeteor); drawRain(); drawSnow(); drawBonesFlying(); drawGroundBones(); drawEggs(); drawDino(); drawPet();
   } else { drawMenuScene(colors); }
   if (poisonOverlayTimer > 0) {
     const poison = ctx.createLinearGradient(0, 0, W, H);
