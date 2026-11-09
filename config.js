@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 35;
+const CURRENT_VERSION = 36;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,16 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 36,
+    changes: [
+      'Патч 36: Новая форма корпуса T-Rex',
+      'Корпус стал более вытянутым и анатомичным: выраженная грудная клетка, наклонная спина и подтянутый живот',
+      'Уточнены объём грудной клетки и переход к талии без изменения головы, хвоста и конечностей',
+      'Сохранены четыре фазы бега, физика и коллизии'
+    ]
+  },
+
   {
     version: 35,
     changes: [
