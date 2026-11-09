@@ -113,6 +113,84 @@ function drawMoon(pos, t) {
   ctx.beginPath(); ctx.arc(pos.x + 2, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill();
 }
 
+function drawDesertLandscape(colors) {
+  const farOffset = (frame * 0.12) % 520;
+  ctx.fillStyle = colors.mountainFar;
+  ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+  for (let i = -1; i < 3; i++) {
+    const x = i * 520 - farOffset;
+    ctx.quadraticCurveTo(x + 130, GROUND_Y - 105, x + 260, GROUND_Y - 65);
+    ctx.quadraticCurveTo(x + 390, GROUND_Y - 25, x + 520, GROUND_Y - 90);
+  }
+  ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
+
+  const nearOffset = (frame * 0.28) % 430;
+  ctx.fillStyle = colors.mountainNear;
+  ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+  for (let i = -1; i < 4; i++) {
+    const x = i * 430 - nearOffset;
+    ctx.lineTo(x + 70, GROUND_Y - 42);
+    ctx.quadraticCurveTo(x + 190, GROUND_Y - 118, x + 300, GROUND_Y - 55);
+    ctx.lineTo(x + 430, GROUND_Y);
+  }
+  ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
+
+  // Дальние каньоны — мягкие уступы, не горные пики.
+  ctx.fillStyle = colors.dirt;
+  ctx.globalAlpha = 0.22;
+  for (let i = -1; i < 3; i++) {
+    const x = i * 560 - (frame * 0.08) % 560;
+    ctx.fillRect(x + 90, GROUND_Y - 54, 115, 54);
+    ctx.fillRect(x + 120, GROUND_Y - 76, 58, 22);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawForestLandscape(colors) {
+  function treeRow(baseY, spacing, scale, offset, color, alpha) {
+    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color;
+    for (let i = -2; i < Math.ceil(W / spacing) + 2; i++) {
+      const x = i * spacing - offset;
+      const h = 100 * scale, width = 62 * scale;
+      ctx.fillRect(x - 4 * scale, baseY - 18 * scale, 8 * scale, 22 * scale);
+      ctx.beginPath();
+      ctx.moveTo(x, baseY - h);
+      ctx.lineTo(x - width / 2, baseY - h * 0.35);
+      ctx.lineTo(x - width * 0.27, baseY - h * 0.35);
+      ctx.lineTo(x - width * 0.62, baseY - h * 0.05);
+      ctx.lineTo(x + width * 0.62, baseY - h * 0.05);
+      ctx.lineTo(x + width * 0.27, baseY - h * 0.35);
+      ctx.lineTo(x + width / 2, baseY - h * 0.35);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+  treeRow(GROUND_Y + 8, 105, 0.95, (frame * 0.16) % 105, colors.mountainFar, 0.85);
+  treeRow(GROUND_Y + 5, 145, 1.35, (frame * 0.32) % 145, colors.mountainNear, 0.95);
+}
+
+function drawDesertHerd() {
+  ctx.save(); ctx.fillStyle = '#51483D'; ctx.globalAlpha = 0.48;
+  const count = 4;
+  for (let i = 0; i < count; i++) {
+    const span = W + 130;
+    const x = ((i * (W / count) - frame * 0.72) % span + span) % span - 65;
+    const y = GROUND_Y - 8 - (i % 2) * 4;
+    const scale = 0.28 + (i % 2) * 0.035;
+    const leg = Math.sin(frame * 0.22 + i * 1.7) * 7 * scale;
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+    ctx.beginPath(); ctx.ellipse(0, -23, 30, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(18, -27); ctx.lineTo(32, -43); ctx.lineTo(49, -46); ctx.lineTo(53, -36); ctx.lineTo(39, -31); ctx.lineTo(31, -17); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-25, -24); ctx.lineTo(-52, -34); ctx.lineTo(-48, -27); ctx.lineTo(-25, -17); ctx.fill();
+    ctx.fillRect(27, -48, 20, 4);
+    ctx.fillRect(-17, -15, 6, 17 + leg);
+    ctx.fillRect(4, -15, 6, 17 - leg);
+    ctx.fillRect(17, -15, 6, 17 - leg);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 function drawBackground(timeOfDay, showCelestial, biomeScore) {
   if (showCelestial === undefined) showCelestial = true;
   const colors = getObjectColors(timeOfDay, biomeScore);
@@ -147,23 +225,31 @@ function drawBackground(timeOfDay, showCelestial, biomeScore) {
     ctx.globalAlpha = 1;
   });
 
-  ctx.fillStyle = colors.mountainFar; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
-  const offset = (frame * 0.1) % 400;
-  for (let i = -1; i < 4; i++) {
-    const bx = i * 300 - offset;
-    ctx.lineTo(bx + 80, GROUND_Y - 90); ctx.lineTo(bx + 160, GROUND_Y - 30);
-    ctx.lineTo(bx + 220, GROUND_Y - 110); ctx.lineTo(bx + 300, GROUND_Y);
-  }
-  ctx.lineTo(W, GROUND_Y); ctx.lineTo(W, GROUND_Y + 2); ctx.lineTo(0, GROUND_Y + 2); ctx.closePath(); ctx.fill();
+  const activeBiome = getBiomeState(biomeScore === undefined ? distance : biomeScore).current;
+  if (activeBiome.id === 'desert') {
+    drawDesertLandscape(colors);
+    drawDesertHerd();
+  } else if (activeBiome.id === 'forest') {
+    drawForestLandscape(colors);
+  } else {
+    ctx.fillStyle = colors.mountainFar; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+    const offset = (frame * 0.1) % 400;
+    for (let i = -1; i < 4; i++) {
+      const bx = i * 300 - offset;
+      ctx.lineTo(bx + 80, GROUND_Y - 90); ctx.lineTo(bx + 160, GROUND_Y - 30);
+      ctx.lineTo(bx + 220, GROUND_Y - 110); ctx.lineTo(bx + 300, GROUND_Y);
+    }
+    ctx.lineTo(W, GROUND_Y); ctx.lineTo(W, GROUND_Y + 2); ctx.lineTo(0, GROUND_Y + 2); ctx.closePath(); ctx.fill();
 
-  ctx.fillStyle = colors.mountainNear; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
-  const offset2 = (frame * 0.25) % 500;
-  for (let i = -1; i < 3; i++) {
-    const bx = i * 400 - offset2;
-    ctx.lineTo(bx + 100, GROUND_Y - 50); ctx.lineTo(bx + 200, GROUND_Y - 15);
-    ctx.lineTo(bx + 300, GROUND_Y - 60); ctx.lineTo(bx + 400, GROUND_Y);
+    ctx.fillStyle = colors.mountainNear; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+    const offset2 = (frame * 0.25) % 500;
+    for (let i = -1; i < 3; i++) {
+      const bx = i * 400 - offset2;
+      ctx.lineTo(bx + 100, GROUND_Y - 50); ctx.lineTo(bx + 200, GROUND_Y - 15);
+      ctx.lineTo(bx + 300, GROUND_Y - 60); ctx.lineTo(bx + 400, GROUND_Y);
+    }
+    ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
   }
-  ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
 }
 
 function drawGround(timeOfDay, biomeScore) {
