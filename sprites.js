@@ -188,71 +188,66 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(30.2*scale, 9.9*scale+bob*scale, 30.0*scale, 9.5*scale+bob*scale);
   });
 
-  // Anatomical lower jaw: the hinge begins just behind the eye and the chin is deep and powerful.
-  // The jaw is a separate mass; its mouth opening is short and localized, not a stripe across the skull.
+  // Rebuilt mandible: one continuous, anatomically grounded silhouette.
+  // The rear joint sits behind the orbit; the dentary deepens toward the chin,
+  // then rises into the rounded anterior symphysis beneath the snout.
   headPath(c.outline, () => {
-    ctx.moveTo(33.15*scale, 9.85*scale+bob*scale);
-    ctx.quadraticCurveTo(35.2*scale, 10.35*scale+bob*scale, 38.0*scale, 10.25*scale+bob*scale);
-    ctx.quadraticCurveTo(41.5*scale, 9.95*scale+bob*scale, 44.15*scale, 9.05*scale+bob*scale);
-    ctx.quadraticCurveTo(45.0*scale, 9.45*scale+bob*scale, 44.65*scale, 10.65*scale+bob*scale);
-    ctx.quadraticCurveTo(44.35*scale, 11.8*scale+bob*scale, 42.8*scale, 12.55*scale+bob*scale);
-    ctx.quadraticCurveTo(40.0*scale, 13.55*scale+bob*scale, 36.9*scale, 13.25*scale+bob*scale);
-    ctx.quadraticCurveTo(34.35*scale, 12.95*scale+bob*scale, 33.25*scale, 11.75*scale+bob*scale);
-    ctx.quadraticCurveTo(32.8*scale, 10.75*scale+bob*scale, 33.15*scale, 9.85*scale+bob*scale);
+    ctx.moveTo(32.05*scale, 9.55*scale+bob*scale);
+    ctx.quadraticCurveTo(31.55*scale, 10.05*scale+bob*scale, 32.15*scale, 10.85*scale+bob*scale);
+    ctx.quadraticCurveTo(33.05*scale, 11.75*scale+bob*scale, 34.55*scale, 12.45*scale+bob*scale);
+    ctx.quadraticCurveTo(37.0*scale, 13.55*scale+bob*scale, 39.55*scale, 13.45*scale+bob*scale);
+    ctx.quadraticCurveTo(42.0*scale, 13.35*scale+bob*scale, 43.55*scale, 12.15*scale+bob*scale);
+    ctx.quadraticCurveTo(44.55*scale, 11.35*scale+bob*scale, 44.35*scale, 10.05*scale+bob*scale);
+    ctx.quadraticCurveTo(42.1*scale, 10.72*scale+bob*scale, 39.45*scale, 10.82*scale+bob*scale);
+    ctx.quadraticCurveTo(36.25*scale, 10.92*scale+bob*scale, 33.55*scale, 9.95*scale+bob*scale);
+    ctx.quadraticCurveTo(32.65*scale, 9.62*scale+bob*scale, 32.05*scale, 9.55*scale+bob*scale);
   });
+  // Soft inner plane follows the bone mass instead of reading as a second pasted shape.
   headPath(c.body, () => {
-    ctx.moveTo(33.75*scale, 10.45*scale+bob*scale);
-    ctx.quadraticCurveTo(36.5*scale, 10.9*scale+bob*scale, 39.2*scale, 10.55*scale+bob*scale);
-    ctx.quadraticCurveTo(42.0*scale, 10.25*scale+bob*scale, 44.0*scale, 9.65*scale+bob*scale);
-    ctx.quadraticCurveTo(44.25*scale, 10.6*scale+bob*scale, 42.6*scale, 11.8*scale+bob*scale);
-    ctx.quadraticCurveTo(40.0*scale, 12.85*scale+bob*scale, 37.0*scale, 12.55*scale+bob*scale);
-    ctx.quadraticCurveTo(34.8*scale, 12.25*scale+bob*scale, 33.75*scale, 10.45*scale+bob*scale);
+    ctx.moveTo(32.85*scale, 10.35*scale+bob*scale);
+    ctx.quadraticCurveTo(35.65*scale, 11.35*scale+bob*scale, 39.35*scale, 11.35*scale+bob*scale);
+    ctx.quadraticCurveTo(42.0*scale, 11.25*scale+bob*scale, 43.55*scale, 10.65*scale+bob*scale);
+    ctx.quadraticCurveTo(43.75*scale, 11.35*scale+bob*scale, 42.85*scale, 12.05*scale+bob*scale);
+    ctx.quadraticCurveTo(41.45*scale, 13.0*scale+bob*scale, 39.35*scale, 13.05*scale+bob*scale);
+    ctx.quadraticCurveTo(36.9*scale, 13.12*scale+bob*scale, 34.75*scale, 12.15*scale+bob*scale);
+    ctx.quadraticCurveTo(33.45*scale, 11.55*scale+bob*scale, 32.85*scale, 10.35*scale+bob*scale);
   });
-  // A narrow mouth cavity sits only between the rear hinge and the tip of the muzzle.
+  // A restrained mouth opening, tucked directly beneath the upper tooth row.
   headPath("#45272A", () => {
-    ctx.moveTo(33.25*scale, 9.95*scale+bob*scale);
-    ctx.quadraticCurveTo(37.0*scale, 10.65*scale+bob*scale, 40.1*scale, 10.2*scale+bob*scale);
-    ctx.quadraticCurveTo(42.5*scale, 9.85*scale+bob*scale, 44.2*scale, 9.15*scale+bob*scale);
-    ctx.quadraticCurveTo(42.7*scale, 10.55*scale+bob*scale, 40.0*scale, 10.8*scale+bob*scale);
-    ctx.quadraticCurveTo(36.4*scale, 11.1*scale+bob*scale, 33.25*scale, 9.95*scale+bob*scale);
+    ctx.moveTo(32.85*scale, 9.9*scale+bob*scale);
+    ctx.quadraticCurveTo(36.0*scale, 10.72*scale+bob*scale, 39.35*scale, 10.62*scale+bob*scale);
+    ctx.quadraticCurveTo(42.0*scale, 10.52*scale+bob*scale, 44.2*scale, 9.82*scale+bob*scale);
+    ctx.quadraticCurveTo(42.65*scale, 11.02*scale+bob*scale, 39.45*scale, 11.05*scale+bob*scale);
+    ctx.quadraticCurveTo(35.7*scale, 11.08*scale+bob*scale, 32.85*scale, 9.9*scale+bob*scale);
   });
-  // Clearly visible, individually shaped teeth along both edges of the short jaw opening.
+  // Uneven, slightly recurved crowns sit in a continuous gum line.
+  const drawTooth = (points) => headPath("#F3E5C8", () => {
+    ctx.moveTo(points[0][0]*scale,points[0][1]*scale+bob*scale);
+    ctx.quadraticCurveTo(points[1][0]*scale,points[1][1]*scale+bob*scale,points[2][0]*scale,points[2][1]*scale+bob*scale);
+    ctx.quadraticCurveTo(points[3][0]*scale,points[3][1]*scale+bob*scale,points[0][0]*scale,points[0][1]*scale+bob*scale);
+  });
   const upperTeeth = [
-    [[34.0,10.12],[34.65,10.22],[34.35,10.92]],
-    [[35.65,10.38],[36.35,10.46],[36.05,11.15]],
-    [[37.45,10.48],[38.15,10.48],[37.85,11.18]],
-    [[39.25,10.38],[39.95,10.28],[39.65,10.98]],
-    [[41.05,10.02],[41.72,9.82],[41.45,10.55]],
-    [[42.65,9.55],[43.25,9.32],[43.0,10.02]]
+    [[33.65,10.08],[34.02,10.12],[34.18,10.55],[33.92,10.92]],
+    [[35.35,10.38],[35.78,10.42],[35.93,10.88],[35.62,11.18]],
+    [[37.2,10.53],[37.62,10.55],[37.76,10.98],[37.45,11.25]],
+    [[39.05,10.5],[39.48,10.45],[39.58,10.84],[39.3,11.12]],
+    [[40.92,10.3],[41.34,10.2],[41.42,10.56],[41.12,10.85]],
+    [[42.55,9.98],[42.94,9.85],[43.0,10.2],[42.72,10.48]]
   ];
-  for (const tooth of upperTeeth) {
-    headPath("#F3E5C8", () => {
-      ctx.moveTo(tooth[0][0]*scale,tooth[0][1]*scale+bob*scale);
-      ctx.lineTo(tooth[1][0]*scale,tooth[1][1]*scale+bob*scale);
-      ctx.lineTo(tooth[2][0]*scale,tooth[2][1]*scale+bob*scale);
-    });
-  }
+  upperTeeth.forEach(drawTooth);
   const lowerTeeth = [
-    [[34.75,10.65],[35.4,10.9],[35.0,10.25]],
-    [[36.55,10.9],[37.2,11.02],[36.85,10.45]],
-    [[38.35,10.88],[39.0,10.82],[38.68,10.35]],
-    [[40.15,10.65],[40.8,10.48],[40.48,10.12]],
-    [[42.0,10.18],[42.6,9.92],[42.3,9.7]]
+    [[34.35,10.82],[34.7,10.95],[34.9,10.5],[34.62,10.35]],
+    [[36.15,11.12],[36.55,11.2],[36.7,10.72],[36.38,10.58]],
+    [[38.0,11.18],[38.4,11.18],[38.55,10.72],[38.22,10.62]],
+    [[39.9,11.05],[40.3,10.98],[40.42,10.62],[40.12,10.5]],
+    [[41.65,10.78],[42.02,10.65],[42.12,10.35],[41.84,10.28]]
   ];
-  for (const tooth of lowerTeeth) {
-    headPath("#F3E5C8", () => {
-      ctx.moveTo(tooth[0][0]*scale,tooth[0][1]*scale+bob*scale);
-      ctx.lineTo(tooth[1][0]*scale,tooth[1][1]*scale+bob*scale);
-      ctx.lineTo(tooth[2][0]*scale,tooth[2][1]*scale+bob*scale);
-    });
-  }
-  // Rounded chin volume and a soft underside highlight emphasize the heavy mandible.
-  headPath(c.belly, () => {
-    ctx.moveTo(35.0*scale, 12.25*scale+bob*scale);
-    ctx.quadraticCurveTo(38.2*scale, 13.05*scale+bob*scale, 41.8*scale, 11.95*scale+bob*scale);
-    ctx.quadraticCurveTo(40.0*scale, 13.0*scale+bob*scale, 37.0*scale, 12.75*scale+bob*scale);
-    ctx.quadraticCurveTo(35.7*scale, 12.65*scale+bob*scale, 35.0*scale, 12.25*scale+bob*scale);
-  });
+  lowerTeeth.forEach(drawTooth);
+  // A single quiet highlight describes the chin's broad curved plane.
+  headLine(() => {
+    ctx.moveTo(35.0*scale, 12.35*scale+bob*scale);
+    ctx.quadraticCurveTo(38.15*scale, 13.25*scale+bob*scale, 41.25*scale, 12.65*scale+bob*scale);
+  }, c.belly, 0.42);
 
   // Small, high-set eye under a pronounced brow ridge.
   ctx.fillStyle = c.eye;

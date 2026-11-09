@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 65;
+const CURRENT_VERSION = 66;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,16 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 66,
+    changes: [
+      'Патч 66: Нижняя челюсть T-Rex получила более цельный и анатомичный силуэт',
+      'Уточнены глубокая передняя часть, плавная линия подбородка и переход к заднему челюстному суставу',
+      'Зубы получили разную форму и более естественную посадку вдоль края пасти',
+      'Верхняя часть головы, корпус, хвост, лапы и анимация бега не менялись'
+    ]
+  },
+
   {
     version: 65,
     changes: [
