@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 28;
+const CURRENT_VERSION = 29;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,18 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 29,
+    changes: [
+      'Патч 29: Пауза и обновлённый пиксельный T-Rex',
+      'Добавлена кнопка паузы во время забега',
+      'Пауза останавливает игровой мир, счёт, препятствия и таймеры бонусов',
+      'Добавлены кнопки «Возобновить» и «В меню» в пиксельном стиле',
+      'Переработан силуэт динозавра: крупная голова, челюсть, короткие лапы и мощные ноги',
+      'Беговая анимация расширена до четырёх фаз с движением ног и корпуса',
+      'Сохранена поддержка цветовых скинов и текущей игровой физики'
+    ]
+  },
   {
     version: 28,
     changes: [
