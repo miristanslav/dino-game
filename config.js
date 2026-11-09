@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 93;
+const CURRENT_VERSION = 94;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 94,
+    changes: [
+      "Патч 94: Амплитуда суставной анимации задних лап, подъёма корпуса и хвоста увеличена примерно на 18%",
+      "Сохранены исходные размеры и силуэт динозавра; изменение касается только движения",
+      "Декоративная текстура земли замедлена до постоянного темпа ходьбы и больше не ускоряется вместе со сложностью"
+    ]
+  },
   {
     version: 93,
     changes: [
@@ -601,6 +609,8 @@ const DINO_SCALE_MENU = 3.0;
 const BIRD_SCALE_GAME = 0.9;
 const BIRD_SCALE_MENU = 1.2;
 const BASE_SPEED = 3.5;
+// Decorative ground texture follows a steady walking pace instead of accelerating with gameplay.
+const GROUND_SCROLL_SPEED = BASE_SPEED * 0.55;
 const MAX_SPEED_BONUS = 4.5;
 const DAY_NIGHT_CYCLE = 75;
 const CLEAR_DURATION = 20;

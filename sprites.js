@@ -11,8 +11,8 @@ function drawTRexStanding(phase, dead, scale) {
   const c = getDinoColors();
   const step = ((Math.floor(phase) % 12) + 12) % 12;
   // Eight evenly spaced poses make the stride smoother while preserving the approved silhouette.
-  const bob = dead ? 0 : [0,-0.04,-0.12,-0.24,-0.36,-0.46,-0.48,-0.42,-0.30,-0.18,-0.08,-0.02][step];
-  const tailLift = dead ? 0 : [0,-0.03,-0.10,-0.20,-0.32,-0.42,-0.46,-0.40,-0.30,-0.18,-0.08,-0.02][step];
+  const bob = dead ? 0 : [0,-0.04,-0.12,-0.24,-0.36,-0.46,-0.48,-0.42,-0.30,-0.18,-0.08,-0.02][step] * 1.18;
+  const tailLift = dead ? 0 : [0,-0.03,-0.10,-0.20,-0.32,-0.42,-0.46,-0.40,-0.30,-0.18,-0.08,-0.02][step] * 1.18;
 
   const poly = (points, fill) => {
     ctx.beginPath();
@@ -50,7 +50,7 @@ function drawTRexStanding(phase, dead, scale) {
       [-0.04,-0.02,-0.02],
       [0.00, 0.00, 0.00]
     ];
-    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12];
+    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12].map(angle=>angle*1.18);
     const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
     const rotate=(p,pivot,a)=>{
       const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);

@@ -218,7 +218,7 @@ function update(dt) {
     if (scoreFloored > save.highScore) save.highScore = scoreFloored;
 
     clouds.forEach(c => { c.x -= c.speed; if (c.x < -80) { c.x = W + Math.random() * 200; c.y = 40 + Math.random() * 60; } });
-    groundDots.forEach(d => { d.x -= speed; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
+    groundDots.forEach(d => { d.x -= GROUND_SCROLL_SPEED; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
     updateHUD();
   }
   updateParticles(); updateBonesFlying(); if (shakeTime > 0) shakeTime--;

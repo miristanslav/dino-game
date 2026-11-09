@@ -174,7 +174,7 @@ function drawGround(timeOfDay, biomeScore) {
   groundDots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); });
   ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 1.5;
   for (let i = 0; i < 30; i++) {
-    const gx = (i * 50 - (frame * speed) % 50);
+    const gx = (i * 50 - (frame * GROUND_SCROLL_SPEED) % 50);
     ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke();
   }
 }
