@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 40;
+const CURRENT_VERSION = 41;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 41,
+    changes: [
+      'Патч 41: Плавный переход хвоста в корпус',
+      'Хвост слегка приподнят без изменения утверждённой формы и пропорций',
+      'Скорректировано перекрытие в области таза и объединён контур перехода со спиной'
+    ]
+  },
   {
     version: 40,
     changes: [
