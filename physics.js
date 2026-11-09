@@ -47,7 +47,7 @@ function spawnPterodactyl() {
     const altitudeRoll = Math.random();
     const altitude = altitudeRoll < 0.65 ? 'high' : altitudeRoll < 0.9 ? 'medium' : 'low';
     const y = GROUND_Y - (altitude === 'high' ? 168 : altitude === 'medium' ? 108 : 62);
-    birds.push({ kind: 'peaceful', altitude, x: W + 35, y, w: 44, h: 24,
+    birds.push({ kind: 'peaceful', altitude, x: -55, y, w: 44, h: 24,
       speedFactor: 0.48, dropChance: altitude === 'high' ? 1 : altitude === 'medium' ? 0.4 : 0.15,
       id: `ptero-${frame}-${Math.floor(Math.random() * 100000)}`, magnetized: false, wasClose: false });
     return;
@@ -56,7 +56,7 @@ function spawnPterodactyl() {
   const biome = getBiomeState(distance).current.id;
   const playerChance = ({ desert: 0.2, forest: 0.4, snow: 0.6, volcano: 0.8 })[biome] || 0.2;
   const targetPlayer = altitude === 'high' && Math.random() < playerChance;
-  const target = !targetPlayer ? birds.find(x => x.kind === 'peaceful' && x.x > W * 0.25) : null;
+  const target = altitude === 'high' && !targetPlayer ? birds.find(x => x.kind === 'peaceful' && x.x > W * 0.25) : null;
   birds.push({ kind: 'predator', altitude, x: W + 35,
     y: GROUND_Y - (altitude === 'high' ? 178 : 18), w: 44, h: 24,
     speedFactor: 1.28, targetPlayer, targetId: target ? target.id : null,
