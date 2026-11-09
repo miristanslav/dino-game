@@ -63,7 +63,7 @@ function duck(on) { if (gameState !== 'playing' || dino.jumping || isPortraitMod
 function clearRoundState() {
   obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
-  score = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
+  score = 0; distance = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
   comboCount = 0; comboTimer = 0; updateComboHUD();
   dayNightTime = 0.25 * DAY_NIGHT_CYCLE; weatherTime = 0; isRaining = false; birdsEatenThisGame = 0; lastPowerUpSecond = -1;
@@ -121,6 +121,7 @@ function update(dt) {
     const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
     let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
+    distance += speed * (dt * 60);
     speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400); speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
 
     if (save.currentPet !== 'none') {
@@ -130,7 +131,7 @@ function update(dt) {
 
     if (comboCount > 0) { comboTimer -= dt; if (comboTimer <= 0) resetCombo(); else comboTimerFill.style.width = Math.min(100, (comboTimer / COMBO_TIMEOUT) * 100) + '%'; }
     dayNightTime += dt; if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
-    const biomeInfo = getBiomeState(score);
+    const biomeInfo = getBiomeState(distance);
     if (biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5)) { isRaining = false; updateSnow(dt); }
     else { weatherTime += dt; const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION; if (weatherTime >= currentWeatherDuration) { isRaining = !isRaining; weatherTime = 0; if (isRaining) initRain(); } updateLightning(dt); updateRain(dt); }
 
@@ -237,7 +238,7 @@ function render() {
   const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
   const timeOfDay = (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
   // ПАТЧ 26: в меню используем biomeScore=0 — иначе фон залипал в позднем биоме
-  const biomeScore = isMenu ? 0 : score;
+  const biomeScore = isMenu ? 0 : distance;
   const colors = getObjectColors(timeOfDay, biomeScore);
   drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
   if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {

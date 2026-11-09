@@ -76,6 +76,11 @@ function renderRecords() {
   fetchGlobalLeaderboard();
 }
 
+function getUpgradeCost(upg, level) {
+  if (upg.id === 'lives') return Math.ceil(upg.initialCost * Math.pow(upg.costMultiplier, level));
+  return upg.costs[level];
+}
+
 function renderUpgrades() {
   upgradesBones.textContent = save.bones;
   upgradesList.innerHTML = ''; skinsList.innerHTML = ''; if (petsList) petsList.innerHTML = '';
@@ -83,7 +88,7 @@ function renderUpgrades() {
   if (activeTab === 'upg') {
     upgradesList.classList.remove('hidden'); skinsList.classList.add('hidden'); if (petsList) petsList.classList.add('hidden');
     UPGRADES.forEach(upg => {
-      const level = save.upgrades[upg.id] || 0; const isMax = level >= upg.maxLevel; const cost = isMax ? null : upg.costs[level]; const canAfford = !isMax && save.bones >= cost;
+      const level = save.upgrades[upg.id] || 0; const isMax = Number.isFinite(upg.maxLevel) && level >= upg.maxLevel; const cost = isMax ? null : getUpgradeCost(upg, level); const canAfford = !isMax && save.bones >= cost;
       const card = document.createElement('div'); card.className = 'upgrade-card'; if (isMax) card.classList.add('maxed');
       card.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><div class="upgrade-name">${upg.name}</div><div class="upgrade-desc">${upg.desc}</div><div class="upgrade-level">Уровень ${level}/${upg.maxLevel}</div></div><button class="upgrade-buy ${isMax ? 'maxed' : ''}" ${isMax || !canAfford ? 'disabled' : ''}>${isMax ? '✓ MAX' : `${cost} 🦴`}</button>`;
       if (!isMax) card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => { e.stopPropagation(); buyUpgrade(upg.id); });
@@ -114,8 +119,8 @@ function renderUpgrades() {
 
 function buyUpgrade(id) {
   const upg = UPGRADES.find(u => u.id === id); if (!upg) return;
-  const level = save.upgrades[id] || 0; if (level >= upg.maxLevel) return;
-  const cost = upg.costs[level]; if (save.bones < cost) return;
+  const level = save.upgrades[id] || 0; if (Number.isFinite(upg.maxLevel) && level >= upg.maxLevel) return;
+  const cost = getUpgradeCost(upg, level); if (!Number.isFinite(cost) || save.bones < cost) return;
   save.bones -= cost; save.upgrades[id] = level + 1; writeSave(); renderUpgrades(); haptic('buy'); playSound('click');
 }
 

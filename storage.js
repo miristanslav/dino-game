@@ -3,7 +3,7 @@ const SAVE_KEY = 'trex_color_save_v1';
 function defaultSave() {
   return {
     highScore: 0, bones: 0, games: [],
-    upgrades: { jump: 0, magnet: 0, doubleBones: 0 },
+    upgrades: { jump: 0, magnet: 0, doubleBones: 0, lives: 0 },
     achievements: {}, currentSkin: 'default', unlockedSkins: ['default'],
     currentPet: 'none', unlockedPets: ['none'],
     xp: 0, playerLevel: 1, lastPlayDate: null, streak: 0, dailyQuest: null,
@@ -20,6 +20,12 @@ let save = (() => {
   } catch { return defaultSave(); }
 })();
 
+// Совместимость старых сохранений: новые уровни не должны сбрасывать прежние.
+save.upgrades = { ...defaultSave().upgrades, ...(save.upgrades || {}) };
+for (const key of ['jump', 'magnet', 'doubleBones', 'lives']) {
+  const value = Number(save.upgrades[key]);
+  save.upgrades[key] = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+}
 // ПАТЧ 26: нормализация старых сейвов
 // 1) highScore мог быть дробным (баг версий до 0.0.27)
 if (typeof save.highScore === 'number' && !Number.isInteger(save.highScore)) {
