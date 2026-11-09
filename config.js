@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 34;
+const CURRENT_VERSION = 35;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,17 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 35,
+    changes: [
+      'Патч 35: Анатомическая проработка T-Rex',
+      'Уточнены пропорции корпуса: выраженная грудная клетка, плечевой пояс и переход к тазу',
+      'Переработаны задние ноги, колени, голени и ступни с отдельными когтями',
+      'Хвост и шея получили более плавные линии, добавлены сдержанные светотени и детали спины',
+      'Голова сохранена; четыре фазы бега, физика и коллизии не менялись'
+    ]
+  },
+
   {
     version: 34,
     changes: [
