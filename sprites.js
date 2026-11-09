@@ -298,11 +298,21 @@ function drawTRexStanding(phase, dead, scale) {
   ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   ctx.restore();
 
-  // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
-  poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);
-  poly([[26,14.5+bob],[27.3,14+bob],[29,15+bob],[28,16+bob],[27,15.8+bob]], c.body);
-  line([[28,16+bob],[29,17+bob],[30,16.5+bob]], c.claw, 0.8);
-  line([[27,16+bob],[28,17+bob],[29,16.8+bob]], c.claw, 0.65);
+  // Enlarged, clearly articulated T-Rex forearms: strong upper arm, bent elbow,
+  // short wrist and two distinct hooked fingers. Keep the classic two-claw silhouette.
+  poly([[23.9,12.9+bob],[25.1,12.15+bob],[27.1,12.45+bob],[28.7,13.65+bob],
+        [29.2,15.35+bob],[28.45,16.65+bob],[27.15,16.35+bob],
+        [26.35,15.25+bob],[25.25,16.05+bob],[24.15,15.45+bob],[24.65,14.15+bob]], c.outline);
+  poly([[24.75,13.05+bob],[25.55,12.65+bob],[27.0,12.95+bob],
+        [28.15,14.0+bob],[28.55,15.3+bob],[27.95,15.85+bob],
+        [27.1,15.35+bob],[26.15,14.75+bob],[25.15,15.15+bob],
+        [24.65,14.55+bob]], c.body);
+  // Forearm muscle and elbow crease give the limb a readable joint.
+  line([[25.05,13.15+bob],[26.35,13.55+bob],[27.35,14.45+bob]], c.belly, 0.42);
+  line([[27.0,15.15+bob],[27.75,15.75+bob],[28.35,15.55+bob]], c.outline, 0.5);
+  // Two separated, downward-curving claws at the wrist.
+  line([[26.25,15.0+bob],[25.8,16.15+bob],[24.95,16.55+bob]], c.claw, 1.0);
+  line([[27.15,15.35+bob],[27.0,16.45+bob],[27.65,16.95+bob]], c.claw, 1.0);
 
   // Upright dorsal spikes: lift the tail-side run slightly, lower the neck-side run
   // so every base sits against the back silhouette rather than appearing suspended.
