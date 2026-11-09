@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 52;
+const CURRENT_VERSION = 53;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 53,
+    changes: [
+      'Патч 53: Анатомическая доработка задних лап T-Rex',
+      'Уточнены пропорции бедра, колена и голени; массивность лап уменьшена',
+      'Ступни получили более читаемую форму с тремя пальцами и когтями',
+      'Улучшено чередование опоры и переноса лап в четырёх фазах бега'
+    ]
+  },
   {
     version: 52,
     changes: [
