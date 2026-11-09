@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 58;
+const CURRENT_VERSION = 59;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 59,
+    changes: [
+      'Патч 59: Сбалансированы пропорции дальней задней лапы',
+      'Дальняя лапа получила более объёмное бедро и плавный переход к голени, согласованный с ближней лапой',
+      'Пальцы обеих задних лап и когти немного удлинены и стали выразительнее',
+      'Сохранены пальцеходящий изгиб, поднятая пятка и опора пальцев на землю; анимация не менялась'
+    ]
+  },
   {
     version: 58,
     changes: [
