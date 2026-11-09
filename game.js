@@ -29,6 +29,24 @@ function updateComboHUD(pulse) {
 }
 function resetCombo() { if (comboCount > 0) { comboCount = 0; comboTimer = 0; updateComboHUD(); } }
 
+function pauseGame() {
+  if (gameState !== 'playing') return;
+  gameState = 'paused';
+  dino.ducking = false;
+  pauseScreen.classList.remove('hidden');
+  pauseBtn.classList.add('hidden');
+  stopMusic();
+}
+
+function resumeGame() {
+  if (gameState !== 'paused') return;
+  gameState = 'playing';
+  pauseScreen.classList.add('hidden');
+  pauseBtn.classList.remove('hidden');
+  lastTime = performance.now();
+  if (musicEnabled) startMusic();
+}
+
 function jump() {
   if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
   const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump');
@@ -57,6 +75,7 @@ function reset() {
   clearRoundState();
   gameState = 'playing';
   hideAllScreens();
+  pauseBtn.classList.remove('hidden');
   hud.classList.remove('hidden');
   xpBarContainer.classList.remove('hidden');
   speedBarContainer.classList.add('active');
@@ -91,12 +110,12 @@ function gameOver() {
   writeSave(); updateHUD();
   updateDailyBadge(); // ПАТЧ 26: бейдж ежедневки обновляется сразу после игры
   goScore.textContent = finalScore; goHigh.textContent = Math.floor(save.highScore); goBones.textContent = `+${earnedThisGame} 🦴`; goXp.textContent = `+${xpGained} XP`;
-  gameoverScreen.classList.remove('hidden'); fullscreenBtn.classList.add('hidden'); xpBarContainer.classList.add('hidden'); versionBtn.style.display = 'none'; speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); hud.classList.add('hidden');
+  gameoverScreen.classList.remove('hidden'); pauseBtn.classList.add('hidden'); pauseScreen.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); xpBarContainer.classList.add('hidden'); versionBtn.style.display = 'none'; speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); hud.classList.add('hidden');
   if (newInfo.level > oldLevel) setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 900);
 }
 
 function update(dt) {
-  if (isPortraitMode) return;
+  if (isPortraitMode || gameState === 'paused') return;
   frame++;
   if (gameState === 'playing') {
     const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
@@ -216,12 +235,12 @@ function render() {
   let shakeX = 0, shakeY = 0; if (shakeTime > 0) { shakeX = (Math.random() - 0.5) * shakeTime * 0.6; shakeY = (Math.random() - 0.5) * shakeTime * 0.6; }
   ctx.clearRect(0, 0, W, H); ctx.save(); ctx.translate(shakeX, shakeY);
   const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
-  const timeOfDay = (gameState === 'playing' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
+  const timeOfDay = (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
   // ПАТЧ 26: в меню используем biomeScore=0 — иначе фон залипал в позднем биоме
   const biomeScore = isMenu ? 0 : score;
   const colors = getObjectColors(timeOfDay, biomeScore);
   drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
-  if (gameState === 'playing' || gameState === 'gameover') {
+  if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
     obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); meteors.forEach(drawMeteor); drawRain(); drawSnow(); drawBonesFlying(); drawDino(); drawPet();
   } else { drawMenuScene(colors); }
   ctx.restore();
