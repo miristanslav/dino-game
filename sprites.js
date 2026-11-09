@@ -182,17 +182,37 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(32.2*scale, 11.8*scale+bob*scale, 30.5*scale, 10.5*scale+bob*scale);
     ctx.quadraticCurveTo(29.7*scale, 10.0*scale+bob*scale, 29.8*scale, 9.2*scale+bob*scale);
   });
-  headPath(c.belly, () => {
-    ctx.moveTo(31.0*scale, 10.5*scale+bob*scale);
-    ctx.quadraticCurveTo(35.0*scale, 11.4*scale+bob*scale, 39.0*scale, 10.3*scale+bob*scale);
-    ctx.quadraticCurveTo(40.8*scale, 9.9*scale+bob*scale, 42.1*scale, 9.6*scale+bob*scale);
-    ctx.quadraticCurveTo(40.0*scale, 11.1*scale+bob*scale, 36.0*scale, 11.7*scale+bob*scale);
-    ctx.quadraticCurveTo(32.5*scale, 12.0*scale+bob*scale, 31.0*scale, 10.5*scale+bob*scale);
+  // Distinct T. rex mandible: deep at the rear, tapering toward the snout.
+  // The jaw is layered over the skull with a clear mouth seam, without changing head proportions.
+  headPath(c.outline, () => {
+    ctx.moveTo(30.2*scale, 9.9*scale+bob*scale);
+    ctx.quadraticCurveTo(31.2*scale, 10.1*scale+bob*scale, 32.4*scale, 10.5*scale+bob*scale);
+    ctx.quadraticCurveTo(36.2*scale, 11.1*scale+bob*scale, 40.0*scale, 10.4*scale+bob*scale);
+    ctx.quadraticCurveTo(42.2*scale, 10.0*scale+bob*scale, 43.5*scale, 9.3*scale+bob*scale);
+    ctx.quadraticCurveTo(44.1*scale, 10.0*scale+bob*scale, 43.2*scale, 10.8*scale+bob*scale);
+    ctx.quadraticCurveTo(41.1*scale, 11.9*scale+bob*scale, 37.5*scale, 12.2*scale+bob*scale);
+    ctx.quadraticCurveTo(33.7*scale, 12.4*scale+bob*scale, 31.2*scale, 11.4*scale+bob*scale);
+    ctx.quadraticCurveTo(29.9*scale, 10.9*scale+bob*scale, 30.2*scale, 9.9*scale+bob*scale);
   });
+  headPath(c.body, () => {
+    ctx.moveTo(31.0*scale, 10.4*scale+bob*scale);
+    ctx.quadraticCurveTo(34.2*scale, 11.1*scale+bob*scale, 38.0*scale, 10.8*scale+bob*scale);
+    ctx.quadraticCurveTo(41.2*scale, 10.5*scale+bob*scale, 43.0*scale, 9.8*scale+bob*scale);
+    ctx.quadraticCurveTo(42.6*scale, 10.6*scale+bob*scale, 40.8*scale, 11.1*scale+bob*scale);
+    ctx.quadraticCurveTo(37.4*scale, 11.8*scale+bob*scale, 34.1*scale, 11.7*scale+bob*scale);
+    ctx.quadraticCurveTo(32.0*scale, 11.5*scale+bob*scale, 31.0*scale, 10.4*scale+bob*scale);
+  });
+  headPath(c.belly, () => {
+    ctx.moveTo(33.0*scale, 11.4*scale+bob*scale);
+    ctx.quadraticCurveTo(36.5*scale, 12.0*scale+bob*scale, 40.0*scale, 11.1*scale+bob*scale);
+    ctx.quadraticCurveTo(37.2*scale, 12.0*scale+bob*scale, 34.5*scale, 11.9*scale+bob*scale);
+    ctx.quadraticCurveTo(33.4*scale, 11.8*scale+bob*scale, 33.0*scale, 11.4*scale+bob*scale);
+  });
+  // Dark, gently curved mouth line separates the upper skull from the lower jaw.
   headLine(() => {
-    ctx.moveTo(33.0*scale, 10.1*scale+bob*scale);
-    ctx.quadraticCurveTo(37.0*scale, 10.8*scale+bob*scale, 42.2*scale, 9.5*scale+bob*scale);
-  }, "#45272A", 0.55);
+    ctx.moveTo(30.6*scale, 9.9*scale+bob*scale);
+    ctx.quadraticCurveTo(36.8*scale, 10.8*scale+bob*scale, 43.4*scale, 9.35*scale+bob*scale);
+  }, "#45272A", 0.72);
   ctx.fillStyle = c.eye;
   ctx.beginPath();
   ctx.ellipse(35.7*scale, 6.7*scale+bob*scale, 0.9*scale, 0.75*scale, 0, 0, Math.PI*2);
