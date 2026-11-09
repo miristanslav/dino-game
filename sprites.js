@@ -140,13 +140,14 @@ function drawTRexStanding(phase, dead, scale) {
   // Neck extended upward and forward to support the repositioned skull.
   poly([[25,13+bob],[26,10+bob],[29,7.8+bob],[32,7+bob],[34.8,8.2+bob],[36,11.2+bob],[34,14.8+bob],[29,16+bob],[26,15+bob]], c.outline);
   poly([[26,13+bob],[27.5,10.5+bob],[30,8.4+bob],[32.7,7.8+bob],[34.2,8.8+bob],[35,11.4+bob],[33,14+bob],[29,15+bob],[27,14.5+bob]], c.body);
-  // Blend the neck into the chest: this body-colour bridge hides the internal overlap edge.
+  // Broad rounded body-colour blend hides the neck/chest overlap seam.
   ctx.beginPath();
-  ctx.moveTo(25.4*scale,13.15*scale+bob*scale);
-  ctx.quadraticCurveTo(27.2*scale,13.0*scale+bob*scale,29.0*scale,14.15*scale+bob*scale);
-  ctx.quadraticCurveTo(30.1*scale,14.9*scale+bob*scale,30.0*scale,16.15*scale+bob*scale);
-  ctx.quadraticCurveTo(28.1*scale,16.55*scale+bob*scale,26.2*scale,15.65*scale+bob*scale);
-  ctx.quadraticCurveTo(25.1*scale,14.65*scale+bob*scale,25.4*scale,13.15*scale+bob*scale);
+  ctx.moveTo(24.7*scale,12.95*scale+bob*scale);
+  ctx.quadraticCurveTo(26.3*scale,12.65*scale+bob*scale,28.5*scale,13.55*scale+bob*scale);
+  ctx.quadraticCurveTo(30.3*scale,14.35*scale+bob*scale,30.8*scale,15.75*scale+bob*scale);
+  ctx.quadraticCurveTo(30.2*scale,17.0*scale+bob*scale,28.1*scale,17.15*scale+bob*scale);
+  ctx.quadraticCurveTo(25.7*scale,16.8*scale+bob*scale,24.7*scale,15.35*scale+bob*scale);
+  ctx.quadraticCurveTo(24.1*scale,14.0*scale+bob*scale,24.7*scale,12.95*scale+bob*scale);
   ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   poly([[27,14+bob],[30,14+bob],[33,12.9+bob],[32,14.8+bob],[28,15+bob]], c.belly);
 
@@ -282,6 +283,19 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.moveTo(39.02*scale,9.28*scale+bob*scale);
     ctx.quadraticCurveTo(42.62*scale,9.62*scale+bob*scale,45.02*scale,9.22*scale+bob*scale);
   }, c.belly, 0.36);
+  ctx.restore();
+
+  // Blend the rear skull into the neck, covering only the internal overlap seam.
+  ctx.save();
+  ctx.translate(4.68*scale, -1.2*scale);
+  ctx.scale(0.9, 1);
+  ctx.beginPath();
+  ctx.moveTo(28.65*scale,10.45*scale+bob*scale);
+  ctx.quadraticCurveTo(29.9*scale,10.85*scale+bob*scale,31.6*scale,11.02*scale+bob*scale);
+  ctx.quadraticCurveTo(33.1*scale,11.18*scale+bob*scale,34.45*scale,10.95*scale+bob*scale);
+  ctx.quadraticCurveTo(33.0*scale,11.58*scale+bob*scale,31.25*scale,11.55*scale+bob*scale);
+  ctx.quadraticCurveTo(29.45*scale,11.42*scale+bob*scale,28.65*scale,10.45*scale+bob*scale);
+  ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   ctx.restore();
 
   // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
