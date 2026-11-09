@@ -298,24 +298,39 @@ function drawTRexStanding(phase, dead, scale) {
   ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   ctx.restore();
 
-  // Forearms are carried forward beyond the chest silhouette.
+  // Forward-reaching T-Rex forearm with a compact palm and two unmistakable clawed digits.
+  // The hand projects beyond the chest; both fingers point forward and hook down at their tips.
   ctx.save();
   ctx.translate(3.4*scale, 0);
-  // Enlarged, clearly articulated T-Rex forearms: strong upper arm, bent elbow,
-  // short wrist and two distinct hooked fingers. Keep the classic two-claw silhouette.
-  poly([[23.9,12.9+bob],[25.1,12.15+bob],[27.1,12.45+bob],[28.7,13.65+bob],
-        [29.2,15.35+bob],[28.45,16.65+bob],[27.15,16.35+bob],
-        [26.35,15.25+bob],[25.25,16.05+bob],[24.15,15.45+bob],[24.65,14.15+bob]], c.outline);
-  poly([[24.75,13.05+bob],[25.55,12.65+bob],[27.0,12.95+bob],
-        [28.15,14.0+bob],[28.55,15.3+bob],[27.95,15.85+bob],
-        [27.1,15.35+bob],[26.15,14.75+bob],[25.15,15.15+bob],
-        [24.65,14.55+bob]], c.body);
-  // Forearm muscle and elbow crease give the limb a readable joint.
-  line([[25.05,13.15+bob],[26.35,13.55+bob],[27.35,14.45+bob]], c.belly, 0.42);
-  line([[27.0,15.15+bob],[27.75,15.75+bob],[28.35,15.55+bob]], c.outline, 0.5);
-  // Two separated, downward-curving claws at the wrist.
-  line([[26.25,15.0+bob],[25.8,16.15+bob],[24.95,16.55+bob]], c.claw, 1.0);
-  line([[27.15,15.35+bob],[27.0,16.45+bob],[27.65,16.95+bob]], c.claw, 1.0);
+  // Upper arm, elbow and forearm form one strong, continuous silhouette.
+  poly([[23.75,12.95+bob],[24.85,12.15+bob],[26.75,12.28+bob],
+        [28.15,13.05+bob],[29.05,14.05+bob],[29.35,14.75+bob],
+        [30.05,14.55+bob],[30.55,14.85+bob],[30.45,15.55+bob],
+        [29.75,16.05+bob],[29.15,15.65+bob],[28.55,16.35+bob],
+        [27.35,16.55+bob],[26.25,15.55+bob],[25.15,16.0+bob],
+        [24.05,15.35+bob],[24.55,14.1+bob]], c.outline);
+  poly([[24.65,13.08+bob],[25.35,12.62+bob],[26.65,12.72+bob],
+        [27.95,13.38+bob],[28.75,14.25+bob],[29.05,14.85+bob],
+        [29.75,14.82+bob],[29.98,15.18+bob],[29.48,15.55+bob],
+        [28.85,15.35+bob],[28.2,15.92+bob],[27.35,16.0+bob],
+        [26.35,15.08+bob],[25.25,15.35+bob],[24.65,14.82+bob]], c.body);
+  // Rounded muscle planes clarify the upper arm and the bend at the elbow.
+  line([[24.95,13.12+bob],[26.25,13.35+bob],[27.45,14.12+bob],[28.35,14.82+bob]], c.belly, 0.48);
+  line([[27.05,15.15+bob],[27.85,15.72+bob],[28.55,15.52+bob]], c.outline, 0.46);
+  // Two separate forward fingers: each has its own knuckle and tapered hooked claw.
+  poly([[29.45,14.55+bob],[30.25,14.22+bob],[31.05,14.28+bob],
+        [31.55,14.62+bob],[31.42,15.02+bob],[30.92,15.12+bob],
+        [30.35,14.88+bob],[29.75,15.02+bob]], c.outline);
+  poly([[29.62,14.62+bob],[30.28,14.42+bob],[31.0,14.48+bob],
+        [31.28,14.68+bob],[30.9,14.82+bob],[30.25,14.72+bob]], c.body);
+  poly([[29.35,15.12+bob],[30.05,15.0+bob],[30.72,15.25+bob],
+        [31.05,15.68+bob],[30.85,16.02+bob],[30.38,15.95+bob],
+        [30.05,15.58+bob],[29.55,15.55+bob]], c.outline);
+  poly([[29.55,15.2+bob],[30.08,15.18+bob],[30.58,15.42+bob],
+        [30.72,15.68+bob],[30.38,15.7+bob],[30.0,15.42+bob]], c.body);
+  // Pale, sharp tips make the two claws readable at game scale.
+  poly([[31.18,14.55+bob],[31.82,14.55+bob],[31.42,15.05+bob],[31.2,15.0+bob]], c.claw);
+  poly([[30.72,15.62+bob],[31.38,15.88+bob],[30.88,16.32+bob],[30.72,16.02+bob]], c.claw);
   ctx.restore();
 
   // Upright dorsal spikes: lift the tail-side run slightly, lower the neck-side run
