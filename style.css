@@ -324,3 +324,56 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   .global-record-row { padding: 8px 12px; font-size: 14px; }
   .player-avatar { width: 24px; height: 24px; font-size: 14px; }
                    }
+
+
+/* PATCH 28: compact right-side main menu panel */
+#menuScreen {
+  align-items: stretch;
+  justify-content: center;
+  padding-right: max(24px, env(safe-area-inset-right) + 20px);
+  padding-left: max(24px, env(safe-area-inset-left) + 20px);
+}
+#menuScreen h1,
+#menuScreen > .subtitle,
+#menuScreen > .online-badge {
+  align-self: flex-end;
+  width: min(320px, 42vw);
+  text-align: center;
+}
+#menuScreen .menu-buttons {
+  align-self: flex-end;
+  width: min(320px, 42vw);
+  max-width: 320px;
+  padding: 12px;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+}
+#menuScreen .btn {
+  min-height: 46px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+@media (max-width: 700px) {
+  #menuScreen h1,
+  #menuScreen > .subtitle,
+  #menuScreen > .online-badge,
+  #menuScreen .menu-buttons {
+    width: min(300px, 48vw);
+  }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  #menuScreen .menu-buttons {
+    padding: 8px;
+    gap: 5px;
+  }
+  #menuScreen .btn {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
