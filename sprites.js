@@ -137,14 +137,19 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[25.4,29.1],[26.3,29.4],[26.7,29.9],[26.6,30],[25.8,29.8]], c.claw);
   poly([[24.0,28.7],[24.8,29.1],[25.1,29.6],[25.0,29.8],[24.3,29.5]], c.claw);
 
-  // Neck slopes forward from the chest; head artwork below remains untouched.
-  poly([[25,13+bob],[26,10+bob],[29,8.5+bob],[33,9+bob],[35,12+bob],[33,15+bob],[29,16+bob],[26,15+bob]], c.outline);
-  poly([[26,13+bob],[27.5,10.8+bob],[30,9.6+bob],[33,10.2+bob],[34,12.2+bob],[32,14.2+bob],[29,15+bob],[27,14.5+bob]], c.body);
-  poly([[27,14+bob],[30,14+bob],[32,13.2+bob],[31,14.8+bob],[28,15+bob]], c.belly);
+  // Neck extended upward and forward to support the repositioned skull.
+  poly([[25,13+bob],[26,10+bob],[29,7.8+bob],[32,7+bob],[34.8,8.2+bob],[36,11.2+bob],[34,14.8+bob],[29,16+bob],[26,15+bob]], c.outline);
+  poly([[26,13+bob],[27.5,10.5+bob],[30,8.4+bob],[32.7,7.8+bob],[34.2,8.8+bob],[35,11.4+bob],[33,14+bob],[29,15+bob],[27,14.5+bob]], c.body);
+  poly([[27,14+bob],[30,14+bob],[33,12.9+bob],[32,14.8+bob],[28,15+bob]], c.belly);
 
   // Massive tyrannosaur skull: deep cranium and broad, softly squared maxilla.
   const headPath = (fill, draw) => { ctx.beginPath(); draw(); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); };
   const headLine = (draw, color, width) => { ctx.beginPath(); draw(); ctx.strokeStyle = color; ctx.lineWidth = width * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); };
+  // Narrow the complete skull by 10% around its rear hinge, then shift it up and forward.
+  // The front of the snout stays nearly in place while the rear moves to meet the longer neck.
+  ctx.save();
+  ctx.translate(4.68*scale, -1.2*scale);
+  ctx.scale(0.9, 1);
   // Upper skull: tall braincase, heavy brow and deep blunt maxilla.
   headPath(c.outline, () => {
     ctx.moveTo(28.8*scale,10.72*scale+bob*scale);
@@ -269,6 +274,7 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.moveTo(39.02*scale,9.28*scale+bob*scale);
     ctx.quadraticCurveTo(42.62*scale,9.62*scale+bob*scale,45.02*scale,9.22*scale+bob*scale);
   }, c.belly, 0.36);
+  ctx.restore();
 
   // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
   poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);
