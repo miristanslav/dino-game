@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 55;
+const CURRENT_VERSION = 56;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 56,
+    changes: [
+      'Патч 56: Увеличено бедро и уточнена анатомия голени T-Rex',
+      'Бедро стало крупнее и массивнее, колено отделено от сужающейся голени',
+      'Голеностоп и стопа опущены до линии земли; нижняя точка подошвы совпадает с базовой линией спрайта',
+      'Анимация шага и остальные части динозавра не менялись'
+    ]
+  },
   {
     version: 55,
     changes: [
