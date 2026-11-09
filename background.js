@@ -254,34 +254,50 @@ function drawBackground(timeOfDay, showCelestial, biomeScore) {
 
 function drawGround(timeOfDay, biomeScore) {
   const colors = getObjectColors(timeOfDay, biomeScore);
-  ctx.fillStyle = colors.ground; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-  ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+  const farY = GROUND_Y - 18;
+  const nearLeft = -W * 0.12, nearRight = W * 1.12;
+  // Плоскость дорожки расширяется к переднему краю: ракурс сбоку-сверху.
+  const plane = ctx.createLinearGradient(0, farY, 0, H);
+  plane.addColorStop(0, colors.ground);
+  plane.addColorStop(0.55, colors.dirt);
+  plane.addColorStop(1, colors.ground);
+  ctx.fillStyle = plane;
+  ctx.beginPath(); ctx.moveTo(0, farY); ctx.lineTo(W, farY);
+  ctx.lineTo(nearRight, H + 2); ctx.lineTo(nearLeft, H + 2); ctx.closePath(); ctx.fill();
 
-  // Ненавязчивая перспективная сетка создаёт 2.5D-плоскость земли,
-  // но не меняет направление и скорость игрового движения.
+  ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, farY); ctx.lineTo(W, farY); ctx.stroke();
+
   ctx.save();
-  ctx.globalAlpha = 0.16;
-  ctx.strokeStyle = colors.dirt;
-  ctx.lineWidth = 1;
-  const vanishX = W * 0.68;
-  const groundDepth = Math.max(1, H - GROUND_Y);
-  const drift = (frame * GROUND_SCROLL_SPEED * 0.7) % 90;
-  for (let i = -5; i <= 5; i++) {
-    const bottomX = vanishX + i * W * 0.22 - drift;
-    ctx.beginPath(); ctx.moveTo(vanishX, GROUND_Y); ctx.lineTo(bottomX, H); ctx.stroke();
+  ctx.globalAlpha = 0.24; ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W * 0.18, farY); ctx.lineTo(nearLeft + W * 0.22, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W * 0.82, farY); ctx.lineTo(nearRight - W * 0.22, H); ctx.stroke();
+
+  ctx.globalAlpha = 0.17; ctx.strokeStyle = colors.dirt; ctx.lineWidth = 1;
+  const vanishX = W * 0.5, depth = Math.max(1, H - farY);
+  const drift = (frame * GROUND_SCROLL_SPEED * 0.72) % 92;
+  for (let i = -6; i <= 6; i++) {
+    const bottomX = vanishX + i * W * 0.2 - drift;
+    ctx.beginPath(); ctx.moveTo(vanishX, farY); ctx.lineTo(bottomX, H); ctx.stroke();
   }
-  for (let i = 1; i <= 8; i++) {
-    const t = i / 8;
-    const y = GROUND_Y + groundDepth * t * t;
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  for (let i = 1; i <= 9; i++) {
+    const t = i / 9, y = farY + depth * t * t, halfWidth = W * (0.5 + 0.12 * t);
+    ctx.beginPath(); ctx.moveTo(W / 2 - halfWidth, y); ctx.lineTo(W / 2 + halfWidth, y); ctx.stroke();
   }
   ctx.restore();
 
+  ctx.save(); ctx.globalAlpha = 0.35; ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(nearLeft, H - 2); ctx.lineTo(nearRight, H - 2); ctx.stroke(); ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(0, farY); ctx.lineTo(W, farY); ctx.lineTo(nearRight, H);
+  ctx.lineTo(nearLeft, H); ctx.closePath(); ctx.clip();
   ctx.fillStyle = colors.dirt;
   groundDots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); });
   ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 1.5;
   for (let i = 0; i < 30; i++) {
     const gx = (i * 50 - (frame * GROUND_SCROLL_SPEED) % 50);
-    ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 4); ctx.lineTo(gx + 2, GROUND_Y - 6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx, GROUND_Y + 5); ctx.lineTo(gx + 2, GROUND_Y - 8); ctx.stroke();
   }
+  ctx.restore();
 }
