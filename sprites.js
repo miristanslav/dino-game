@@ -179,14 +179,15 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[19,10.2+bob],[20,9.5+bob],[21,10.1+bob],[20.5,10.8+bob]], c.outline);
   poly([[22,9.3+bob],[23,8.8+bob],[24,9.4+bob],[23.5,10+bob]], c.outline);
 
-  // Dorsal scutes continue from the back onto the tail, gradually shrinking toward the tip.
-  poly([[14.8,12.0+tailY],[15.7,11.15+tailY],[16.5,12.0+tailY]], c.outline);
-  poly([[11.5,13.0+tailY],[12.3,12.3+tailY],[13.0,13.0+tailY]], c.outline);
-  poly([[8.0,14.0+tailY],[8.7,13.4+tailY],[9.4,14.0+tailY]], c.outline);
-  poly([[4.5,15.0+tailY],[5.1,14.5+tailY],[5.7,15.0+tailY]], c.outline);
-  poly([[1.0,16.0+tailY],[1.5,15.6+tailY],[2.0,16.0+tailY]], c.outline);
-  poly([[-2.5,16.75+tailY],[-2.9,16.45+tailY],[-3.5,16.85+tailY]], c.outline);
-  poly([[-6.0,17.4+tailY],[-6.4,17.15+tailY],[-7.0,17.45+tailY]], c.outline);
+  // Tail scutes sit directly on the upper contour, with each base slightly embedded in the skin.
+  // Their tips and widths gradually diminish toward the tail tip; no detached floating shapes.
+  poly([[14.1,14.65+tailY],[15.0,13.75+tailY],[15.8,14.9+tailY]], c.outline);
+  poly([[10.5,16.0+tailY],[11.3,15.05+tailY],[12.1,16.25+tailY]], c.outline);
+  poly([[7.4,16.85+tailY],[8.1,16.0+tailY],[8.8,17.05+tailY]], c.outline);
+  poly([[4.0,17.55+tailY],[4.6,16.8+tailY],[5.2,17.75+tailY]], c.outline);
+  poly([[0.8,18.05+tailY],[1.3,17.4+tailY],[1.9,18.2+tailY]], c.outline);
+  poly([[-2.4,18.45+tailY],[-2.8,17.95+tailY],[-3.3,18.55+tailY]], c.outline);
+  poly([[-5.6,18.75+tailY],[-6.0,18.35+tailY],[-6.5,18.85+tailY]], c.outline);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
