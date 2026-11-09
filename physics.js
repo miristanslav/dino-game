@@ -30,6 +30,10 @@ function getCactusBox(o) {
 
 function getBirdBox(b) {
   const s = BIRD_SCALE_GAME;
+  if (b.kind === 'predator' && b.targetPlayer && b.diveComplete) {
+    // Низкая траектория проходит над присевшим динозавром, но пересекает стоящего.
+    return { x: b.x + 4 * s, y: b.y - 17 * s, w: 34 * s, h: 8 * s };
+  }
   if (b.kind === 'predator' && b.altitude === 'medium') {
     // Средний хищник проходит над присевшим динозавром, но задевает стоящего.
     return { x: b.x + 4 * s, y: b.y - 10 * s, w: 34 * s, h: 8 * s };
