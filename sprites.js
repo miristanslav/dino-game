@@ -81,8 +81,8 @@ function drawTRexStanding(phase, dead, scale) {
   line([[4,17.5+tailY],[8,16.7+tailY],[12,15.8+tailY],[16,15.1+tailY]], c.outline, 0.55);
 
   // Far leg: slimmer silhouette, a readable thigh-to-shin transition and a grounded foot.
-  // The foot alternates between a planted pose (baseline 30) and a lifted swing.
-  const farLift = [0, 0, 2.2, 1.1][pose];
+  // The foot alternates between a planted step (baseline 30) and a lifted swing.
+  const farLift = [0, 0, 2.2, 1.1][step];
   const farLeg = [
     [[15.2,17.0],[19.1,17.4],[20.2,19.5],[19.2,21.0],[17.4,22.1],[16.2,24.5],[14.7,24.2],[15.5,21.4],[14.2,19.3]],
     [[15.2,17.0],[19.1,17.4],[20.3,19.5],[19.6,21.0],[17.8,22.0],[17.2,24.0],[15.7,23.7],[15.8,21.3],[14.2,19.3]],
@@ -91,9 +91,9 @@ function drawTRexStanding(phase, dead, scale) {
   ];
   const farY = farLift + bob * 0.35;
   const farMove = pts => pts.map(([x,y])=>[x,y+farY]);
-  poly(farMove(farLeg[pose]), c.outline);
-  poly(farMove(farLeg[pose].map(([x,y])=>[x+0.55,y+0.45])), c.body);
-  // Compact three-toed foot; its planted pose reaches the exact sprite baseline.
+  poly(farMove(farLeg[step]), c.outline);
+  poly(farMove(farLeg[step].map(([x,y])=>[x+0.55,y+0.45])), c.body);
+  // Compact three-toed foot; its planted step reaches the exact sprite baseline.
   const farFootY = farLift;
   poly([[14.7,23.5+farFootY],[17.1,23.7+farFootY],[18.4,25.2+farFootY],[18.0,26.0+farFootY],[16.4,26.0+farFootY],[15.4,27.2+farFootY],[14.5,27.1+farFootY],[14.2,26.0+farFootY],[12.8,26.2+farFootY],[12.5,25.3+farFootY]], c.outline);
   poly([[15.0,24.0+farFootY],[17.0,24.1+farFootY],[17.8,25.2+farFootY],[16.4,25.5+farFootY],[15.4,26.4+farFootY],[14.8,26.3+farFootY],[14.4,25.5+farFootY],[13.4,25.6+farFootY],[13.2,25.2+farFootY]], c.body);
@@ -122,7 +122,7 @@ function drawTRexStanding(phase, dead, scale) {
 
   // Near leg: muscular upper thigh, defined knee, tapered lower leg and a broad three-toed foot.
   // Opposite timing to the far leg creates a clear alternating support pattern.
-  const nearLift = [0, 1.1, 2.2, 0][pose];
+  const nearLift = [0, 1.1, 2.2, 0][step];
   const nearLeg = [
     [[20.0,17.0+bob],[24.0,17.4+bob],[26.0,19.4+bob],[25.5,21.0+bob],[23.7,22.0+bob],[23.0,24.1+bob],[21.5,24.5+bob],[21.2,22.0+bob],[19.5,20.0+bob]],
     [[20.0,17.0+bob],[24.0,17.4+bob],[26.0,19.4+bob],[25.4,21.0+bob],[23.7,22.0+bob],[23.0,23.6+bob],[21.5,23.8+bob],[21.2,21.8+bob],[19.5,20.0+bob]],
@@ -130,8 +130,8 @@ function drawTRexStanding(phase, dead, scale) {
     [[20.0,17.0+bob],[24.0,17.4+bob],[26.0,19.4+bob],[25.5,21.0+bob],[23.7,22.0+bob],[23.0,24.1+bob],[21.5,24.5+bob],[21.2,22.0+bob],[19.5,20.0+bob]]
   ];
   const nearMove = pts => pts.map(([x,y])=>[x,y+nearLift]);
-  poly(nearMove(nearLeg[pose]), c.outline);
-  poly(nearMove(nearLeg[pose].map(([x,y])=>[x+0.6,y+0.45])), c.body);
+  poly(nearMove(nearLeg[step]), c.outline);
+  poly(nearMove(nearLeg[step].map(([x,y])=>[x+0.6,y+0.45])), c.body);
   // A restrained inner plane separates the knee and shin without making the leg bulky.
   line([[22.0,19.0+bob+nearLift],[23.2,21.0+bob+nearLift],[22.5,23.2+bob+nearLift]], c.belly, 0.7);
   const footY = nearLift;
