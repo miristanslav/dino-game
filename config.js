@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 39;
+const CURRENT_VERSION = 40;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 40,
+    changes: [
+      'Патч 40: Уточнён переход хвоста T-Rex в корпус',
+      'Кончик хвоста сделан уже, толщина плавно нарастает к основанию без утолщения всей длины',
+      'Скрыта внутренняя линия наложения хвоста и корпуса; внешний контур корпуса сохранён'
+    ]
+  },
   {
     version: 39,
     changes: [
