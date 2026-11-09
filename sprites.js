@@ -11,8 +11,11 @@ function drawTRexStanding(phase, dead, scale) {
   const c = getDinoColors();
   const step = ((Math.floor(phase) % 12) + 12) % 12;
   // Eight evenly spaced poses make the stride smoother while preserving the approved silhouette.
-  const bob = dead ? 0 : [0,-0.04,-0.12,-0.24,-0.36,-0.46,-0.48,-0.42,-0.30,-0.18,-0.08,-0.02][step] * 1.18;
-  const tailLift = dead ? 0 : [0,-0.03,-0.10,-0.20,-0.32,-0.42,-0.46,-0.40,-0.30,-0.18,-0.08,-0.02][step] * 1.18;
+  // Two alternating steps per 12-phase cycle: the body is lowest when
+  // the legs are maximally split (phases 0 and 6), and highest as they pass
+  // close together beneath the pelvis (phases 3 and 9).
+  const bob = dead ? 0 : [0.72,0.48,0.12,-0.42,-0.58,-0.24,0.72,0.48,0.12,-0.42,-0.58,-0.24][step];
+  const tailLift = dead ? 0 : [0.34,0.22,0.06,-0.18,-0.25,-0.10,0.34,0.22,0.06,-0.18,-0.25,-0.10][step];
 
   const poly = (points, fill) => {
     ctx.beginPath();
@@ -467,7 +470,9 @@ function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const spriteH = ducking && !jumping ? 15 : 30; const spriteW = 46; const dx = x - 8 * scale; const dy = y - spriteH * scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(dx + spriteW * scale * 0.55, y + 3, spriteW * scale * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(dx, dy + (!jumping && !dead ? Math.sin(phase * Math.PI / 4) * 0.6 * scale : 0)); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
+  // Standing gait bob is synchronized inside drawTRexStanding so the feet
+  // stay grounded while the pelvis, torso, neck and head rise and fall together.
+  ctx.save(); ctx.translate(dx, dy); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
 }
 
 function drawDino() {
