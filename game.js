@@ -82,7 +82,7 @@ function takeDamage() {
 }
 
 function clearRoundState() {
-  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; eggs = []; groundBones = []; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
+  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; eggs = []; groundBones = []; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; duckTimer = 0; dino.jumpsLeft = 1;
   score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; poisonOverlayTimer = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;

@@ -561,7 +561,6 @@ function drawBird(b, colors, scale) {
   let birdColor = colors.bird;
   if (b.kind === 'peaceful') birdColor = '#657A43';
   if (b.kind === 'predator') birdColor = '#C62828';
-  if (b.kind === 'bonus' || b.isGolden) { birdColor = '#FFD700'; ctx.shadowColor = '#FF8F00'; ctx.shadowBlur = 15; }
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); ctx.fill();
   if (b.magnetized) { ctx.fillStyle = 'rgba(100,180,255,0.35)'; ctx.beginPath(); ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = birdColor;
@@ -581,20 +580,6 @@ function drawBird(b, colors, scale) {
     ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.moveTo(x + 10 * scale, y + 8 * scale); ctx.lineTo(x + 14 * scale, y + 18 * scale); ctx.lineTo(x + 22 * scale, y + 8 * scale); ctx.fill();
   }
   ctx.shadowBlur = 0;
-}
-
-function drawMeteor(m) {
-  ctx.save();
-  m.trail.forEach((t, i) => {
-    const alpha = (i / m.trail.length) * 0.8;
-    ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
-    ctx.beginPath(); ctx.arc(t.x, t.y, m.r * (i / m.trail.length), 0, Math.PI * 2); ctx.fill();
-  });
-  const gradient = ctx.createRadialGradient(m.x, m.y, 2, m.x, m.y, m.r);
-  gradient.addColorStop(0, '#FFF9C4'); gradient.addColorStop(0.4, '#FF9800'); gradient.addColorStop(1, '#D84315');
-  ctx.shadowColor = '#FF5722'; ctx.shadowBlur = 20; ctx.fillStyle = gradient;
-  ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
 }
 
 function drawPet() {

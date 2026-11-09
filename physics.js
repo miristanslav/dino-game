@@ -147,20 +147,6 @@ function spawnGroundPowerUp() {
   powerUps.push({ x: W + 20, y: GROUND_Y - 30 - Math.random() * 12, ...pu });
 }
 
-// ===== ПАТЧ 23: Спавн метеорита =====
-function spawnMeteor() {
-  meteors.push({
-    x: W + 100,
-    y: -100,
-    vx: -5 - Math.random() * 3, // Летит влево
-    vy: 4 + Math.random() * 3,  // Летит вниз
-    r: 15,
-    trail: [],
-    hit: false
-  });
-  playThunder(); // Звук гула
-}
-
 function spawnDust(x, y, count, spread) {
   for (let i = 0; i < count; i++) {
     particles.push({ x: x + (Math.random() - 0.5) * 10, y: y, vx: -speed * 0.3 - Math.random() * 2, vy: -Math.random() * spread, life: 1, r: Math.random() * 2 + 1 });

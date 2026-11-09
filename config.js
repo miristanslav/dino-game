@@ -761,7 +761,6 @@ let currentLives = 1, damageCooldown = 0, poisonOverlayTimer = 0;
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
-let meteorTimer = 15;
 let ghostUsed = false;
 let petX = 0, petY = 0;
 
