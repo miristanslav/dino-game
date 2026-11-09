@@ -214,12 +214,13 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(38.62*scale,14.32*scale+bob*scale,43.02*scale,13.62*scale+bob*scale);
   }, c.belly, 0.44);
   headPath("#402629", () => {
-    ctx.moveTo(30.92*scale,10.42*scale+bob*scale);
-    ctx.quadraticCurveTo(35.12*scale,11.22*scale+bob*scale,39.12*scale,11.12*scale+bob*scale);
-    ctx.quadraticCurveTo(44.02*scale,10.92*scale+bob*scale,47.42*scale,9.92*scale+bob*scale);
-    ctx.quadraticCurveTo(47.22*scale,10.72*scale+bob*scale,45.92*scale,11.18*scale+bob*scale);
-    ctx.quadraticCurveTo(42.12*scale,12.02*scale+bob*scale,38.02*scale,11.92*scale+bob*scale);
-    ctx.quadraticCurveTo(33.42*scale,11.72*scale+bob*scale,30.92*scale,10.42*scale+bob*scale);
+    // Shorter opening at the rear and a tighter slit between the jaws.
+    ctx.moveTo(33.12*scale,10.72*scale+bob*scale);
+    ctx.quadraticCurveTo(36.02*scale,11.12*scale+bob*scale,39.42*scale,11.02*scale+bob*scale);
+    ctx.quadraticCurveTo(44.12*scale,10.82*scale+bob*scale,47.12*scale,10.02*scale+bob*scale);
+    ctx.quadraticCurveTo(47.02*scale,10.48*scale+bob*scale,45.82*scale,10.78*scale+bob*scale);
+    ctx.quadraticCurveTo(42.02*scale,11.38*scale+bob*scale,38.22*scale,11.42*scale+bob*scale);
+    ctx.quadraticCurveTo(35.12*scale,11.38*scale+bob*scale,33.12*scale,10.72*scale+bob*scale);
   });
   const drawHeadTooth = (x, baseY, w, h, pointsUp) => {
     headPath("#F0E3C6", () => {

@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 71;
+const CURRENT_VERSION = 72;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 72,
+    changes: [
+      'Патч 72: Разрез пасти стал компактнее',
+      'Сокращена задняя часть ротового разреза со стороны затылка',
+      'Уменьшена высота раскрытия между верхней и нижней челюстью; форма черепа и зубы сохранены'
+    ]
+  },
   {
     version: 71,
     changes: [
