@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 43;
+const CURRENT_VERSION = 44;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 44,
+    changes: [
+      'Патч 44: Исправлено положение шипов на хвосте',
+      'Основания шипов перемещены непосредственно на верхнюю линию хвоста',
+      'Размер шипов постепенно уменьшается к кончику; эффект парения устранён'
+    ]
+  },
   {
     version: 43,
     changes: [
