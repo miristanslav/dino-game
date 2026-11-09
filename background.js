@@ -256,6 +256,27 @@ function drawGround(timeOfDay, biomeScore) {
   const colors = getObjectColors(timeOfDay, biomeScore);
   ctx.fillStyle = colors.ground; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
   ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+
+  // Ненавязчивая перспективная сетка создаёт 2.5D-плоскость земли,
+  // но не меняет направление и скорость игрового движения.
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  ctx.strokeStyle = colors.dirt;
+  ctx.lineWidth = 1;
+  const vanishX = W * 0.68;
+  const groundDepth = Math.max(1, H - GROUND_Y);
+  const drift = (frame * GROUND_SCROLL_SPEED * 0.7) % 90;
+  for (let i = -5; i <= 5; i++) {
+    const bottomX = vanishX + i * W * 0.22 - drift;
+    ctx.beginPath(); ctx.moveTo(vanishX, GROUND_Y); ctx.lineTo(bottomX, H); ctx.stroke();
+  }
+  for (let i = 1; i <= 8; i++) {
+    const t = i / 8;
+    const y = GROUND_Y + groundDepth * t * t;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
+
   ctx.fillStyle = colors.dirt;
   groundDots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); });
   ctx.strokeStyle = colors.groundLine; ctx.lineWidth = 1.5;
