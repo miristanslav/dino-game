@@ -36,21 +36,25 @@ function drawTRexStanding(phase, dead, scale) {
   // Articulate the original hind-leg artwork without redrawing its anatomy.
   // Every contour below uses the same control points as the approved Patch 90 leg.
   const drawArticulatedLeg = (phase, far) => {
+    // One complete stride: the foot reaches forward, plants, pushes backward,
+    // then folds and swings forward again. Positive hip rotation moves the knee
+    // backward in screen space, so the cycle begins in the forward-swing position.
+    // The opposite leg uses phase + 6, keeping the two legs in counterphase.
     const poses = [
-      [0.00, 0.00, 0.00],
-      [0.04,-0.05, 0.02],
-      [0.08,-0.12, 0.04],
-      [0.10,-0.22, 0.07],
-      [0.08,-0.32, 0.11],
-      [0.03,-0.38, 0.13],
-      [0.00,-0.34, 0.10],
-      [-0.05,-0.25, 0.05],
-      [-0.08,-0.14, 0.00],
-      [-0.07,-0.06,-0.03],
-      [-0.04,-0.02,-0.02],
-      [0.00, 0.00, 0.00]
+      [-0.30, 0.34,-0.20],
+      [-0.27, 0.40,-0.24],
+      [-0.18, 0.32,-0.18],
+      [-0.05, 0.18,-0.08],
+      [ 0.12,-0.04, 0.08],
+      [ 0.25,-0.22, 0.18],
+      [ 0.30,-0.30, 0.20],
+      [ 0.25,-0.22, 0.14],
+      [ 0.12,-0.04, 0.02],
+      [-0.05, 0.18,-0.10],
+      [-0.18, 0.32,-0.18],
+      [-0.27, 0.40,-0.22]
     ];
-    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12].map(angle=>angle*1.18);
+    const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12];
     const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
     const rotate=(p,pivot,a)=>{
       const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);
