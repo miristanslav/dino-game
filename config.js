@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 38;
+const CURRENT_VERSION = 39;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 39,
+    changes: [
+      'Патч 39: Увеличен объём основания хвоста T-Rex',
+      'Нижний контур основания хвоста немного расширен, верхняя линия сохранена и слегка согласована с позвоночником',
+      'Сглажен внутренний стык между хвостом и задним контуром корпуса'
+    ]
+  },
   {
     version: 38,
     changes: [
