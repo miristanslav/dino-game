@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 63;
+const CURRENT_VERSION = 64;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 64,
+    changes: [
+      'Патч 64: Полностью переработан силуэт головы T-Rex по анатомическим референсам',
+      'Череп получил более глубокую заднюю часть, выраженную надбровную дугу и плавно сужающуюся широкую морду',
+      'Нижняя челюсть встроена в общий силуэт: массивная у основания и плавно сужается к кончику',
+      'Корпус, шея, хвост, шипы, конечности и анимация бега не менялись'
+    ]
+  },
   {
     version: 63,
     changes: [
