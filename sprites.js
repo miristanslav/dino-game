@@ -215,13 +215,12 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(38.62*scale,13.42*scale+bob*scale,43.02*scale,12.92*scale+bob*scale);
   }, c.belly, 0.40);
   headPath("#402629", () => {
-    // The mouth opening begins on the vertical line of the eye.
-    // All contours to the right of this point retain their previous shape.
+    // Keep the rear start aligned with the eye, but shorten the opening at the snout.
     ctx.moveTo(35.24*scale,10.94*scale+bob*scale);
-    ctx.quadraticCurveTo(36.02*scale,11.12*scale+bob*scale,39.42*scale,11.02*scale+bob*scale);
-    ctx.quadraticCurveTo(44.12*scale,10.82*scale+bob*scale,47.12*scale,10.02*scale+bob*scale);
-    ctx.quadraticCurveTo(47.02*scale,10.48*scale+bob*scale,45.82*scale,10.78*scale+bob*scale);
-    ctx.quadraticCurveTo(42.02*scale,11.38*scale+bob*scale,38.22*scale,11.42*scale+bob*scale);
+    ctx.quadraticCurveTo(36.02*scale,11.12*scale+bob*scale,38.72*scale,11.02*scale+bob*scale);
+    ctx.quadraticCurveTo(42.12*scale,10.88*scale+bob*scale,44.72*scale,10.22*scale+bob*scale);
+    ctx.quadraticCurveTo(44.62*scale,10.58*scale+bob*scale,43.62*scale,10.86*scale+bob*scale);
+    ctx.quadraticCurveTo(40.82*scale,11.34*scale+bob*scale,38.02*scale,11.42*scale+bob*scale);
     ctx.quadraticCurveTo(36.57*scale,11.40*scale+bob*scale,35.24*scale,11.20*scale+bob*scale);
     ctx.quadraticCurveTo(35.24*scale,11.08*scale+bob*scale,35.24*scale,10.94*scale+bob*scale);
   });
@@ -240,9 +239,9 @@ function drawTRexStanding(phase, dead, scale) {
       }
     });
   };
-  // Only two short teeth peek upward from the upper edge of the lower jaw,
-  // grouped toward the front half of the mouth; no continuous row of teeth.
-  [[41.35,12.18,0.62,0.48],[43.05,11.98,0.58,0.44]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
+  // Two short teeth hang down from the upper jaw into the front-middle of the mouth.
+  // The lower jaw has no teeth.
+  [[39.55,10.88,0.58,0.48],[41.25,10.76,0.54,0.44]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
   // Compact eye beneath the massive brow.
   ctx.fillStyle = "rgba(30,45,33,0.76)";
   ctx.beginPath(); ctx.ellipse(35.18*scale,7.52*scale+bob*scale,1.08*scale,0.82*scale,-0.08,0,Math.PI*2); ctx.fill();
