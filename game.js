@@ -209,7 +209,12 @@ function update(dt) {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
       if (!rectCollide(dinoBox, getCactusBox(o))) continue;
-      if (o.type === 'poisonFlower') { poisonOverlayTimer = 5; obstacles.splice(i, 1); continue; }
+      if (o.type === 'poisonFlower') {
+        poisonOverlayTimer = 5; obstacles.splice(i, 1);
+        if (!cactusShield && damageCooldown <= 0) takeDamage();
+        if (gameState !== 'playing') return;
+        continue;
+      }
       if (cactusShield || damageCooldown > 0) continue;
       if (save.currentPet === 'ghost' && !ghostUsed) {
         ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
