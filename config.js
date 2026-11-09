@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 89;
+const CURRENT_VERSION = 90;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 90,
+    changes: [
+      "Патч 90: Цикл ходьбы задних лап расширен с четырёх до восьми фаз",
+      "Уточнены промежуточные положения лап, противофаза сохранена; силуэт лап и хитбоксы не менялись",
+      "Синхронизирована частота смены кадров в игре и главном меню"
+    ]
+  },
   {
     version: 89,
     changes: [

@@ -9,9 +9,10 @@ function uRect(u, v, w, h, color, scale) {
 function drawTRexStanding(phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
-  const step = ((Math.floor(phase) % 4) + 4) % 4;
-  const bob = dead ? 0 : [0, -0.2, -0.55, -0.2][step];
-  const tailLift = dead ? 0 : [0, -0.35, -0.7, 0][step];
+  const step = ((Math.floor(phase) % 8) + 8) % 8;
+  // Eight evenly spaced poses make the stride smoother while preserving the approved silhouette.
+  const bob = dead ? 0 : [0, -0.12, -0.35, -0.52, -0.55, -0.4, -0.18, -0.04][step];
+  const tailLift = dead ? 0 : [0, -0.12, -0.35, -0.58, -0.7, -0.52, -0.25, -0.06][step];
 
   const poly = (points, fill) => {
     ctx.beginPath();
@@ -83,7 +84,7 @@ function drawTRexStanding(phase, dead, scale) {
   // Far hind leg: reuse the near leg's anatomical silhouette at a slightly smaller scale.
   // The far leg swings opposite to the near leg. Rotate around the hip so the
   // approved leg silhouette stays intact while the stride becomes readable.
-  const farStride = dead ? 0 : [ -0.17, -0.06, 0.17, 0.06 ][step];
+  const farStride = dead ? 0 : [ -0.17, -0.12, 0, 0.12, 0.17, 0.12, 0, -0.12 ][step];
   ctx.save();
   ctx.translate(17.1 * scale, 18.0 * scale);
   ctx.rotate(farStride);
@@ -129,8 +130,8 @@ function drawTRexStanding(phase, dead, scale) {
   line([[18.5,18+bob],[21.5,18.4+bob],[24.5,18.2+bob]], c.body, 0.65);
 
   // Near hind leg: fuller thigh flowing gradually into a muscular lower leg.
-  // The near leg alternates with the far leg to create a four-phase running cycle.
-  const nearStride = dead ? 0 : [ 0.17, 0.06, -0.17, -0.06 ][step];
+  // The near leg alternates with the far leg to create a eight-phase walking cycle.
+  const nearStride = dead ? 0 : [ 0.17, 0.12, 0, -0.12, -0.17, -0.12, 0, 0.12 ][step];
   ctx.save();
   ctx.translate(22.0 * scale, 18.0 * scale);
   ctx.rotate(nearStride);
@@ -426,11 +427,11 @@ function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const spriteH = ducking && !jumping ? 15 : 30; const spriteW = 46; const dx = x - 8 * scale; const dy = y - spriteH * scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(dx + spriteW * scale * 0.55, y + 3, spriteW * scale * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(dx, dy + (!jumping && !dead ? Math.sin(phase * Math.PI / 2) * 0.6 * scale : 0)); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
+  ctx.save(); ctx.translate(dx, dy + (!jumping && !dead ? Math.sin(phase * Math.PI / 4) * 0.6 * scale : 0)); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
 }
 
 function drawDino() {
-  drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 4) % 4, gameState === 'gameover', dino.scale);
+  drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 2) % 8, gameState === 'gameover', dino.scale);
   if (activePowerUps.some(a => a.type === 'shield')) {
     ctx.strokeStyle = 'rgba(33,150,243,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(dino.x + 30, dino.y - 30, 45, 0, Math.PI * 2); ctx.stroke();
   }
