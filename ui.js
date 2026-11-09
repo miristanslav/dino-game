@@ -28,7 +28,10 @@ function updateDailyBadge() {
 function hideAllScreens() {
   menuScreen.classList.add('hidden'); dailyScreen.classList.add('hidden'); recordsScreen.classList.add('hidden');
   upgradesScreen.classList.add('hidden'); achievementsScreen.classList.add('hidden'); settingsScreen.classList.add('hidden');
-  gameoverScreen.classList.add('hidden'); confirmDialog.classList.add('hidden'); changelogDialog.style.display = 'none';
+  gameoverScreen.classList.add('hidden'); confirmDialog.classList.add('hidden');
+  if (pauseScreen) pauseScreen.classList.add('hidden');
+  if (pauseBtn) pauseBtn.classList.add('hidden');
+  changelogDialog.style.display = 'none';
   versionBtn.style.display = 'none'; comboHud.classList.add('hidden'); levelUpPopup.classList.remove('show');
 }
 
