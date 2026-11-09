@@ -44,18 +44,18 @@ function drawTRexStanding(phase, dead, scale) {
     // backward in screen space, so the cycle begins in the forward-swing position.
     // The opposite leg uses phase + 6, keeping the two legs in counterphase.
     const poses = [
-      [-0.30, 0.34,-0.20],
-      [-0.27, 0.40,-0.24],
-      [-0.18, 0.32,-0.18],
-      [-0.05, 0.18,-0.08],
-      [ 0.12,-0.04, 0.08],
-      [ 0.25,-0.22, 0.18],
-      [ 0.30,-0.30, 0.20],
-      [ 0.25,-0.22, 0.14],
-      [ 0.12,-0.04, 0.02],
-      [-0.05, 0.18,-0.10],
-      [-0.18, 0.32,-0.18],
-      [-0.27, 0.40,-0.22]
+      [-0.30, 0.34,-0.55],
+      [-0.27, 0.40,-0.55],
+      [-0.18, 0.32,-0.55],
+      [-0.05, 0.18,-0.55],
+      [ 0.12,-0.04,-0.55],
+      [ 0.25,-0.22,-0.55],
+      [ 0.30,-0.30,-0.55],
+      [ 0.25,-0.22,-0.82],
+      [ 0.12,-0.04,-0.72],
+      [-0.05, 0.18,-0.62],
+      [-0.18, 0.32,-0.57],
+      [-0.27, 0.40,-0.55]
     ];
     const strideStep=((Math.floor(phase)%12)+12)%12;
     const [hipAngle,kneeAngle,ankleAngle]=poses[strideStep];
@@ -69,7 +69,8 @@ function drawTRexStanding(phase, dead, scale) {
     // Phase 6 is the next ground contact; keep the foot at floor level there.
     const footLift=[0,0,0,0,0,0,0,0.62,1.28,1.48,1.02,0.38][strideStep];
     const map=p=>{
-      const mapped=far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
+      // Put the far foot on the same horizontal track as the near foot.
+      const mapped=far?[24.0+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
       return [mapped[0]+rootShift,mapped[1]];
     };
     const rotate=(p,pivot,a)=>{
@@ -107,12 +108,14 @@ function drawTRexStanding(phase, dead, scale) {
       // Keep the toe/foot trajectory distinct from a simple knee lift:
       // planted phases sweep rearward; swing phases rise and recover forward.
       const footWeight=smooth(23.5,27.5,source[1]);
-      // The far leg's 0.98 vertical scale otherwise leaves its toe a
-      // fraction above the floor. Match both feet to the same ground line.
-      const groundFix=far?0.01*footWeight:0;
+      // During stance, correct the toe anchor to the exact ground line.
+      // This compensates for hip/knee rotation so the leading foot really plants.
+      const stanceWeight=[1,1,1,1,1,1,1,0,0,0,0,0.55][strideStep];
+      const toeAnchor=rotate(rotate(rotate(map([28.9,30]),hip,hipAngle),kneeAfterHip,kneeAngle),hockAfterKnee,ankleAngle);
+      const groundFix=(30-(toeAnchor[1]-footLift))*stanceWeight;
       return [
         articulated[0]+footTravel*footWeight,
-        articulated[1]-footLift*footWeight+groundFix
+        articulated[1]-footLift*footWeight+groundFix*footWeight
       ];
     };
     const drawPoly=(points,fill)=>poly(smoothPath(points).map(deform),fill);
