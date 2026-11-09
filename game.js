@@ -49,6 +49,7 @@ function resumeGame() {
 
 function jump() {
   if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
+  duckTimer = 0;
   const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump');
   if (!dino.jumping) {
     dino.vy = JUMP_FORCE - (save.upgrades.jump * 1.08); dino.jumping = true; dino.jumpsLeft = hasDoubleJump ? 1 : 0;
@@ -57,7 +58,11 @@ function jump() {
     dino.vy = JUMP_FORCE * 0.9; dino.jumpsLeft--; haptic('jump'); playSound('jump'); spawnDust(dino.x + 30, dino.y, 6, 3);
   }
 }
-function duck(on) { if (gameState !== 'playing' || dino.jumping || isPortraitMode) return; dino.ducking = on; }
+function duck(on, duration) {
+  if (gameState !== 'playing' || dino.jumping || isPortraitMode) return;
+  dino.ducking = on;
+  duckTimer = on ? (Number.isFinite(duration) ? Math.max(0, duration) : Infinity) : 0;
+}
 
 // ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
 function takeDamage() {
@@ -74,7 +79,7 @@ function takeDamage() {
 
 function clearRoundState() {
   obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
-  dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
+  dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; duckTimer = 0; dino.jumpsLeft = 1;
   score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; poisonOverlayTimer = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
   comboCount = 0; comboTimer = 0; updateComboHUD();
@@ -131,6 +136,7 @@ function update(dt) {
   frame++;
   if (gameState === 'playing') {
     damageCooldown = Math.max(0, damageCooldown - dt);
+    if (duckTimer !== Infinity && duckTimer > 0) { duckTimer = Math.max(0, duckTimer - dt); if (duckTimer === 0) dino.ducking = false; }
     poisonOverlayTimer = Math.max(0, poisonOverlayTimer - dt);
     const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
     let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;

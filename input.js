@@ -107,7 +107,8 @@ document.addEventListener('pointerdown', (e) => {
     return;
   }
   if (gameState === 'playing' && !isPortraitMode) {
-    jump();
+    // Touch input is resolved by the swipe recognizer below, not as an instant jump.
+    if (e.pointerType !== 'touch') jump();
   }
 });
 
@@ -130,26 +131,41 @@ document.addEventListener('keyup', (e) => {
 
 // ===== TOUCH =====
 let touchStartY = null;
+let touchStartX = null;
 let touchMoved = false;
 
 document.addEventListener('touchstart', (e) => {
   if (e.target.closest('button') || gameState !== 'playing' || isPortraitMode) return;
-  touchStartY = e.changedTouches[0].clientY;
+  const touch = e.changedTouches[0];
+  touchStartY = touch.clientY;
+  touchStartX = touch.clientX;
   touchMoved = false;
 }, { passive: true });
 
 document.addEventListener('touchmove', (e) => {
   if (touchStartY === null || e.target.closest('button')) return;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (dy > 30 && gameState === 'playing' && !dino.jumping) {
-    duck(true);
+  const touch = e.changedTouches[0];
+  const dy = touch.clientY - touchStartY;
+  const dx = Math.abs(touch.clientX - touchStartX);
+  if (dy > 32 && dy > dx * 1.15 && !touchMoved && gameState === 'playing' && !dino.jumping) {
+    // Swipe down triggers a short slide even if the player lifts their finger.
+    duck(true, 0.85);
     touchMoved = true;
+    if (e.cancelable) e.preventDefault();
   }
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+  if (touchStartY === null) return;
+  if (!touchMoved && gameState === 'playing') jump();
+  touchStartY = null;
+  touchStartX = null;
+  touchMoved = false;
 }, { passive: true });
 
-document.addEventListener('touchend', (e) => {
-  if (touchStartY === null) return;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (dy > 30) duck(false);
+document.addEventListener('touchcancel', () => {
   touchStartY = null;
+  touchStartX = null;
+  touchMoved = false;
+  if (dino.ducking && duckTimer === Infinity) duck(false);
 }, { passive: true });

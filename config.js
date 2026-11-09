@@ -766,6 +766,7 @@ let ghostUsed = false;
 let petX = 0, petY = 0;
 
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
+let duckTimer = 0;
 let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [];
 let activeTab = 'upg';
 
