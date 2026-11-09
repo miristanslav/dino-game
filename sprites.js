@@ -142,25 +142,77 @@ function drawTRexStanding(phase, dead, scale) {
   poly([[26,13+bob],[27.5,10.8+bob],[30,9.6+bob],[33,10.2+bob],[34,12.2+bob],[32,14.2+bob],[29,15+bob],[27,14.5+bob]], c.body);
   poly([[27,14+bob],[30,14+bob],[32,13.2+bob],[31,14.8+bob],[28,15+bob]], c.belly);
 
-  // Original head and face details retained.
-  uRect(27,5+bob,12,7,c.outline,scale);
-  uRect(29,4+bob,10,7,c.outline,scale);
-  uRect(31,5+bob,13,5,c.outline,scale);
-  uRect(33,6+bob,12,4,c.body,scale);
-  uRect(30,5+bob,9,5,c.body,scale);
-  uRect(29,8+bob,13,4,c.body,scale);
-  uRect(35,9+bob,10,2,c.body,scale);
-  uRect(31,11+bob,13,3,c.outline,scale);
-  uRect(33,11+bob,10,1,c.body,scale);
-  uRect(35,12+bob,7,1,c.belly,scale);
-  uRect(34,10+bob,10,1,"#45272A",scale);
-  uRect(36,10+bob,1,2,"#FFF0D2",scale);
-  uRect(40,10+bob,1,2,"#FFF0D2",scale);
-  uRect(44,9+bob,1,1,c.outline,scale);
-  uRect(32,5+bob,7,2,c.outline,scale);
-  uRect(34,6+bob,3,1,c.eye,scale);
-  uRect(35,6+bob,1,1,"#17212A",scale);
-  uRect(31,4+bob,6,1,c.outline,scale);
+  // Rounded, slightly more compact head: a continuous skull and jaw silhouette.
+  const headPath = (fill, draw) => {
+    ctx.beginPath();
+    draw();
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+  };
+  const headLine = (draw, color, width) => {
+    ctx.beginPath();
+    draw();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width * scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  };
+  headPath(c.outline, () => {
+    ctx.moveTo(28.8*scale, 9.4*scale+bob*scale);
+    ctx.quadraticCurveTo(27.7*scale, 7.5*scale+bob*scale, 29.2*scale, 5.8*scale+bob*scale);
+    ctx.quadraticCurveTo(30.8*scale, 4.0*scale+bob*scale, 33.5*scale, 4.1*scale+bob*scale);
+    ctx.quadraticCurveTo(36.3*scale, 3.8*scale+bob*scale, 38.3*scale, 5.0*scale+bob*scale);
+    ctx.quadraticCurveTo(41.0*scale, 5.4*scale+bob*scale, 43.0*scale, 7.0*scale+bob*scale);
+    ctx.quadraticCurveTo(44.8*scale, 8.2*scale+bob*scale, 44.2*scale, 9.5*scale+bob*scale);
+    ctx.quadraticCurveTo(43.8*scale, 10.6*scale+bob*scale, 41.6*scale, 11.1*scale+bob*scale);
+    ctx.quadraticCurveTo(38.5*scale, 11.9*scale+bob*scale, 35.6*scale, 12.1*scale+bob*scale);
+    ctx.quadraticCurveTo(31.0*scale, 12.5*scale+bob*scale, 29.2*scale, 10.8*scale+bob*scale);
+    ctx.quadraticCurveTo(28.5*scale, 10.2*scale+bob*scale, 28.8*scale, 9.4*scale+bob*scale);
+  });
+  headPath(c.body, () => {
+    ctx.moveTo(29.8*scale, 9.2*scale+bob*scale);
+    ctx.quadraticCurveTo(29.0*scale, 7.6*scale+bob*scale, 30.2*scale, 6.2*scale+bob*scale);
+    ctx.quadraticCurveTo(31.5*scale, 4.9*scale+bob*scale, 33.7*scale, 5.0*scale+bob*scale);
+    ctx.quadraticCurveTo(36.1*scale, 4.7*scale+bob*scale, 38.0*scale, 5.7*scale+bob*scale);
+    ctx.quadraticCurveTo(40.8*scale, 6.0*scale+bob*scale, 42.3*scale, 7.4*scale+bob*scale);
+    ctx.quadraticCurveTo(43.7*scale, 8.5*scale+bob*scale, 42.9*scale, 9.4*scale+bob*scale);
+    ctx.quadraticCurveTo(40.2*scale, 10.5*scale+bob*scale, 36.5*scale, 11.1*scale+bob*scale);
+    ctx.quadraticCurveTo(32.2*scale, 11.8*scale+bob*scale, 30.5*scale, 10.5*scale+bob*scale);
+    ctx.quadraticCurveTo(29.7*scale, 10.0*scale+bob*scale, 29.8*scale, 9.2*scale+bob*scale);
+  });
+  headPath(c.belly, () => {
+    ctx.moveTo(31.0*scale, 10.5*scale+bob*scale);
+    ctx.quadraticCurveTo(35.0*scale, 11.4*scale+bob*scale, 39.0*scale, 10.3*scale+bob*scale);
+    ctx.quadraticCurveTo(40.8*scale, 9.9*scale+bob*scale, 42.1*scale, 9.6*scale+bob*scale);
+    ctx.quadraticCurveTo(40.0*scale, 11.1*scale+bob*scale, 36.0*scale, 11.7*scale+bob*scale);
+    ctx.quadraticCurveTo(32.5*scale, 12.0*scale+bob*scale, 31.0*scale, 10.5*scale+bob*scale);
+  });
+  headLine(() => {
+    ctx.moveTo(33.0*scale, 10.1*scale+bob*scale);
+    ctx.quadraticCurveTo(37.0*scale, 10.8*scale+bob*scale, 42.2*scale, 9.5*scale+bob*scale);
+  }, "#45272A", 0.55);
+  ctx.fillStyle = c.eye;
+  ctx.beginPath();
+  ctx.ellipse(35.7*scale, 6.7*scale+bob*scale, 0.9*scale, 0.75*scale, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = "#17212A";
+  ctx.beginPath();
+  ctx.ellipse(36.0*scale, 6.7*scale+bob*scale, 0.32*scale, 0.58*scale, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = "#FFF0D2";
+  ctx.beginPath();
+  ctx.arc(35.45*scale, 6.35*scale+bob*scale, 0.22*scale, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = c.outline;
+  ctx.beginPath();
+  ctx.ellipse(42.2*scale, 8.0*scale+bob*scale, 0.42*scale, 0.24*scale, -0.15, 0, Math.PI*2);
+  ctx.fill();
+  headLine(() => {
+    ctx.moveTo(33.8*scale, 5.2*scale+bob*scale);
+    ctx.quadraticCurveTo(35.6*scale, 4.7*scale+bob*scale, 37.2*scale, 5.4*scale+bob*scale);
+  }, c.outline, 0.65);
 
   // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
   poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);
