@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 44;
+const CURRENT_VERSION = 45;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 45,
+    changes: [
+      'Патч 45: Увеличены шипы и продолжена линия спины на хвост',
+      'Шипы на хвосте стали крупнее, сохранили посадку на поверхности и постепенно уменьшаются к кончику',
+      'Продлена тонкая линия спинного рисунка вдоль хвоста до его кончика'
+    ]
+  },
   {
     version: 44,
     changes: [
