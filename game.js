@@ -69,8 +69,37 @@ function duck(on, duration) {
 }
 
 // ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
-function takeDamage() {
+function takeDamage(source = 'obstacle') {
   if (damageCooldown > 0 || gameState !== 'playing') return false;
+
+  // Временный обычный щит имеет высший приоритет и не расходует щит-счётчик.
+  const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
+  if (timedShield) {
+    timedShield.hitPulse = 1;
+    spawnFloatingText(dino.x + 20, dino.y - 55, '🛡 ЗАЩИТА');
+    damageCooldown = 0.22;
+    return false;
+  }
+
+  // Золотой бонус даёт пять отдельных блокировок столкновений.
+  if (cactusGuardHits > 0) {
+    cactusGuardHits--;
+    guardPulse = 1;
+    damageCooldown = 0.22;
+    spawnFloatingText(dino.x + 20, dino.y - 55, cactusGuardHits > 0 ? '🛡 ' + cactusGuardHits : '🛡 БЛОК!');
+    if (cactusGuardHits === 0) spawnFloatingText(dino.x + 20, dino.y - 82, 'ЩИТ ИСЧЕЗ');
+    return false;
+  }
+
+  // Способность питомца срабатывает только после двух видов щита.
+  if (source === 'obstacle' && save.currentPet === 'ghost' && !ghostUsed) {
+    ghostUsed = true;
+    damageCooldown = 0.22;
+    spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
+    shakeTime = 10; haptic('eat'); playSound('record');
+    return false;
+  }
+
   currentLives = Math.max(0, currentLives - 1);
   damageCooldown = 1.1;
   shakeTime = 10;
@@ -82,7 +111,7 @@ function takeDamage() {
 }
 
 function clearRoundState() {
-  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; eggs = []; groundBones = []; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
+  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; eggs = []; groundBones = []; cactusGuardHits = 0; guardPulse = 0; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; duckTimer = 0; dino.jumpsLeft = 1;
   score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; poisonOverlayTimer = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
@@ -205,23 +234,20 @@ function update(dt) {
       if (oBox.x + oBox.w < dinoBox.x - 15) { if (o.wasClose) { score += 5 * scoreBonusMult; spawnFloatingText(o.x + o.w * dino.scale / 2, o.y - o.h * dino.scale - 25, 'NICE! +5'); } obstacles.splice(i, 1); }
     }
 
-    const cactusShield = activePowerUps.some(a => a.type === 'shield');
+    guardPulse = Math.max(0, guardPulse - dt * 5);
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
       if (!rectCollide(dinoBox, getCactusBox(o))) continue;
       if (o.type === 'poisonFlower') {
-        poisonOverlayTimer = 5; obstacles.splice(i, 1);
-        if (!cactusShield && damageCooldown <= 0) takeDamage();
+        poisonOverlayTimer = 5;
+        obstacles.splice(i, 1);
+        takeDamage('poison');
         if (gameState !== 'playing') return;
         continue;
       }
-      if (cactusShield || damageCooldown > 0) continue;
-      if (save.currentPet === 'ghost' && !ghostUsed) {
-        ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
-        obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue;
-      }
+      // Столкнувшееся препятствие убирается всегда; защита решает только, будет ли урон.
       obstacles.splice(i, 1);
-      takeDamage();
+      if (damageCooldown <= 0) takeDamage('obstacle');
       if (gameState !== 'playing') return;
     }
 
@@ -285,7 +311,7 @@ function update(dt) {
       } else if (b.kind === 'predator') {
         if (rectCollide(dinoBox, bBox)) {
           const avoided = b.altitude === 'high' ? dino.jumping : dino.ducking;
-          if (!avoided && damageCooldown <= 0 && !activePowerUps.some(a => a.type === 'shield')) takeDamage();
+          if (!avoided && damageCooldown <= 0) takeDamage('pterodactyl');
           birds.splice(i, 1);
           if (gameState !== 'playing') return;
         } else if (b.x < -80) birds.splice(i, 1);
@@ -370,7 +396,7 @@ function render() {
   const colors = getObjectColors(timeOfDay, biomeScore);
   drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
   if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
-    obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => b.kind ? drawPterodactyl(b, colors) : drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); drawRain(); drawSnow(); drawBonesFlying(); drawGroundBones(); drawEggs(); drawDino(); drawPet();
+    obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => b.kind ? drawPterodactyl(b, colors) : drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); drawRain(); drawSnow(); drawBonesFlying(); drawGroundBones(); drawEggs(); drawDino(); drawPet(); drawProtectionShield();
   } else { drawMenuScene(colors); }
   if (poisonOverlayTimer > 0) {
     const poison = ctx.createLinearGradient(0, 0, W, H);

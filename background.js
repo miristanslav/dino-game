@@ -169,6 +169,61 @@ function drawForestLandscape(colors) {
   treeRow(GROUND_Y + 5, 145, 1.35, (frame * 0.32) % 145, colors.mountainNear, 0.95);
 }
 
+
+function drawSnowLandscape(colors) {
+  const farOffset = (frame * 0.09) % 420;
+  ctx.fillStyle = '#A9C9D8'; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+  for (let i = -1; i < 4; i++) {
+    const x = i * 420 - farOffset;
+    ctx.lineTo(x + 90, GROUND_Y - 125); ctx.lineTo(x + 160, GROUND_Y - 58);
+    ctx.lineTo(x + 265, GROUND_Y - 175); ctx.lineTo(x + 345, GROUND_Y - 75); ctx.lineTo(x + 420, GROUND_Y);
+  }
+  ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#F4FBFF'; ctx.globalAlpha = 0.92;
+  for (let i = -1; i < 4; i++) {
+    const x = i * 420 - farOffset;
+    ctx.beginPath(); ctx.moveTo(x + 160, GROUND_Y - 58); ctx.lineTo(x + 265, GROUND_Y - 175);
+    ctx.lineTo(x + 242, GROUND_Y - 105); ctx.lineTo(x + 220, GROUND_Y - 120); ctx.lineTo(x + 198, GROUND_Y - 84); ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const offset = (frame * 0.22) % 170;
+  for (let i = -2; i < Math.ceil(W / 170) + 2; i++) {
+    const x = i * 170 - offset, base = GROUND_Y + 3, height = 62 + (i % 3) * 12;
+    ctx.fillStyle = '#315F78'; ctx.fillRect(x - 4, base - 24, 8, 28);
+    ctx.beginPath(); ctx.moveTo(x, base - height); ctx.lineTo(x - 34, base - 14); ctx.lineTo(x - 15, base - 18); ctx.lineTo(x, base - 5); ctx.lineTo(x + 15, base - 18); ctx.lineTo(x + 34, base - 14); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#E9F7FF'; ctx.beginPath(); ctx.moveTo(x, base - height); ctx.lineTo(x - 13, base - height + 25); ctx.lineTo(x, base - height + 19); ctx.lineTo(x + 13, base - height + 25); ctx.closePath(); ctx.fill();
+  }
+}
+
+function drawVolcanoLandscape(colors) {
+  const offset = (frame * 0.075) % 560;
+  ctx.fillStyle = '#432C35'; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
+  for (let i = -1; i < 3; i++) {
+    const x = i * 560 - offset;
+    ctx.lineTo(x + 75, GROUND_Y - 52); ctx.lineTo(x + 190, GROUND_Y - 185);
+    ctx.lineTo(x + 260, GROUND_Y - 132); ctx.lineTo(x + 365, GROUND_Y - 220);
+    ctx.lineTo(x + 475, GROUND_Y - 62); ctx.lineTo(x + 560, GROUND_Y);
+  }
+  ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#FF5722'; ctx.lineWidth = 4; ctx.globalAlpha = 0.8;
+  for (let i = -1; i < 3; i++) {
+    const x = i * 560 - offset;
+    ctx.beginPath(); ctx.moveTo(x + 190, GROUND_Y - 185); ctx.quadraticCurveTo(x + 230, GROUND_Y - 120, x + 300, GROUND_Y - 80); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 365, GROUND_Y - 220); ctx.quadraticCurveTo(x + 390, GROUND_Y - 140, x + 440, GROUND_Y - 95); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // Светящиеся кратеры и дымовые облака над дальними конусами.
+  for (let i = -1; i < 3; i++) {
+    const x = i * 560 - offset + 365, y = GROUND_Y - 218;
+    ctx.fillStyle = 'rgba(255,87,34,0.75)'; ctx.beginPath(); ctx.ellipse(x, y + 5, 19, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(72,58,58,0.55)';
+    for (let j = 0; j < 3; j++) {
+      const drift = (frame * (0.12 + j * 0.025) + j * 17) % 42;
+      ctx.beginPath(); ctx.arc(x + Math.sin(frame * 0.012 + j) * 8, y - 15 - drift, 7 + j * 3, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+
 function drawDesertHerd() {
   ctx.save(); ctx.fillStyle = '#51483D'; ctx.globalAlpha = 0.48;
   const count = 4;
@@ -231,24 +286,10 @@ function drawBackground(timeOfDay, showCelestial, biomeScore) {
     drawDesertHerd();
   } else if (activeBiome.id === 'forest') {
     drawForestLandscape(colors);
+  } else if (activeBiome.id === 'snow') {
+    drawSnowLandscape(colors);
   } else {
-    ctx.fillStyle = colors.mountainFar; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
-    const offset = (frame * 0.1) % 400;
-    for (let i = -1; i < 4; i++) {
-      const bx = i * 300 - offset;
-      ctx.lineTo(bx + 80, GROUND_Y - 90); ctx.lineTo(bx + 160, GROUND_Y - 30);
-      ctx.lineTo(bx + 220, GROUND_Y - 110); ctx.lineTo(bx + 300, GROUND_Y);
-    }
-    ctx.lineTo(W, GROUND_Y); ctx.lineTo(W, GROUND_Y + 2); ctx.lineTo(0, GROUND_Y + 2); ctx.closePath(); ctx.fill();
-
-    ctx.fillStyle = colors.mountainNear; ctx.beginPath(); ctx.moveTo(0, GROUND_Y);
-    const offset2 = (frame * 0.25) % 500;
-    for (let i = -1; i < 3; i++) {
-      const bx = i * 400 - offset2;
-      ctx.lineTo(bx + 100, GROUND_Y - 50); ctx.lineTo(bx + 200, GROUND_Y - 15);
-      ctx.lineTo(bx + 300, GROUND_Y - 60); ctx.lineTo(bx + 400, GROUND_Y);
-    }
-    ctx.lineTo(W, GROUND_Y); ctx.closePath(); ctx.fill();
+    drawVolcanoLandscape(colors);
   }
 }
 

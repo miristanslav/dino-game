@@ -76,8 +76,9 @@ function spawnGroundBone(x, amount) {
 function resolveGoldenEgg() {
   const roll = Math.random();
   if (roll < 0.6) {
-    for (let i = 0; i < 5; i++) obstacles.push({ x: W + 35 + i * 92, y: GROUND_Y, w: 8, h: 15 + Math.random() * 4, type: 'cactus_small' });
-    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🌵 5 КАКТУСОВ!');
+    cactusGuardHits += 5;
+    guardPulse = 1;
+    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🛡 ЗАЩИТА: +5 УДАРОВ!');
   } else if (roll < 0.9) {
     passiveBoneTimer = 20; passiveBoneTick = 1;
     spawnFloatingText(W * 0.55, GROUND_Y - 75, '🦴 +1 КОСТЬ / СЕК');
@@ -98,6 +99,7 @@ function resolveGoldenEgg() {
 function spawnObstacle() {
   const biome = getBiomeState(distance).current.id;
   const r = Math.random();
+
   if (biome === 'desert') {
     if (r < 0.55) {
       const h = 14 + Math.random() * 7;
@@ -105,37 +107,41 @@ function spawnObstacle() {
     } else if (r < 0.82) {
       const h = 7 + Math.random() * 5, w = 13 + Math.random() * 9;
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'rock' });
-    } else if (r < 0.94) {
-      const heights = [GROUND_Y - 42, GROUND_Y - 92, GROUND_Y - 164];
-      spawnPterodactyl();
-    } else {
-      spawnGroundPowerUp();
-    }
+    } else if (r < 0.94) spawnPterodactyl();
+    else spawnGroundPowerUp();
     return;
   }
+
   if (biome === 'forest') {
     if (r < 0.42) {
       const h = 12 + Math.random() * 12, w = 16 + Math.random() * 8;
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'stump' });
-    } else if (r < 0.56) {
-      obstacles.push({ x: W + 20, y: GROUND_Y, w: 17, h: 10, type: 'poisonFlower' });
-    } else if (r < 0.90) {
-      const heights = [GROUND_Y - 42, GROUND_Y - 92, GROUND_Y - 164];
-      spawnPterodactyl();
-    } else {
-      spawnGroundPowerUp();
-    }
+    } else if (r < 0.56) obstacles.push({ x: W + 20, y: GROUND_Y, w: 17, h: 10, type: 'poisonFlower' });
+    else if (r < 0.90) spawnPterodactyl();
+    else spawnGroundPowerUp();
     return;
   }
-  if (r < 0.35) {
-    const big = Math.random() < 0.5, h = big ? 25 : 20, w = big ? 10 : 8;
-    obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: big ? 'cactus_big' : 'cactus_small' });
-  } else if (r < 0.90) {
-    const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168];
-    spawnPterodactyl();
-  } else {
-    spawnGroundPowerUp();
+
+  if (biome === 'snow') {
+    if (r < 0.34) {
+      const h = 22 + Math.random() * 17, w = 16 + Math.random() * 9;
+      obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'iceSpike' });
+    } else if (r < 0.58) {
+      const h = 13 + Math.random() * 8, w = 22 + Math.random() * 12;
+      obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'snowBoulder' });
+    } else if (r < 0.88) spawnPterodactyl();
+    else spawnGroundPowerUp();
+    return;
   }
+
+  // Вулкан: острые обсидиановые осколки и опасные лавовые жерла.
+  if (r < 0.34) {
+    const h = 24 + Math.random() * 18, w = 15 + Math.random() * 8;
+    obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'obsidian' });
+  } else if (r < 0.56) {
+    obstacles.push({ x: W + 20, y: GROUND_Y, w: 25, h: 17 + Math.random() * 6, type: 'lavaVent' });
+  } else if (r < 0.88) spawnPterodactyl();
+  else spawnGroundPowerUp();
 }
 
 function spawnGroundPowerUp() {
