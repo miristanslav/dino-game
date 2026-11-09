@@ -140,6 +140,14 @@ function drawTRexStanding(phase, dead, scale) {
   // Neck extended upward and forward to support the repositioned skull.
   poly([[25,13+bob],[26,10+bob],[29,7.8+bob],[32,7+bob],[34.8,8.2+bob],[36,11.2+bob],[34,14.8+bob],[29,16+bob],[26,15+bob]], c.outline);
   poly([[26,13+bob],[27.5,10.5+bob],[30,8.4+bob],[32.7,7.8+bob],[34.2,8.8+bob],[35,11.4+bob],[33,14+bob],[29,15+bob],[27,14.5+bob]], c.body);
+  // Blend the neck into the chest: this body-colour bridge hides the internal overlap edge.
+  ctx.beginPath();
+  ctx.moveTo(25.4*scale,13.15*scale+bob*scale);
+  ctx.quadraticCurveTo(27.2*scale,13.0*scale+bob*scale,29.0*scale,14.15*scale+bob*scale);
+  ctx.quadraticCurveTo(30.1*scale,14.9*scale+bob*scale,30.0*scale,16.15*scale+bob*scale);
+  ctx.quadraticCurveTo(28.1*scale,16.55*scale+bob*scale,26.2*scale,15.65*scale+bob*scale);
+  ctx.quadraticCurveTo(25.1*scale,14.65*scale+bob*scale,25.4*scale,13.15*scale+bob*scale);
+  ctx.closePath(); ctx.fillStyle=c.body; ctx.fill();
   poly([[27,14+bob],[30,14+bob],[33,12.9+bob],[32,14.8+bob],[28,15+bob]], c.belly);
 
   // Massive tyrannosaur skull: deep cranium and broad, softly squared maxilla.
