@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 47;
+const CURRENT_VERSION = 48;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,14 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 48,
+    changes: [
+      'Патч 48: Плавный размерный профиль спинных шипов',
+      'Самые крупные шипы теперь находятся в середине спины; к хвосту и шее они плавно уменьшаются',
+      'Устранено пересечение соседних шипов в зоне перехода хвоста в туловище во время бега'
+    ]
+  },
   {
     version: 47,
     changes: [
