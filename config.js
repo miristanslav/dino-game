@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 36;
+const CURRENT_VERSION = 37;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,16 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 37,
+    changes: [
+      'Патч 37: Анатомическая форма хвоста T-Rex',
+      'Усилено основание хвоста: оно плавно продолжает мощную мускулатуру таза',
+      'Хвост получил более длинный и равномерный переход к узкому кончику, уточнены верхний и нижний контуры',
+      'Добавлена мягкая плоскость объёма; голова, корпус, лапы, анимация и коллизии не менялись'
+    ]
+  },
+
   {
     version: 36,
     changes: [
