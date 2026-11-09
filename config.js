@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 99;
+const CURRENT_VERSION = 100;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,17 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 100,
+    changes: [
+      "Патч 100: Новая перспектива игрового поля 2,5D с видом сбоку-сверху; управление бегом и прыжком сохранено",
+      "Добавлены уклонение свайпом вниз на мобильных устройствах и приседание клавишами на компьютере",
+      "Добавлены четыре биома с тематическими пейзажами и препятствиями; биомы переключаются по дистанции, длина каждого следующего круга удваивается",
+      "Добавлены мирные, хищные и золотые бонусные птеродактили, яйца и особые награды",
+      "Добавлены жизни с бесконечной прокачкой, временный щит и щит на пять столкновений",
+      "Настроены цены улучшений, таймеры бонусов и совместимость со старыми сохранениями"
+    ]
+  },
   {
     version: 94,
     changes: [
@@ -636,9 +647,10 @@ const PETS = [
 ];
 
 const UPGRADES = [
-  { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [10, 30, 60, 100, 150] },
-  { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притяжение птиц', maxLevel: 2, costs: [15, 40] },
-  { id: 'doubleBones', icon: '✨', name: 'Двойные кости', desc: '+1 кость за птицу', maxLevel: 2, costs: [25, 75] }
+  { id: 'jump', icon: '🦘', name: 'Прыжок', desc: 'Сила прыжка', maxLevel: 5, costs: [100, 300, 650, 1500, 3750] },
+  { id: 'magnet', icon: '🧲', name: 'Магнит', desc: 'Притягивает птеродактилей средней высоты', maxLevel: 5, costs: [750, 3750, 18750, 93750, 468750] },
+  { id: 'doubleBones', icon: '✨', name: 'Кости за птеродактиля', desc: '+1 кость за птеродактиля за уровень', maxLevel: 5, costs: [440, 1540, 5390, 18865, 66028] },
+  { id: 'lives', icon: '❤️', name: 'Дополнительная жизнь', desc: '+1 жизнь в каждом новом забеге; цена растёт на 50%', maxLevel: null, initialCost: 150, costMultiplier: 1.5 }
 ];
 
 const ACHIEVEMENTS_DEF = [
@@ -660,25 +672,35 @@ const TIME_KEYS = [
 ];
 
 const BIOMES = [
-  { id: 'desert', name: '🌵 Пустыня', minScore: 0, ground: '#8BC34A', groundLine: '#33691E', dirt: '#795548', mountainFar: '#90CAF9', mountainNear: '#A5D6A7', cactus: '#388E3C', cactusLight: '#4CAF50', bird: '#37474F', cloud: '#FFFFFF', hasSnow: false },
-  { id: 'forest', name: '🌲 Лес', minScore: 1000, ground: '#4CAF50', groundLine: '#1B5E20', dirt: '#5D4037', mountainFar: '#2E7D32', mountainNear: '#1B5E20', cactus: '#2E7D32', cactusLight: '#4CAF50', bird: '#263238', cloud: '#E8F5E9', hasSnow: false },
-  { id: 'snow', name: '❄️ Снег', minScore: 2500, ground: '#FFFFFF', groundLine: '#B0BEC5', dirt: '#CFD8DC', mountainFar: '#E3F2FD', mountainNear: '#BBDEFB', cactus: '#90CAF9', cactusLight: '#E3F2FD', bird: '#ECEFF1', cloud: '#FAFAFA', hasSnow: true },
-  { id: 'volcano', name: '🌋 Вулкан', minScore: 5000, ground: '#3E2723', groundLine: '#1B0000', dirt: '#212121', mountainFar: '#BF360C', mountainNear: '#FF5722', cactus: '#BF360C', cactusLight: '#FF7043', bird: '#000000', cloud: '#4E342E', hasSnow: false }
+  { id: 'desert', name: '🌵 Пустыня', minDistance: 0, ground: '#D8B36A', groundLine: '#8B5E2D', dirt: '#B77B43', mountainFar: '#E8C985', mountainNear: '#C58A4A', cactus: '#388E3C', cactusLight: '#4CAF50', bird: '#37474F', cloud: '#FFFFFF', hasSnow: false },
+  { id: 'forest', name: '🌲 Лес', minDistance: 1500, ground: '#4CAF50', groundLine: '#1B5E20', dirt: '#5D4037', mountainFar: '#2E7D32', mountainNear: '#1B5E20', cactus: '#2E7D32', cactusLight: '#4CAF50', bird: '#263238', cloud: '#E8F5E9', hasSnow: false },
+  { id: 'snow', name: '❄️ Снег', minDistance: 4000, ground: '#FFFFFF', groundLine: '#B0BEC5', dirt: '#CFD8DC', mountainFar: '#E3F2FD', mountainNear: '#BBDEFB', cactus: '#90CAF9', cactusLight: '#E3F2FD', bird: '#ECEFF1', cloud: '#FAFAFA', hasSnow: true },
+  { id: 'volcano', name: '🌋 Вулкан', minDistance: 6700, ground: '#3E2723', groundLine: '#1B0000', dirt: '#212121', mountainFar: '#BF360C', mountainNear: '#FF5722', cactus: '#BF360C', cactusLight: '#FF7043', bird: '#000000', cloud: '#4E342E', hasSnow: false }
 ];
 
-function getBiomeState(currentScore) {
+// Дистанция измеряется в игровых единицах пути, независимо от очков.
+function getBiomeState(totalDistance) {
+  const safeDistance = Math.max(0, Number(totalDistance) || 0);
+  let lap = 0, cycleStart = 0, cycleLength = 10000;
+  while (safeDistance >= cycleStart + cycleLength) {
+    cycleStart += cycleLength;
+    cycleLength *= 2;
+    lap++;
+  }
+  const scale = cycleLength / 10000;
+  const localDistance = safeDistance - cycleStart;
+  const thresholds = [0, 1500 * scale, 4000 * scale, 6700 * scale, 10000 * scale];
   let currentIdx = 0;
-  for (let i = 0; i < BIOMES.length; i++) {
-    if (currentScore >= BIOMES[i].minScore) currentIdx = i;
+  for (let i = 1; i < thresholds.length - 1; i++) {
+    if (localDistance >= thresholds[i]) currentIdx = i;
   }
   const current = BIOMES[currentIdx];
-  const next = BIOMES[currentIdx + 1] || null;
-  let transitionT = 0;
-  if (next) {
-    const transitionStart = next.minScore - 100;
-    if (currentScore >= transitionStart) transitionT = (currentScore - transitionStart) / 100;
-  }
-  return { current, next, transitionT };
+  const next = BIOMES[(currentIdx + 1) % BIOMES.length];
+  const transitionStart = thresholds[currentIdx + 1] - 100 * scale;
+  const transitionT = localDistance >= transitionStart
+    ? Math.max(0, Math.min(1, (localDistance - transitionStart) / (100 * scale)))
+    : 0;
+  return { current, next, transitionT, lap, cycleStart, cycleLength, localDistance };
 }
 
 function mixBiomeColor(color1, color2, t) { return lerpColor(color1, color2, Math.max(0, Math.min(1, t))); }
@@ -745,16 +767,18 @@ let W = window.innerWidth;
 let H = window.innerHeight;
 let GROUND_Y = H * 0.8;
 
-let score = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
+let score = 0, distance = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
+let currentLives = 1, damageCooldown = 0, poisonOverlayTimer = 0, cactusGuardHits = 0, guardPulse = 0;
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
-let meteorTimer = 15;
 let ghostUsed = false;
 let petX = 0, petY = 0;
 
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
-let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [];
+let duckTimer = 0;
+let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [], eggs = [], groundBones = [];
+let bonusPteroTimer = 5, passiveBoneTimer = 0, passiveBoneTick = 1;
 let activeTab = 'upg';
 
 let stars = [];
@@ -772,6 +796,7 @@ const hud = document.getElementById('hud');
 const hudHigh = document.getElementById('hudHigh');
 const hudScore = document.getElementById('hudScore');
 const hudBones = document.getElementById('hudBones');
+const hudLives = document.getElementById('hudLives');
 const tapHint = document.getElementById('tapHint');
 const speedBarContainer = document.getElementById('speedBarContainer');
 const speedBar = document.getElementById('speedBar');

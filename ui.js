@@ -2,6 +2,12 @@ function updateHUD() {
   hudHigh.textContent = String(Math.floor(save.highScore)).padStart(5, '0');
   hudScore.textContent = String(Math.floor(score)).padStart(5, '0');
   hudBones.textContent = save.bones + sessionBones;
+  if (hudLives) {
+    hudLives.textContent = `❤️ ${currentLives}`;
+    const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
+    hudLives.dataset.guard = timedShield ? '🛡 ' + Math.max(0, Math.ceil(timedShield.timer)) : (cactusGuardHits > 0 ? String(cactusGuardHits) : '');
+    hudLives.dataset.guardMode = timedShield ? 'timed' : (cactusGuardHits > 0 ? 'charges' : '');
+  }
   if (xpLevel && xpBarFill) {
     const info = getLevelFromXp(save.xp);
     xpLevel.textContent = `Lv.${info.level}`;
@@ -16,7 +22,7 @@ function updatePowerUpHUD() {
   if (activePowerUps.length === 0) { container.classList.add('hidden'); return; }
   container.classList.remove('hidden');
   let html = '';
-  activePowerUps.forEach(a => { html += `<div class="powerup-badge" style="border-color: ${a.color}">${a.icon} ${Math.max(0, Math.ceil(a.timer))}s</div>`; });
+  activePowerUps.forEach(a => { const seconds = Math.max(0, Math.ceil(a.timer)); a.displaySecond = seconds; html += `<div class="powerup-badge" style="border-color: ${a.color}">${a.icon} ${seconds}s</div>`; });
   container.innerHTML = html;
 }
 
@@ -76,6 +82,11 @@ function renderRecords() {
   fetchGlobalLeaderboard();
 }
 
+function getUpgradeCost(upg, level) {
+  if (upg.id === 'lives') return Math.ceil(upg.initialCost * Math.pow(upg.costMultiplier, level));
+  return upg.costs[level];
+}
+
 function renderUpgrades() {
   upgradesBones.textContent = save.bones;
   upgradesList.innerHTML = ''; skinsList.innerHTML = ''; if (petsList) petsList.innerHTML = '';
@@ -83,9 +94,9 @@ function renderUpgrades() {
   if (activeTab === 'upg') {
     upgradesList.classList.remove('hidden'); skinsList.classList.add('hidden'); if (petsList) petsList.classList.add('hidden');
     UPGRADES.forEach(upg => {
-      const level = save.upgrades[upg.id] || 0; const isMax = level >= upg.maxLevel; const cost = isMax ? null : upg.costs[level]; const canAfford = !isMax && save.bones >= cost;
+      const level = save.upgrades[upg.id] || 0; const isMax = Number.isFinite(upg.maxLevel) && level >= upg.maxLevel; const cost = isMax ? null : getUpgradeCost(upg, level); const canAfford = !isMax && save.bones >= cost;
       const card = document.createElement('div'); card.className = 'upgrade-card'; if (isMax) card.classList.add('maxed');
-      card.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><div class="upgrade-name">${upg.name}</div><div class="upgrade-desc">${upg.desc}</div><div class="upgrade-level">Уровень ${level}/${upg.maxLevel}</div></div><button class="upgrade-buy ${isMax ? 'maxed' : ''}" ${isMax || !canAfford ? 'disabled' : ''}>${isMax ? '✓ MAX' : `${cost} 🦴`}</button>`;
+      card.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><div class="upgrade-name">${upg.name}</div><div class="upgrade-desc">${upg.desc}</div><div class="upgrade-level">Уровень ${level}/${upg.maxLevel == null ? '∞' : upg.maxLevel}</div></div><button class="upgrade-buy ${isMax ? 'maxed' : ''}" ${isMax || !canAfford ? 'disabled' : ''}>${isMax ? '✓ MAX' : `${cost} 🦴`}</button>`;
       if (!isMax) card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => { e.stopPropagation(); buyUpgrade(upg.id); });
       upgradesList.appendChild(card);
     });
@@ -114,8 +125,8 @@ function renderUpgrades() {
 
 function buyUpgrade(id) {
   const upg = UPGRADES.find(u => u.id === id); if (!upg) return;
-  const level = save.upgrades[id] || 0; if (level >= upg.maxLevel) return;
-  const cost = upg.costs[level]; if (save.bones < cost) return;
+  const level = save.upgrades[id] || 0; if (Number.isFinite(upg.maxLevel) && level >= upg.maxLevel) return;
+  const cost = getUpgradeCost(upg, level); if (!Number.isFinite(cost) || save.bones < cost) return;
   save.bones -= cost; save.upgrades[id] = level + 1; writeSave(); renderUpgrades(); haptic('buy'); playSound('click');
 }
 
