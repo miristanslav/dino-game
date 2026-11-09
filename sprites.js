@@ -9,79 +9,85 @@ function uRect(u, v, w, h, color, scale) {
 function drawTRexStanding(phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
-  const step = ((phase % 4) + 4) % 4;
-  const bob = dead ? 0 : (step === 1 || step === 3 ? -0.35 : 0);
+  const step = ((Math.floor(phase) % 4) + 4) % 4;
+  const bob = dead ? 0 : [0, -1, 0, 1][step];
+  const tail = dead ? 0 : [0, -1, 0, 1][step];
 
-  // Хвост сужается к кончику и слегка покачивается в такт бегу.
-  const tailLift = dead ? 0 : (step === 1 ? -1 : step === 3 ? 1 : 0);
-  uRect(0, 14 + tailLift, 4, 2, c.outline, scale);
-  uRect(3, 13 + tailLift, 5, 3, c.body, scale);
-  uRect(7, 12 + tailLift, 5, 4, c.body, scale);
-  uRect(11, 12, 5, 5, c.body, scale);
-  uRect(1, 15 + tailLift, 5, 1, c.outline, scale);
+  // Long, tapering tail with a stepped pixel-art silhouette.
+  uRect(0, 15 + tail, 5, 3, c.outline, scale);
+  uRect(3, 14 + tail, 6, 4, c.outline, scale);
+  uRect(7, 13 + tail, 7, 5, c.outline, scale);
+  uRect(1, 16 + tail, 6, 1, c.body, scale);
+  uRect(5, 15 + tail, 7, 2, c.body, scale);
+  uRect(10, 14 + tail, 5, 3, c.body, scale);
 
-  // Массивный корпус и светлое брюхо.
-  uRect(11, 11 + bob, 14, 10, c.outline, scale);
-  uRect(12, 11 + bob, 12, 9, c.body, scale);
-  uRect(14, 18 + bob, 9, 2, c.belly, scale);
-  uRect(16, 19 + bob, 6, 1, c.belly, scale);
-  uRect(13, 13 + bob, 2, 2, c.belly, scale);
+  // Deep chest, broad torso and curved belly.
+  uRect(12, 10 + bob, 19, 15, c.outline, scale);
+  uRect(14, 11 + bob, 15, 12, c.body, scale);
+  uRect(17, 20 + bob, 10, 3, c.belly, scale);
+  uRect(19, 22 + bob, 7, 1, c.belly, scale);
+  uRect(13, 14 + bob, 3, 5, c.body, scale);
+  uRect(15, 12 + bob, 3, 2, c.belly, scale);
 
-  // Большая черепная коробка, мощная морда и нижняя челюсть.
-  uRect(21, 2 + bob, 10, 9, c.outline, scale);
-  uRect(22, 2 + bob, 8, 8, c.body, scale);
-  uRect(25, 1 + bob, 5, 3, c.body, scale);
-  uRect(29, 4 + bob, 6, 5, c.outline, scale);
-  uRect(30, 4 + bob, 5, 3, c.body, scale);
-  uRect(30, 8 + bob, 5, 2, c.outline, scale);
-  uRect(29, 9 + bob, 5, 2, c.body, scale);
-  uRect(30, 10 + bob, 4, 1, c.outline, scale);
+  // Neck rises into a large T-Rex skull.
+  uRect(27, 5 + bob, 8, 11, c.outline, scale);
+  uRect(29, 6 + bob, 6, 9, c.body, scale);
+  uRect(31, 3 + bob, 10, 10, c.outline, scale);
+  uRect(33, 4 + bob, 8, 7, c.body, scale);
+  uRect(37, 7 + bob, 8, 5, c.outline, scale);
+  uRect(39, 8 + bob, 6, 3, c.body, scale);
 
-  // Глаз, надбровье и ноздря — характерный хищный профиль.
-  uRect(24, 3 + bob, 4, 3, c.outline, scale);
-  uRect(25, 4 + bob, 2, 2, c.eye, scale);
-  uRect(26, 4 + bob, 1, 2, '#18212A', scale);
-  uRect(23, 2 + bob, 5, 1, c.outline, scale);
-  uRect(33, 5 + bob, 1, 1, c.outline, scale);
+  // Lower jaw, mouth and a few readable teeth.
+  uRect(37, 12 + bob, 8, 3, c.outline, scale);
+  uRect(39, 12 + bob, 6, 1, c.body, scale);
+  uRect(38, 11 + bob, 7, 2, '#5B2526', scale);
+  uRect(39, 11 + bob, 1, 1, '#FFF4D6', scale);
+  uRect(42, 11 + bob, 1, 1, '#FFF4D6', scale);
+  uRect(40, 13 + bob, 1, 1, '#FFF4D6', scale);
+  uRect(44, 9 + bob, 1, 1, c.outline, scale); // nostril
 
-  // Открытая зубастая пасть.
-  uRect(29, 7 + bob, 6, 2, '#5B1F24', scale);
-  uRect(30, 7 + bob, 1, 1, '#FFFFFF', scale);
-  uRect(32, 7 + bob, 1, 1, '#FFFFFF', scale);
-  uRect(34, 7 + bob, 1, 1, '#FFFFFF', scale);
-  uRect(31, 9 + bob, 1, 1, '#FFFFFF', scale);
-  uRect(33, 9 + bob, 1, 1, '#FFFFFF', scale);
+  // Eye socket and heavy brow give the head a clear predator expression.
+  uRect(34, 5 + bob, 5, 4, c.outline, scale);
+  uRect(35, 6 + bob, 3, 2, c.eye, scale);
+  uRect(36, 6 + bob, 1, 2, '#17212A', scale);
+  uRect(33, 4 + bob, 6, 1, c.outline, scale);
+  uRect(32, 3 + bob, 3, 1, c.body, scale);
 
-  // Крошечные передние лапы с когтями.
-  uRect(23, 11 + bob, 3, 3, c.outline, scale);
-  uRect(24, 11 + bob, 2, 2, c.body, scale);
-  uRect(25, 13 + bob, 2, 1, c.claw, scale);
+  // Tiny tucked forearms, with two visible claws.
+  uRect(29, 15 + bob, 4, 4, c.outline, scale);
+  uRect(30, 15 + bob, 2, 3, c.body, scale);
+  uRect(32, 18 + bob, 2, 1, c.claw, scale);
 
-  // Бег: четыре фазы шага, ноги работают в противофазе.
-  const stride = dead ? 0 : [-2, 0, 2, 0][step];
-  const liftA = dead ? 0 : [0, -2, 0, 1][step];
-  const liftB = dead ? 0 : [0, 1, 0, -2][step];
-  const legA = 14 + stride;
-  const legB = 21 - stride;
-  uRect(legA, 19 + bob + liftA, 4, 4, c.outline, scale);
-  uRect(legA + 1, 20 + bob + liftA, 3, 3, c.body, scale);
-  uRect(legA - (step === 1 ? 2 : 0), 23 + bob + liftA, 6, 2, c.outline, scale);
-  uRect(legA - (step === 1 ? 2 : 0), 23 + bob + liftA, 4, 1, c.body, scale);
-  uRect(legB, 19 + bob + liftB, 4, 4, c.outline, scale);
-  uRect(legB + 1, 20 + bob + liftB, 3, 3, c.body, scale);
-  uRect(legB + (step === 3 ? 2 : 0), 23 + bob + liftB, 6, 2, c.outline, scale);
-  uRect(legB + (step === 3 ? 2 : 0), 23 + bob + liftB, 4, 1, c.body, scale);
+  // Two powerful hind legs move in opposition through four clear run poses.
+  const poses = [
+    {aX:17,aY:22,aFoot:0,bX:25,bY:22,bFoot:0},
+    {aX:15,aY:20,aFoot:-3,bX:26,bY:23,bFoot:2},
+    {aX:18,aY:22,aFoot:3,bX:24,bY:20,bFoot:-3},
+    {aX:17,aY:23,aFoot:1,bX:25,bY:21,bFoot:-1}
+  ];
+  const p = dead ? poses[0] : poses[step];
+  // Far leg first, then near leg for a little depth.
+  uRect(p.bX, p.bY + bob, 5, 5, c.outline, scale);
+  uRect(p.bX + 1, p.bY + 1 + bob, 3, 4, c.body, scale);
+  uRect(p.bX - 1 + p.bFoot, 26 + bob, 8, 3, c.outline, scale);
+  uRect(p.bX + p.bFoot, 26 + bob, 5, 1, c.body, scale);
+  uRect(p.aX, p.aY + bob, 6, 6, c.outline, scale);
+  uRect(p.aX + 1, p.aY + 1 + bob, 4, 4, c.body, scale);
+  uRect(p.aX - 1 + p.aFoot, 27 + bob, 9, 3, c.outline, scale);
+  uRect(p.aX + p.aFoot, 27 + bob, 6, 1, c.body, scale);
+  uRect(p.aX + 5 + p.aFoot, 28 + bob, 2, 1, c.claw, scale);
+  uRect(p.bX + 5 + p.bFoot, 27 + bob, 2, 1, c.claw, scale);
 
-  // Тёмные пиксельные пластины на спине и маленькие когти.
-  uRect(14, 10 + bob, 2, 2, c.outline, scale);
-  uRect(18, 10 + bob, 2, 2, c.outline, scale);
-  uRect(22, 10 + bob, 2, 2, c.outline, scale);
-  uRect(legA + 1, 24 + bob + liftA, 1, 1, c.claw, scale);
-  uRect(legB + 1, 24 + bob + liftB, 1, 1, c.claw, scale);
+  // Small back ridges and body highlights, kept subtle to avoid a blocky look.
+  uRect(17, 9 + bob, 3, 2, c.outline, scale);
+  uRect(22, 9 + bob, 3, 2, c.outline, scale);
+  uRect(27, 8 + bob, 3, 2, c.outline, scale);
+  uRect(19, 13 + bob, 2, 2, c.belly, scale);
+  uRect(23, 15 + bob, 2, 2, c.body, scale);
 
   if (dead) {
-    uRect(25, 4, 2, 1, c.outline, scale);
-    uRect(26, 3, 1, 3, c.outline, scale);
+    uRect(35, 6, 3, 1, c.outline, scale);
+    uRect(36, 5, 1, 3, c.outline, scale);
   }
 }
 function drawTRexDucking(scale) {
@@ -118,7 +124,7 @@ function drawTRexDucking(scale) {
 
 function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
-  const spriteH = ducking && !jumping ? 15 : 25; const spriteW = 36; const dx = x - 8 * scale; const dy = y - spriteH * scale;
+  const spriteH = ducking && !jumping ? 15 : 30; const spriteW = 46; const dx = x - 8 * scale; const dy = y - spriteH * scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(dx + spriteW * scale * 0.55, y + 3, spriteW * scale * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
   ctx.save(); ctx.translate(dx, dy + (!jumping && !dead ? Math.sin(phase * Math.PI / 2) * 0.6 * scale : 0)); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
 }
