@@ -540,7 +540,9 @@ function drawBird(b, colors, scale) {
   if (scale === undefined) scale = BIRD_SCALE_GAME;
   const x = b.x, y = b.y; const wingUp = Math.floor(frame / 8) % 2 === 0;
   let birdColor = colors.bird;
-  if (b.isGolden) { birdColor = '#FFD700'; ctx.shadowColor = '#FF8F00'; ctx.shadowBlur = 15; }
+  if (b.kind === 'peaceful') birdColor = '#657A43';
+  if (b.kind === 'predator') birdColor = '#C62828';
+  if (b.kind === 'bonus' || b.isGolden) { birdColor = '#FFD700'; ctx.shadowColor = '#FF8F00'; ctx.shadowBlur = 15; }
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(x + 20 * scale, GROUND_Y + 3, 20 * scale, 3, 0, 0, Math.PI * 2); ctx.fill();
   if (b.magnetized) { ctx.fillStyle = 'rgba(100,180,255,0.35)'; ctx.beginPath(); ctx.arc(x + 20 * scale, y, 40 * scale, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = birdColor;

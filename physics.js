@@ -30,8 +30,70 @@ function getCactusBox(o) {
 }
 
 function getBirdBox(b) {
-  return { x: b.x + 2 * BIRD_SCALE_GAME, y: b.y - 18 * BIRD_SCALE_GAME, w: 42 * BIRD_SCALE_GAME, h: 22 * BIRD_SCALE_GAME };
+  const s = BIRD_SCALE_GAME;
+  if (b.kind === 'predator' && b.altitude === 'medium') {
+    // Средний хищник проходит над присевшим динозавром, но задевает стоящего.
+    return { x: b.x + 4 * s, y: b.y - 10 * s, w: 34 * s, h: 8 * s };
+  }
+  if (b.kind === 'predator' && b.altitude === 'high') {
+    return { x: b.x + 4 * s, y: b.y - 16 * s, w: 34 * s, h: 13 * s };
+  }
+  return { x: b.x + 2 * s, y: b.y - 18 * s, w: 42 * s, h: 22 * s };
 }
+
+function spawnPterodactyl() {
+  const roll = Math.random();
+  if (roll < 0.64) {
+    const altitudeRoll = Math.random();
+    const altitude = altitudeRoll < 0.65 ? 'high' : altitudeRoll < 0.9 ? 'medium' : 'low';
+    const y = GROUND_Y - (altitude === 'high' ? 168 : altitude === 'medium' ? 108 : 62);
+    birds.push({ kind: 'peaceful', altitude, x: W + 35, y, w: 44, h: 24,
+      speedFactor: 0.48, dropChance: altitude === 'high' ? 1 : altitude === 'medium' ? 0.4 : 0.15,
+      id: `ptero-${frame}-${Math.floor(Math.random() * 100000)}`, magnetized: false, wasClose: false });
+    return;
+  }
+  const altitude = Math.random() < 0.58 ? 'medium' : 'high';
+  const biome = getBiomeState(distance).current.id;
+  const playerChance = ({ desert: 0.2, forest: 0.4, snow: 0.6, volcano: 0.8 })[biome] || 0.2;
+  const targetPlayer = altitude === 'high' && Math.random() < playerChance;
+  const target = !targetPlayer ? birds.find(x => x.kind === 'peaceful' && x.x > W * 0.25) : null;
+  birds.push({ kind: 'predator', altitude, x: W + 35,
+    y: GROUND_Y - (altitude === 'high' ? 178 : 18), w: 44, h: 24,
+    speedFactor: 1.28, targetPlayer, targetId: target ? target.id : null,
+    diveStarted: false, magnetized: false, id: `hunter-${frame}-${Math.floor(Math.random() * 100000)}` });
+}
+
+function spawnBonusPterodactyl() {
+  birds.push({ kind: 'bonus', altitude: 'high', x: W + 40, y: GROUND_Y - 195,
+    w: 46, h: 25, speedFactor: 1.65, eggDropped: false, magnetized: false,
+    id: `gold-${frame}-${Math.floor(Math.random() * 100000)}` });
+}
+
+function spawnGroundBone(x, amount) {
+  groundBones.push({ x, y: GROUND_Y - 7, amount: Math.max(1, amount || 1), phase: Math.random() * 6 });
+}
+
+function resolveGoldenEgg() {
+  const roll = Math.random();
+  if (roll < 0.6) {
+    for (let i = 0; i < 5; i++) obstacles.push({ x: W + 35 + i * 92, y: GROUND_Y, w: 8, h: 15 + Math.random() * 4, type: 'cactus_small' });
+    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🌵 5 КАКТУСОВ!');
+  } else if (roll < 0.9) {
+    passiveBoneTimer = 20; passiveBoneTick = 1;
+    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🦴 +1 КОСТЬ / СЕК');
+  } else {
+    let count = 0;
+    birds = birds.filter(b => {
+      if (b.kind === 'peaceful' || b.kind === 'predator') {
+        spawnGroundBone(Math.max(dino.x + 55, b.x), 1 + (save.upgrades.doubleBones || 0));
+        count++; return false;
+      }
+      return true;
+    });
+    spawnFloatingText(W * 0.55, GROUND_Y - 75, `💥 ${count} ПТЕРОДАКТИЛЕЙ!`);
+  }
+}
+
 
 function spawnObstacle() {
   const biome = getBiomeState(distance).current.id;
@@ -45,7 +107,7 @@ function spawnObstacle() {
       obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: 'rock' });
     } else if (r < 0.94) {
       const heights = [GROUND_Y - 42, GROUND_Y - 92, GROUND_Y - 164];
-      birds.push({ x: W + 20, y: heights[Math.floor(Math.random() * heights.length)], w: 10, h: 10, type: 'bird', isGolden: false, magnetized: false });
+      spawnPterodactyl();
     } else {
       spawnGroundPowerUp();
     }
@@ -59,7 +121,7 @@ function spawnObstacle() {
       obstacles.push({ x: W + 20, y: GROUND_Y, w: 17, h: 10, type: 'poisonFlower' });
     } else if (r < 0.90) {
       const heights = [GROUND_Y - 42, GROUND_Y - 92, GROUND_Y - 164];
-      birds.push({ x: W + 20, y: heights[Math.floor(Math.random() * heights.length)], w: 10, h: 10, type: 'bird', isGolden: false, magnetized: false });
+      spawnPterodactyl();
     } else {
       spawnGroundPowerUp();
     }
@@ -70,7 +132,7 @@ function spawnObstacle() {
     obstacles.push({ x: W + 20, y: GROUND_Y, w, h, type: big ? 'cactus_big' : 'cactus_small' });
   } else if (r < 0.90) {
     const heights = [GROUND_Y - 40, GROUND_Y - 90, GROUND_Y - 168];
-    birds.push({ x: W + 20, y: heights[Math.floor(Math.random() * heights.length)], w: 10, h: 10, type: 'bird', isGolden: false, magnetized: false });
+    spawnPterodactyl();
   } else {
     spawnGroundPowerUp();
   }

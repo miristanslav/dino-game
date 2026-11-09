@@ -767,7 +767,8 @@ let petX = 0, petY = 0;
 
 const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
 let duckTimer = 0;
-let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [];
+let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [], eggs = [], groundBones = [];
+let bonusPteroTimer = 5, passiveBoneTimer = 0, passiveBoneTick = 1;
 let activeTab = 'upg';
 
 let stars = [];
