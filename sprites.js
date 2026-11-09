@@ -192,10 +192,11 @@ function drawTRexStanding(phase, dead, scale) {
   // Deep lower jaw with a broad rounded chin and strong rear joint.
   headPath(c.outline, () => {
     ctx.moveTo(30.42*scale,10.62*scale+bob*scale);
-    ctx.quadraticCurveTo(29.72*scale,11.72*scale+bob*scale,31.12*scale,13.02*scale+bob*scale);
-    ctx.quadraticCurveTo(33.22*scale,14.72*scale+bob*scale,36.72*scale,15.22*scale+bob*scale);
-    ctx.quadraticCurveTo(41.22*scale,15.82*scale+bob*scale,44.62*scale,14.62*scale+bob*scale);
-    ctx.quadraticCurveTo(46.72*scale,13.88*scale+bob*scale,47.12*scale,12.58*scale+bob*scale);
+    ctx.quadraticCurveTo(29.72*scale,11.72*scale+bob*scale,31.12*scale,12.62*scale+bob*scale);
+    // The lower edge rises gently through the middle instead of sagging downward.
+    ctx.quadraticCurveTo(33.22*scale,14.02*scale+bob*scale,36.72*scale,14.48*scale+bob*scale);
+    ctx.quadraticCurveTo(41.22*scale,14.88*scale+bob*scale,44.62*scale,13.92*scale+bob*scale);
+    ctx.quadraticCurveTo(46.72*scale,13.38*scale+bob*scale,47.12*scale,12.58*scale+bob*scale);
     ctx.quadraticCurveTo(47.22*scale,11.42*scale+bob*scale,45.82*scale,10.72*scale+bob*scale);
     ctx.quadraticCurveTo(43.72*scale,11.42*scale+bob*scale,41.02*scale,11.62*scale+bob*scale);
     ctx.quadraticCurveTo(36.82*scale,11.92*scale+bob*scale,33.42*scale,11.42*scale+bob*scale);
@@ -203,16 +204,16 @@ function drawTRexStanding(phase, dead, scale) {
   });
   headPath(c.body, () => {
     ctx.moveTo(31.62*scale,11.62*scale+bob*scale);
-    ctx.quadraticCurveTo(34.02*scale,13.42*scale+bob*scale,37.12*scale,13.92*scale+bob*scale);
-    ctx.quadraticCurveTo(41.42*scale,14.52*scale+bob*scale,44.32*scale,13.52*scale+bob*scale);
-    ctx.quadraticCurveTo(45.72*scale,12.92*scale+bob*scale,46.02*scale,11.92*scale+bob*scale);
+    ctx.quadraticCurveTo(34.02*scale,12.82*scale+bob*scale,37.12*scale,13.12*scale+bob*scale);
+    ctx.quadraticCurveTo(41.42*scale,13.42*scale+bob*scale,44.32*scale,12.92*scale+bob*scale);
+    ctx.quadraticCurveTo(45.72*scale,12.52*scale+bob*scale,46.02*scale,11.92*scale+bob*scale);
     ctx.quadraticCurveTo(42.72*scale,12.42*scale+bob*scale,39.42*scale,12.42*scale+bob*scale);
     ctx.quadraticCurveTo(35.12*scale,12.32*scale+bob*scale,31.62*scale,11.62*scale+bob*scale);
   });
   headLine(() => {
-    ctx.moveTo(34.12*scale,13.02*scale+bob*scale);
-    ctx.quadraticCurveTo(38.62*scale,14.32*scale+bob*scale,43.02*scale,13.62*scale+bob*scale);
-  }, c.belly, 0.44);
+    ctx.moveTo(34.12*scale,12.42*scale+bob*scale);
+    ctx.quadraticCurveTo(38.62*scale,13.42*scale+bob*scale,43.02*scale,12.92*scale+bob*scale);
+  }, c.belly, 0.40);
   headPath("#402629", () => {
     // The mouth opening begins on the vertical line of the eye.
     // All contours to the right of this point retain their previous shape.
@@ -239,8 +240,9 @@ function drawTRexStanding(phase, dead, scale) {
       }
     });
   };
-  [[36.55,10.68,0.88,1.08],[38.95,10.62,0.84,1.02],[41.25,10.42,0.78,0.90],[43.42,10.12,0.68,0.78],[45.12,9.82,0.56,0.62]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],false));
-  [[35.5,11.82,0.78,0.86],[37.9,11.92,0.82,0.90],[40.3,11.88,0.78,0.84],[42.65,11.62,0.70,0.74],[44.62,11.32,0.58,0.64]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
+  // Only two short teeth peek upward from the upper edge of the lower jaw,
+  // grouped toward the front half of the mouth; no continuous row of teeth.
+  [[41.35,12.18,0.62,0.48],[43.05,11.98,0.58,0.44]].forEach(t=>drawHeadTooth(t[0],t[1],t[2],t[3],true));
   // Compact eye beneath the massive brow.
   ctx.fillStyle = "rgba(30,45,33,0.76)";
   ctx.beginPath(); ctx.ellipse(35.18*scale,7.52*scale+bob*scale,1.08*scale,0.82*scale,-0.08,0,Math.PI*2); ctx.fill();
