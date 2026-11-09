@@ -205,6 +205,21 @@ function update(dt) {
       if (oBox.x + oBox.w < dinoBox.x - 15) { if (o.wasClose) { score += 5 * scoreBonusMult; spawnFloatingText(o.x + o.w * dino.scale / 2, o.y - o.h * dino.scale - 25, 'NICE! +5'); } obstacles.splice(i, 1); }
     }
 
+    const cactusShield = activePowerUps.some(a => a.type === 'shield');
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      if (!rectCollide(dinoBox, getCactusBox(o))) continue;
+      if (o.type === 'poisonFlower') { poisonOverlayTimer = 5; obstacles.splice(i, 1); continue; }
+      if (cactusShield || damageCooldown > 0) continue;
+      if (save.currentPet === 'ghost' && !ghostUsed) {
+        ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
+        obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue;
+      }
+      obstacles.splice(i, 1);
+      takeDamage();
+      if (gameState !== 'playing') return;
+    }
+
     birds.forEach(b => {
       const factor = b.speedFactor || 0.5;
       let effSpeed = speed * factor;
