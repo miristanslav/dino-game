@@ -377,3 +377,87 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
     font-size: 12px;
   }
 }
+
+
+/* PATCH 29: pixel-art pause controls */
+.pixel-pause-btn {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 45;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #263238;
+  border-radius: 4px;
+  background: #fff3c4;
+  color: #263238;
+  box-shadow: 0 4px 0 #263238, 0 6px 0 rgba(0,0,0,.12);
+  font: 900 22px/1 'Courier New', monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.pixel-pause-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #263238; }
+.pixel-pause-btn.hidden { display: none !important; }
+
+#pauseScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(14, 24, 31, .58);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+#pauseScreen.hidden { display: none !important; }
+.pixel-dialog {
+  width: min(360px, 92vw);
+  padding: 22px;
+  border: 4px solid #263238;
+  border-radius: 4px;
+  background: #f7edc8;
+  color: #263238;
+  text-align: center;
+  box-shadow: 8px 8px 0 rgba(0,0,0,.28);
+  image-rendering: pixelated;
+}
+.pixel-dialog-kicker {
+  margin-bottom: 6px;
+  color: #607d55;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+.pixel-dialog h2 {
+  margin-bottom: 4px;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 2px 2px 0 #d4c79c;
+}
+.pause-dino-mark { margin: 3px 0 14px; font-size: 42px; line-height: 1.2; }
+.pixel-action {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 3px solid #263238;
+  border-radius: 3px;
+  font: 900 14px/1.2 'Courier New', monospace;
+  letter-spacing: .5px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #263238;
+  touch-action: manipulation;
+}
+.pixel-action:active { transform: translateY(3px); box-shadow: 0 1px 0 #263238; }
+.pixel-action.primary { background: #8bc34a; color: #17251a; }
+.pixel-action.secondary { background: #d7e2e8; color: #263238; }
+@media (orientation: portrait) {
+  #pauseBtn, #pauseScreen { display: none !important; }
+}
