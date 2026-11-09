@@ -9,44 +9,81 @@ function uRect(u, v, w, h, color, scale) {
 function drawTRexStanding(phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
-  const tailSegments = 14;
-  for (let i = 0; i < tailSegments; i++) {
-    const t = i / (tailSegments - 1);
-    const u = t * 15; const vBase = 10 + (1 - t) * 5; const thickness = 1 + t * 4;
-    uRect(u, vBase, 1.2, thickness, c.body, scale);
-    uRect(u, vBase + thickness - 0.7, 1.2, 0.7, c.outline, scale);
-  }
-  uRect(0, 15, 1.2, 1, c.outline, scale);
-  uRect(13, 8, 14, 11, c.body, scale); uRect(13, 8, 14, 1, c.outline, scale);
-  uRect(14, 17, 12, 2, c.belly, scale); uRect(14, 19, 12, 0.8, c.outline, scale);
-  uRect(15, 9, 10, 0.7, c.belly, scale);
-  uRect(23, 6, 5, 6, c.body, scale); uRect(23, 6, 5, 1, c.outline, scale);
-  uRect(24, 7, 3, 0.6, c.belly, scale);
-  uRect(24, 1, 9, 6, c.body, scale); uRect(24, 1, 9, 1, c.outline, scale);
-  uRect(24, 1, 1, 6, c.outline, scale); uRect(26, 2, 5, 0.7, c.belly, scale);
-  uRect(30, 3, 4, 2.5, c.body, scale); uRect(30, 3, 4, 0.8, c.outline, scale);
-  uRect(33, 4, 0.8, 0.8, '#000', scale);
-  uRect(30, 6.5, 4, 1.5, c.body, scale); uRect(30, 5.5, 4, 1, '#D32F2F', scale);
-  for (let i = 0; i < 3; i++) uRect(30.5 + i, 5.8, 0.6, 0.7, '#FFF', scale);
-  for (let i = 0; i < 3; i++) uRect(30.8 + i, 5.2, 0.5, 0.6, '#FFF', scale);
-  uRect(30, 7.5, 4, 0.5, c.outline, scale);
-  if (dead) { uRect(27, 2.5, 1, 1, c.outline, scale); uRect(27.2, 2.7, 0.6, 0.6, c.eye, scale); }
-  else { uRect(27, 2.5, 1.5, 1.5, c.eye, scale); uRect(27.8, 2.8, 0.7, 0.9, '#000', scale); uRect(27.2, 2.6, 0.4, 0.4, '#FFF', scale); }
-  uRect(26.8, 2.1, 2.2, 0.5, c.outline, scale);
-  uRect(26, 11, 2.5, 1.2, c.outline, scale); uRect(27.5, 11.5, 2, 0.9, c.outline, scale);
-  uRect(28.8, 12, 1.8, 0.9, c.outline, scale); uRect(30, 12.3, 1.2, 0.8, c.outline, scale);
-  uRect(31, 12, 0.6, 0.5, c.claw, scale); uRect(31, 12.7, 0.6, 0.5, c.claw, scale);
-  uRect(26, 12, 2.5, 0.4, c.outline, scale);
-  uRect(15, 17, 5, 4, c.body, scale); uRect(15, 17, 5, 0.7, c.belly, scale); uRect(15, 17, 0.7, 4, c.outline, scale);
-  if (phase === 0) {
-    uRect(16, 20, 2.5, 4.5, c.body, scale); uRect(16, 20, 0.7, 4.5, c.outline, scale); uRect(16, 23.5, 3.5, 1.2, c.outline, scale);
-    uRect(21, 20, 2.5, 3, c.body, scale); uRect(21, 20, 0.7, 3, c.outline, scale); uRect(21, 22.5, 3.5, 1.2, c.outline, scale);
-  } else {
-    uRect(16, 20, 2.5, 3, c.body, scale); uRect(16, 20, 0.7, 3, c.outline, scale); uRect(16, 22.5, 3.5, 1.2, c.outline, scale);
-    uRect(21, 20, 2.5, 4.5, c.body, scale); uRect(21, 20, 0.7, 4.5, c.outline, scale); uRect(21, 23.5, 3.5, 1.2, c.outline, scale);
+  const step = ((phase % 4) + 4) % 4;
+  const bob = dead ? 0 : (step === 1 || step === 3 ? -0.35 : 0);
+
+  // Хвост сужается к кончику и слегка покачивается в такт бегу.
+  const tailLift = dead ? 0 : (step === 1 ? -1 : step === 3 ? 1 : 0);
+  uRect(0, 14 + tailLift, 4, 2, c.outline, scale);
+  uRect(3, 13 + tailLift, 5, 3, c.body, scale);
+  uRect(7, 12 + tailLift, 5, 4, c.body, scale);
+  uRect(11, 12, 5, 5, c.body, scale);
+  uRect(1, 15 + tailLift, 5, 1, c.outline, scale);
+
+  // Массивный корпус и светлое брюхо.
+  uRect(11, 11 + bob, 14, 10, c.outline, scale);
+  uRect(12, 11 + bob, 12, 9, c.body, scale);
+  uRect(14, 18 + bob, 9, 2, c.belly, scale);
+  uRect(16, 19 + bob, 6, 1, c.belly, scale);
+  uRect(13, 13 + bob, 2, 2, c.belly, scale);
+
+  // Большая черепная коробка, мощная морда и нижняя челюсть.
+  uRect(21, 2 + bob, 10, 9, c.outline, scale);
+  uRect(22, 2 + bob, 8, 8, c.body, scale);
+  uRect(25, 1 + bob, 5, 3, c.body, scale);
+  uRect(29, 4 + bob, 6, 5, c.outline, scale);
+  uRect(30, 4 + bob, 5, 3, c.body, scale);
+  uRect(30, 8 + bob, 5, 2, c.outline, scale);
+  uRect(29, 9 + bob, 5, 2, c.body, scale);
+  uRect(30, 10 + bob, 4, 1, c.outline, scale);
+
+  // Глаз, надбровье и ноздря — характерный хищный профиль.
+  uRect(24, 3 + bob, 4, 3, c.outline, scale);
+  uRect(25, 4 + bob, 2, 2, c.eye, scale);
+  uRect(26, 4 + bob, 1, 2, '#18212A', scale);
+  uRect(23, 2 + bob, 5, 1, c.outline, scale);
+  uRect(33, 5 + bob, 1, 1, c.outline, scale);
+
+  // Открытая зубастая пасть.
+  uRect(29, 7 + bob, 6, 2, '#5B1F24', scale);
+  uRect(30, 7 + bob, 1, 1, '#FFFFFF', scale);
+  uRect(32, 7 + bob, 1, 1, '#FFFFFF', scale);
+  uRect(34, 7 + bob, 1, 1, '#FFFFFF', scale);
+  uRect(31, 9 + bob, 1, 1, '#FFFFFF', scale);
+  uRect(33, 9 + bob, 1, 1, '#FFFFFF', scale);
+
+  // Крошечные передние лапы с когтями.
+  uRect(23, 11 + bob, 3, 3, c.outline, scale);
+  uRect(24, 11 + bob, 2, 2, c.body, scale);
+  uRect(25, 13 + bob, 2, 1, c.claw, scale);
+
+  // Бег: четыре фазы шага, ноги работают в противофазе.
+  const stride = dead ? 0 : [-2, 0, 2, 0][step];
+  const liftA = dead ? 0 : [0, -2, 0, 1][step];
+  const liftB = dead ? 0 : [0, 1, 0, -2][step];
+  const legA = 14 + stride;
+  const legB = 21 - stride;
+  uRect(legA, 19 + bob + liftA, 4, 4, c.outline, scale);
+  uRect(legA + 1, 20 + bob + liftA, 3, 3, c.body, scale);
+  uRect(legA - (step === 1 ? 2 : 0), 23 + bob + liftA, 6, 2, c.outline, scale);
+  uRect(legA - (step === 1 ? 2 : 0), 23 + bob + liftA, 4, 1, c.body, scale);
+  uRect(legB, 19 + bob + liftB, 4, 4, c.outline, scale);
+  uRect(legB + 1, 20 + bob + liftB, 3, 3, c.body, scale);
+  uRect(legB + (step === 3 ? 2 : 0), 23 + bob + liftB, 6, 2, c.outline, scale);
+  uRect(legB + (step === 3 ? 2 : 0), 23 + bob + liftB, 4, 1, c.body, scale);
+
+  // Тёмные пиксельные пластины на спине и маленькие когти.
+  uRect(14, 10 + bob, 2, 2, c.outline, scale);
+  uRect(18, 10 + bob, 2, 2, c.outline, scale);
+  uRect(22, 10 + bob, 2, 2, c.outline, scale);
+  uRect(legA + 1, 24 + bob + liftA, 1, 1, c.claw, scale);
+  uRect(legB + 1, 24 + bob + liftB, 1, 1, c.claw, scale);
+
+  if (dead) {
+    uRect(25, 4, 2, 1, c.outline, scale);
+    uRect(26, 3, 1, 3, c.outline, scale);
   }
 }
-
 function drawTRexDucking(scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
@@ -81,13 +118,13 @@ function drawTRexDucking(scale) {
 
 function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
-  const spriteH = ducking && !jumping ? 15 : 25; const spriteW = 35; const dx = x - 8 * scale; const dy = y - spriteH * scale;
+  const spriteH = ducking && !jumping ? 15 : 25; const spriteW = 36; const dx = x - 8 * scale; const dy = y - spriteH * scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(dx + spriteW * scale * 0.55, y + 3, spriteW * scale * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(dx, dy); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
+  ctx.save(); ctx.translate(dx, dy + (!jumping && !dead ? Math.sin(phase * Math.PI / 2) * 0.6 * scale : 0)); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
 }
 
 function drawDino() {
-  drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 6) % 2, gameState === 'gameover', dino.scale);
+  drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 4) % 4, gameState === 'gameover', dino.scale);
   if (activePowerUps.some(a => a.type === 'shield')) {
     ctx.strokeStyle = 'rgba(33,150,243,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(dino.x + 30, dino.y - 30, 45, 0, Math.PI * 2); ctx.stroke();
   }
