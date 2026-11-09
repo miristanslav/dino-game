@@ -491,6 +491,15 @@ function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
 
 function drawDino() {
   drawDinoAt(dino.x, dino.y, dino.ducking, dino.jumping, Math.floor(frame / 2) % 12, gameState === 'gameover', dino.scale);
+  if (passiveBoneTimer > 0 && gameState === 'playing') {
+    const badgeX = dino.x + 18 * dino.scale, badgeY = dino.y - 88 * dino.scale;
+    ctx.save();
+    ctx.fillStyle = 'rgba(45, 35, 20, 0.82)';
+    ctx.beginPath(); ctx.roundRect(badgeX - 21, badgeY - 12, 62, 23, 9); ctx.fill();
+    ctx.fillStyle = '#FFF3C4'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`🦴 ${Math.ceil(passiveBoneTimer)}с`, badgeX + 10, badgeY + 4);
+    ctx.restore();
+  }
   if (activePowerUps.some(a => a.type === 'shield')) {
     ctx.strokeStyle = 'rgba(33,150,243,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(dino.x + 30, dino.y - 30, 45, 0, Math.PI * 2); ctx.stroke();
   }
