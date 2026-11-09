@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 57;
+const CURRENT_VERSION = 58;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 58,
+    changes: [
+      'Патч 58: Уточнены пропорции частей задних лап T-Rex',
+      'Скорректирована ширина бедра, плавность перехода к голени и объём икроножной части',
+      'Уточнены контуры голеностопа и плюсны; сохранён утверждённый пальцеходящий изгиб и опора на пальцы',
+      'Анимация и остальные части динозавра не менялись'
+    ]
+  },
   {
     version: 57,
     changes: [
