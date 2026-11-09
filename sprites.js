@@ -11,86 +11,80 @@ function drawTRexStanding(phase, dead, scale) {
   const c = getDinoColors();
   const step = ((Math.floor(phase) % 4) + 4) % 4;
   const bob = dead ? 0 : [0, -0.5, -1, -0.5][step];
-  const tailLift = dead ? 0 : [0, -1, -1, 0][step];
-  // Pixel-grid silhouette with a long tail, deep chest and recognizable T-Rex skull.
-  const rows = [
-    ".......................",
-    "...................XXXX",
-    "..................XXXXXX",
-    ".................XXXXXXXXXXXX",
-    ".................XXXXXXXXXXXX",
-    "...............XXXXXXXXXXXXXX",
-    "............XXXXXXXXXXXXXXXX.",
-    ".........XXXXXXXXXXXXXXXXXX...",
-    "....XXXXXXXXXXXXXXXXXXXXXX.....",
-    "XXXXXXXXXXXXXXXXXXXXXXXX.......",
-    ".XXXXXXXXXXXXXXXXXXXXXX.........",
-    "...XXXXXXXXXXXXXXXXXX............",
-    "......XXXXXXXXXXXXXX.............",
-    ".........XXXXXXXXXX..............",
-    "..........XXXXXXXX...............",
-    "...........XXXXXX................"
+  const tail = dead ? 0 : [0, -1, -1, 0][step];
+
+  // A finer 1-unit pixel silhouette: tapered tail, sloped back, deep chest and oversized skull.
+  const silhouette = [
+    [0,15,5],[3,14,8],[7,13,10],[11,11,20],[15,9,19],
+    [19,7,15],[23,5,12],[27,4,11],[31,3,14],[35,5,12],
+    [39,8,9],[42,11,6],[39,14,8],[34,17,8],[29,20,8]
   ];
-  for (let y = 0; y < rows.length; y++) {
-    for (let x = 0; x < rows[y].length; x++) {
-      if (rows[y][x] !== "X") continue;
-      let yy = y * 2 + bob;
-      if (y >= 7 && x < 13) yy += tailLift;
-      uRect(x * 2, yy, 2, 2, c.outline, scale);
-    }
-  }
-  uRect(2, 18 + tailLift + bob, 9, 2, c.body, scale);
-  uRect(8, 16 + tailLift + bob, 8, 3, c.body, scale);
-  uRect(15, 14 + bob, 12, 9, c.body, scale);
-  uRect(18, 12 + bob, 8, 4, c.body, scale);
-  uRect(23, 8 + bob, 8, 7, c.body, scale);
-  uRect(29, 6 + bob, 10, 7, c.body, scale);
-  uRect(37, 8 + bob, 8, 4, c.body, scale);
-  uRect(19, 21 + bob, 9, 2, c.belly, scale);
-  uRect(23, 23 + bob, 7, 1, c.belly, scale);
-  uRect(28, 15 + bob, 5, 5, c.belly, scale);
-  uRect(3, 18 + tailLift + bob, 8, 1, c.body, scale);
-  uRect(18, 12 + bob, 2, 2, c.outline, scale);
-  uRect(23, 11 + bob, 2, 2, c.outline, scale);
-  uRect(28, 9 + bob, 2, 2, c.outline, scale);
-  // Large skull, lower jaw, eye and teeth.
-  uRect(34, 7 + bob, 10, 4, c.outline, scale);
-  uRect(36, 8 + bob, 8, 2, c.body, scale);
-  uRect(35, 12 + bob, 10, 3, c.outline, scale);
-  uRect(37, 12 + bob, 8, 1, c.body, scale);
-  uRect(37, 11 + bob, 7, 1, "#54272A", scale);
-  uRect(38, 11 + bob, 1, 2, "#FFF1D0", scale);
-  uRect(41, 11 + bob, 1, 2, "#FFF1D0", scale);
-  uRect(44, 9 + bob, 1.5, 1, c.outline, scale);
-  uRect(38, 7 + bob, 5, 3, c.outline, scale);
-  uRect(39, 8 + bob, 3, 1.5, c.eye, scale);
-  uRect(40, 8 + bob, 1, 1.5, "#17212A", scale);
-  uRect(37, 6 + bob, 6, 1, c.outline, scale);
-  // Small tucked forearms.
-  uRect(29, 16 + bob, 4, 3, c.outline, scale);
-  uRect(30, 16 + bob, 2, 2, c.body, scale);
-  uRect(32, 18 + bob, 2, 1, c.claw, scale);
-  // Four stride poses: contact, push-off, flight and landing.
+  for (const [x,y,w] of silhouette) uRect(x,y+bob+(x<15?tail:0),w,1,c.outline,scale);
+
+  // Fill the silhouette with connected body masses and soft pixel highlights.
+  uRect(2,15+tail+bob,12,4,c.body,scale);
+  uRect(8,13+tail+bob,10,5,c.body,scale);
+  uRect(13,11+bob,16,12,c.body,scale);
+  uRect(17,9+bob,13,13,c.body,scale);
+  uRect(23,7+bob,11,13,c.body,scale);
+  uRect(28,5+bob,11,12,c.body,scale);
+  uRect(33,4+bob,10,9,c.body,scale);
+  uRect(39,8+bob,7,4,c.body,scale);
+  uRect(18,19+bob,10,3,c.belly,scale);
+  uRect(21,21+bob,8,1,c.belly,scale);
+  uRect(29,14+bob,4,5,c.belly,scale);
+
+  // Tail ridge, back scutes and subtle lit planes.
+  uRect(3,16+tail+bob,9,1,c.belly,scale);
+  uRect(10,14+tail+bob,5,1,c.body,scale);
+  uRect(17,10+bob,9,1,c.belly,scale);
+  uRect(20,8+bob,2,2,c.outline,scale);
+  uRect(25,7+bob,2,2,c.outline,scale);
+  uRect(30,5+bob,2,2,c.outline,scale);
+  uRect(15,14+bob,2,5,c.outline,scale);
+
+  // Characterful T-Rex head: brow, eye, muzzle, jaw and tiny teeth.
+  uRect(33,5+bob,11,5,c.outline,scale);
+  uRect(35,6+bob,9,3,c.body,scale);
+  uRect(39,8+bob,7,3,c.body,scale);
+  uRect(36,10+bob,10,2,"#4C2525",scale);
+  uRect(36,12+bob,10,3,c.outline,scale);
+  uRect(38,12+bob,7,1,c.body,scale);
+  uRect(37,11+bob,1,2,"#FFF1D0",scale);
+  uRect(40,11+bob,1,2,"#FFF1D0",scale);
+  uRect(43,9+bob,1,1,c.outline,scale);
+  uRect(35,6+bob,5,3,c.outline,scale);
+  uRect(36,7+bob,3,1,c.eye,scale);
+  uRect(37,7+bob,1,1,"#17212A",scale);
+  uRect(34,5+bob,6,1,c.outline,scale);
+
+  // Small folded arms and shoulder.
+  uRect(29,15+bob,5,3,c.outline,scale);
+  uRect(30,15+bob,3,2,c.body,scale);
+  uRect(33,17+bob,2,1,c.claw,scale);
+
+  // Opposing hind-leg poses. Feet stay close to the ground and alternate naturally.
   const poses = [
-    { rear: [17, 22, -1, 0], near: [25, 22, 1, 0] },
-    { rear: [16, 20, -3, -2], near: [26, 22, 3, 1] },
-    { rear: [18, 21, 2, 2], near: [24, 19, -2, -3] },
-    { rear: [17, 22, 1, 1], near: [25, 21, -1, -1] }
+    {far:[17,21,-1,0], near:[25,21,1,0]},
+    {far:[16,19,-3,-1], near:[26,21,3,1]},
+    {far:[18,20,2,1], near:[24,18,-2,-2]},
+    {far:[17,21,1,1], near:[25,20,-1,-1]}
   ];
-  const p = dead ? poses[0] : poses[step];
-  const leg = (v) => {
-    const [x, y, footX, footY] = v;
-    uRect(x, y + bob, 6, 6, c.outline, scale);
-    uRect(x + 1, y + 1 + bob, 4, 4, c.body, scale);
-    uRect(x - 1 + footX, 27 + footY + bob, 9, 3, c.outline, scale);
-    uRect(x + footX, 27 + footY + bob, 6, 1, c.body, scale);
-    uRect(x + 6 + footX, 28 + footY + bob, 2, 1, c.claw, scale);
+  const pose = dead ? poses[0] : poses[step];
+  const drawLeg = (v, far) => {
+    const [x,y,fx,fy] = v;
+    uRect(x,y+bob,6,6,c.outline,scale);
+    uRect(x+1,y+1+bob,4,4,far ? c.body : c.belly,scale);
+    uRect(x-1+fx,26+fy+bob,9,3,c.outline,scale);
+    uRect(x+fx,26+fy+bob,6,1,c.body,scale);
+    uRect(x+6+fx,27+fy+bob,2,1,c.claw,scale);
   };
-  leg(p.rear);
-  leg(p.near);
+  drawLeg(pose.far,true);
+  drawLeg(pose.near,false);
+
   if (dead) {
-    uRect(39, 8, 3, 1, c.outline, scale);
-    uRect(40, 7, 1, 3, c.outline, scale);
+    uRect(36,7,3,1,c.outline,scale);
+    uRect(37,6,1,3,c.outline,scale);
   }
 }
 function drawTRexDucking(scale) {
