@@ -33,14 +33,22 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.stroke();
   };
 
-  // Deform the approved original leg contours smoothly around hip, knee and hock.
-  // This preserves the existing muscle volume, metatarsus, toe pads and claws.
+  // Articulate the original hind-leg artwork without redrawing its anatomy.
+  // Every contour below uses the same control points as the approved Patch 90 leg.
   const drawArticulatedLeg = (phase, far) => {
     const poses = [
-      [0.02,-0.02,0.00],[0.05,-0.05,0.01],[0.08,-0.12,0.04],
-      [0.07,-0.22,0.08],[0.03,-0.34,0.12],[-0.03,-0.40,0.08],
-      [-0.07,-0.34,0.02],[-0.08,-0.24,-0.05],[-0.05,-0.14,-0.08],
-      [-0.01,-0.07,-0.06],[0.01,-0.03,-0.03],[0.02,-0.02,-0.01]
+      [0.00, 0.00, 0.00],
+      [0.04,-0.05, 0.02],
+      [0.08,-0.12, 0.04],
+      [0.10,-0.22, 0.07],
+      [0.08,-0.32, 0.11],
+      [0.03,-0.38, 0.13],
+      [0.00,-0.34, 0.10],
+      [-0.05,-0.25, 0.05],
+      [-0.08,-0.14, 0.00],
+      [-0.07,-0.06,-0.03],
+      [-0.04,-0.02,-0.02],
+      [0.00, 0.00, 0.00]
     ];
     const [hipAngle,kneeAngle,ankleAngle]=poses[((Math.floor(phase)%12)+12)%12];
     const map=p=>far?[18.9+(p[0]-24)*0.90,29.5+(p[1]-29.5)*0.98]:[p[0],p[1]];
@@ -48,18 +56,37 @@ function drawTRexStanding(phase, dead, scale) {
       const x=p[0]-pivot[0],y=p[1]-pivot[1],co=Math.cos(a),si=Math.sin(a);
       return [pivot[0]+x*co-y*si,pivot[1]+x*si+y*co];
     };
-    const smooth=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
+    const smooth=(a,b,v)=>{
+      const t=Math.max(0,Math.min(1,(v-a)/(b-a)));
+      return t*t*(3-2*t);
+    };
     const hip=map([22,18]), knee=map([25.0,21.5]), hock=map([22.4,25.8]);
     const kneeAfterHip=rotate(knee,hip,hipAngle);
     const hockAfterHip=rotate(hock,hip,hipAngle);
     const hockAfterKnee=rotate(hockAfterHip,kneeAfterHip,kneeAngle);
-    const deform=source=>{
-      const p=map(source),afterHip=rotate(p,hip,hipAngle);
-      const afterKnee=rotate(afterHip,kneeAfterHip,kneeAngle*smooth(19,26,source[1]));
-      return rotate(afterKnee,hockAfterKnee,ankleAngle*smooth(24,29.5,source[1]));
+    // Subdivide only the straight edges already present in the approved paths.
+    // At zero joint angles this is geometrically identical to the original polygons.
+    const smoothPath=points=>{
+      const out=[];
+      for(let i=0;i<points.length;i++){
+        const a=points[i],b=points[(i+1)%points.length];
+        for(let j=0;j<6;j++){
+          const t=j/6;
+          out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);
+        }
+      }
+      return out;
     };
-    const drawPoly=(points,fill)=>poly(points.map(deform),fill);
-    const drawLine=(points,color,width)=>line(points.map(deform),color,width);
+    const deform=source=>{
+      const p=map(source);
+      const afterHip=rotate(p,hip,hipAngle);
+      const kneeWeight=smooth(20.5,25.5,source[1]);
+      const afterKnee=rotate(afterHip,kneeAfterHip,kneeAngle*kneeWeight);
+      const ankleWeight=smooth(25.5,28.5,source[1]);
+      return rotate(afterKnee,hockAfterKnee,ankleAngle*ankleWeight);
+    };
+    const drawPoly=(points,fill)=>poly(smoothPath(points).map(deform),fill);
+    const drawLine=(points,color,width)=>line(smoothPath(points).map(deform),color,width);
     const outline=[[18.2,16.5],[20.8,15.9],[23.8,16.0],[25.7,17.0],[26.7,18.5],[26.9,19.9],[26.3,21.2],[25.4,22.0],[24.7,23.0],[24.0,24.0],[23.4,25.0],[22.7,25.9],[21.7,26.2],[21.3,25.6],[21.8,24.5],[22.5,23.2],[22.5,22.1],[20.6,21.0],[19.0,19.6],[18.0,18.1]];
     const inner=[[19.0,17.1],[21.2,16.6],[23.7,16.7],[25.2,17.6],[26.0,18.8],[26.1,19.9],[25.5,21.0],[24.7,21.8],[24.0,22.9],[23.3,24.1],[22.7,25.2],[22.0,25.6],[21.8,25.2],[22.4,24.0],[23.1,22.6],[22.8,21.8],[20.9,20.7],[19.5,19.4],[18.7,18.1]];
     const calf=[[25.2,20.4],[26.1,20.8],[25.8,22.0],[25.1,22.9],[24.5,24.0],[23.9,25.1],[23.1,26.0],[22.1,26.1],[21.9,25.7],[22.5,24.8],[23.2,23.7],[23.9,22.5],[24.5,21.5]];
@@ -76,7 +103,6 @@ function drawTRexStanding(phase, dead, scale) {
     drawPoly([[25.4,29.1],[26.3,29.4],[26.7,29.9],[26.6,30],[25.8,29.8]],c.claw);
     drawPoly([[24.0,28.7],[24.8,29.1],[25.1,29.6],[25.0,29.8],[24.3,29.5]],c.claw);
   };
-
   // Tail: preserve the approved silhouette and lift it slightly to follow the spine.
   // A small vertical offset adjusts its placement without changing the approved proportions.
   const tailY = tailLift - 0.95;

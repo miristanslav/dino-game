@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 92;
+const CURRENT_VERSION = 93;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 93,
+    changes: [
+      "Патч 93: Добавлена более плавная суставная деформация задних лап без перерисовки анатомии",
+      "Сохранены исходные контуры бедра, голени, плюсны, пальцев и когтей; исходная поза совпадает с утверждённой геометрией",
+      "Колено и голеностоп сгибаются независимо, лапы продолжают двигаться в противофазе"
+    ]
+  },
+
   {
     version: 92,
     changes: [
