@@ -238,6 +238,42 @@ function update(dt) {
     });
 
 
+    // Хищники могут перехватывать мирных птеродактилей.
+    for (const hunter of birds) {
+      if (hunter.kind !== 'predator' || !hunter.targetId) continue;
+      const target = birds.find(other => other.id === hunter.targetId && !other.eaten);
+      if (target && target.kind === 'peaceful' && rectCollide(getBirdBox(hunter), getBirdBox(target))) {
+        spawnGroundBone(target.x + 18, 1 + (save.upgrades.doubleBones || 0));
+        target.eaten = true;
+        hunter.targetId = null;
+      } else if (!target) hunter.targetId = null;
+    }
+
+    for (let i = birds.length - 1; i >= 0; i--) {
+      const b = birds[i], bBox = getBirdBox(b);
+      if (b.eaten) { birds.splice(i, 1); continue; }
+      if (b.kind === 'peaceful') {
+        if (rectCollide(dinoBox, bBox)) {
+          if (Math.random() < b.dropChance) spawnGroundBone(b.x + 18, 1 + (save.upgrades.doubleBones || 0));
+          birds.splice(i, 1); resetCombo(); continue;
+        }
+        if (!b.dropChecked && b.x <= dino.x + 36 && b.x + b.w * BIRD_SCALE_GAME >= dino.x + 20) {
+          b.dropChecked = true;
+          if (Math.random() < b.dropChance) spawnGroundBone(dino.x + 55, 1 + (save.upgrades.doubleBones || 0));
+        }
+        if (b.x > W + 80) { resetCombo(); birds.splice(i, 1); }
+      } else if (b.kind === 'predator') {
+        if (rectCollide(dinoBox, bBox)) {
+          const avoided = b.altitude === 'high' ? dino.jumping : dino.ducking;
+          if (!avoided && damageCooldown <= 0 && !activePowerUps.some(a => a.type === 'shield')) takeDamage();
+          birds.splice(i, 1);
+          if (gameState !== 'playing') return;
+        } else if (b.x < -80) birds.splice(i, 1);
+      } else if (b.kind === 'bonus' && b.x < -80) {
+        birds.splice(i, 1);
+      }
+    }
+
     // ПАТЧ 26: highScore хранится как int (был баг с float)
     const scoreFloored = Math.floor(score);
     if (scoreFloored > save.highScore) save.highScore = scoreFloored;
