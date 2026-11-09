@@ -60,16 +60,17 @@ function drawTRexStanding(phase, dead, scale) {
   poly(move(farFeet[pose].map(([x,y])=>[x+0.4,y-0.45])), c.body);
   line([[16,19+shift],[18,21+shift],[17,23+shift]], c.belly, 0.7);
 
-  // Main torso: sloping back, deep rib cage and compact powerful pelvis.
-  poly([[12,17+bob],[13,14+bob],[16,11.5+bob],[20,9.5+bob],[24,9+bob],[28,10.5+bob],[31,13+bob],[32,16+bob],[30,19+bob],[27,21+bob],[22,21.5+bob],[17,20.5+bob],[13,19+bob]], c.outline);
-  poly([[13,16.5+bob],[14.5,14+bob],[17,12+bob],[20.5,10.5+bob],[24,10+bob],[27.5,11.2+bob],[30,13.3+bob],[30.5,16+bob],[28.5,18.5+bob],[26,19.8+bob],[22,20+bob],[18,19.4+bob],[14.5,18.2+bob]], c.body);
+  // Main torso: elongated, muscular rib cage with a lifted belly and a defined chest.
+  // The silhouette is deliberately asymmetrical: sloping back, deep chest, tighter waist.
+  poly([[12,17+bob],[13.5,14.2+bob],[17,11.8+bob],[21,9.8+bob],[25,9.3+bob],[28,10.2+bob],[30.5,12.5+bob],[32,15.5+bob],[31,18.5+bob],[28.5,20.2+bob],[24.5,20.8+bob],[20.5,20.2+bob],[16.5,19.3+bob],[13,18.5+bob]], c.outline);
+  poly([[13.2,16.7+bob],[15,14.2+bob],[18,12.2+bob],[21.5,10.8+bob],[25,10.3+bob],[27.8,11.1+bob],[29.8,13.1+bob],[30.8,15.7+bob],[30,18+bob],[27.8,19.2+bob],[24.5,19.7+bob],[20.5,19.2+bob],[17,18.5+bob],[14.2,18+bob]], c.body);
 
-  // Separate shoulder mass and rib cage planes make the torso read as muscle.
-  poly([[21,10.8+bob],[24,10.2+bob],[27.5,11.5+bob],[29,14+bob],[28,16.5+bob],[25,16+bob],[22,14+bob]], c.body);
-  poly([[15,15+bob],[17,12.8+bob],[20,11.5+bob],[22,12.5+bob],[20,15.5+bob],[17,17+bob]], c.belly);
-  poly([[17,17+bob],[20,16+bob],[23,17+bob],[27,16.5+bob],[29,16+bob],[27.5,18.5+bob],[24,19.5+bob],[20,19+bob],[17,18.5+bob]], c.belly);
-  line([[16,15+bob],[18,13.2+bob],[20,12.5+bob]], c.body, 0.8);
-  line([[18,18+bob],[21,18.5+bob],[24,18.3+bob]], c.body, 0.65);
+  // Subtle planes describe the shoulder, rib cage and underside without a round belly.
+  poly([[21.5,11+bob],[25,10.5+bob],[28,11.6+bob],[30,14.1+bob],[29.5,16.5+bob],[27,17.2+bob],[24,15.8+bob],[22,13.8+bob]], c.body);
+  poly([[15,15.2+bob],[17.5,12.9+bob],[20.5,11.7+bob],[22.5,12.5+bob],[20.5,15.2+bob],[17.5,16.8+bob]], c.belly);
+  poly([[17,17.1+bob],[20,16.2+bob],[23,16.8+bob],[26.5,16.6+bob],[29.5,16.2+bob],[28.5,18.2+bob],[25.5,19.1+bob],[22,19.1+bob],[18.5,18.5+bob]], c.belly);
+  line([[16.2,15.1+bob],[18.5,13.3+bob],[21,12.5+bob]], c.body, 0.8);
+  line([[18.5,18+bob],[21.5,18.4+bob],[24.5,18.2+bob]], c.body, 0.65);
 
   // Near leg overlaps the belly: thick thigh narrows through a clear knee and shin.
   const nearLegs = [
