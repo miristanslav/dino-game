@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 100;
+const CURRENT_VERSION = 101;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -30,12 +30,11 @@ const CHANGELOG = [
   {
     version: 100,
     changes: [
-      "Патч 100: Новая перспектива игрового поля 2,5D с видом сбоку-сверху; управление бегом и прыжком сохранено",
-      "Добавлены уклонение свайпом вниз на мобильных устройствах и приседание клавишами на компьютере",
-      "Добавлены четыре биома с тематическими пейзажами и препятствиями; биомы переключаются по дистанции, длина каждого следующего круга удваивается",
-      "Добавлены мирные, хищные и золотые бонусные птеродактили, яйца и особые награды",
-      "Добавлены жизни с бесконечной прокачкой, временный щит и щит на пять столкновений",
-      "Настроены цены улучшений, таймеры бонусов и совместимость со старыми сохранениями"
+      "Патч 101: Переключение четырёх биомов привязано к набранным очкам; длина каждого следующего круга удваивается",
+      "Золотые яйца оставляют на земле отдельный особый бонус, который нужно подобрать для активации",
+      "Приседание стало визуально крупнее без изменения механики уклонения",
+      "Хищник, выбравший игрока целью, фиксирует нижнюю высоту полёта; успешное уклонение не останавливает его движение",
+      "Сохранены перспективное игровое поле 2,5D, система жизней, щиты и существующие улучшения"
     ]
   },
   {
@@ -678,9 +677,9 @@ const BIOMES = [
   { id: 'volcano', name: '🌋 Вулкан', minDistance: 6700, ground: '#3E2723', groundLine: '#1B0000', dirt: '#212121', mountainFar: '#BF360C', mountainNear: '#FF5722', cactus: '#BF360C', cactusLight: '#FF7043', bird: '#000000', cloud: '#4E342E', hasSnow: false }
 ];
 
-// Дистанция измеряется в игровых единицах пути, независимо от очков.
-function getBiomeState(totalDistance) {
-  const safeDistance = Math.max(0, Number(totalDistance) || 0);
+// Биомы переключаются по очкам; длина каждого следующего цикла удваивается.
+function getBiomeState(totalScore) {
+  const safeDistance = Math.max(0, Number(totalScore) || 0);
   let lap = 0, cycleStart = 0, cycleLength = 10000;
   while (safeDistance >= cycleStart + cycleLength) {
     cycleStart += cycleLength;

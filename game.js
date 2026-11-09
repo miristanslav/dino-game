@@ -180,7 +180,7 @@ function update(dt) {
     for (let i = eggs.length - 1; i >= 0; i--) {
       if (eggs[i].y >= GROUND_Y - 8) {
         spawnDust(eggs[i].x, GROUND_Y - 3, 9, 3);
-        resolveGoldenEgg(); eggs.splice(i, 1); playSound('record');
+        spawnGoldenReward(eggs[i].x); eggs.splice(i, 1); playSound('record');
       }
     }
     groundBones.forEach(bone => { bone.x -= speed; bone.phase += dt * 4; });
@@ -206,7 +206,7 @@ function update(dt) {
 
     if (comboCount > 0) { comboTimer -= dt; if (comboTimer <= 0) resetCombo(); else comboTimerFill.style.width = Math.min(100, (comboTimer / COMBO_TIMEOUT) * 100) + '%'; }
     dayNightTime += dt; if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
-    const biomeInfo = getBiomeState(distance);
+    const biomeInfo = getBiomeState(score);
     if (biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5)) { isRaining = false; updateSnow(dt); }
     else { weatherTime += dt; const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION; if (weatherTime >= currentWeatherDuration) { isRaining = !isRaining; weatherTime = 0; if (isRaining) initRain(); } updateLightning(dt); updateRain(dt); }
 
@@ -246,10 +246,14 @@ function update(dt) {
     birds.forEach(b => {
       const factor = b.speedFactor || 0.5;
       let effSpeed = speed * factor;
-      if (b.kind === 'predator' && b.altitude === 'high' && b.targetPlayer) {
-        b.diveStarted = true;
-        const targetY = GROUND_Y - 19;
-        b.y += (targetY - b.y) * Math.min(1, dt * 1.75);
+      if (b.kind === 'predator' && b.altitude === 'high' && b.targetPlayer && !b.diveComplete) {
+        const targetY = b.diveTargetY == null ? GROUND_Y - 19 : b.diveTargetY;
+        const deltaY = targetY - b.y;
+        b.y += deltaY * Math.min(1, dt * 1.75);
+        if (Math.abs(deltaY) < 0.8) {
+          b.y = targetY;
+          b.diveComplete = true;
+        }
       } else if (b.kind === 'predator' && b.targetId) {
         const target = birds.find(other => other.id === b.targetId);
         if (target) b.y += (target.y - b.y) * Math.min(1, dt * 1.2);
@@ -301,11 +305,18 @@ function update(dt) {
         }
         if (b.x > W + 80) { resetCombo(); birds.splice(i, 1); }
       } else if (b.kind === 'predator') {
-        if (rectCollide(dinoBox, bBox)) {
-          const avoided = b.altitude === 'high' ? dino.jumping : dino.ducking;
-          if (!avoided) takeDamage('pterodactyl');
-          birds.splice(i, 1);
-          if (gameState !== 'playing') return;
+        if (rectCollide(dinoBox, bBox) && !b.playerAvoided) {
+          const avoided = b.targetPlayer
+            ? (dino.jumping || dino.ducking)
+            : (b.altitude === 'high' ? dino.jumping : dino.ducking);
+          if (avoided) {
+            // После успешного уклонения хищник сохраняет нижнюю траекторию и пролетает дальше.
+            b.playerAvoided = true;
+          } else {
+            takeDamage('pterodactyl');
+            birds.splice(i, 1);
+            if (gameState !== 'playing') return;
+          }
         } else if (b.x < -80) birds.splice(i, 1);
       } else if (b.kind === 'bonus' && b.x < -80) {
         birds.splice(i, 1);
@@ -316,6 +327,31 @@ function update(dt) {
     for (let i = powerUps.length - 1; i >= 0; i--) {
       const powerUp = powerUps[i];
       if (!rectCollide(dinoBox, { x: powerUp.x - 15, y: powerUp.y - 15, w: 30, h: 30 })) continue;
+      if (powerUp.special) {
+        if (powerUp.special === 'shield') {
+          cactusGuardHits += 5;
+          guardPulse = 1;
+          spawnFloatingText(dino.x + 20, dino.y - 82, '🛡 ЗАЩИТА: 5 УДАРОВ!');
+        } else if (powerUp.special === 'passiveBones') {
+          passiveBoneTimer = 20;
+          passiveBoneTick = 1;
+          spawnFloatingText(dino.x + 20, dino.y - 82, '🦴 +1 КОСТЬ / СЕК');
+        } else if (powerUp.special === 'clearBirds') {
+          let count = 0;
+          birds = birds.filter(b => {
+            if (b.kind && b.x > -60 && b.x < W + 60) {
+              spawnGroundBone(Math.max(dino.x + 55, b.x), 1 + (save.upgrades.doubleBones || 0));
+              count++;
+              return false;
+            }
+            return true;
+          });
+          spawnFloatingText(dino.x + 20, dino.y - 82, `💥 ${count} ПТЕРОДАКТИЛЕЙ!`);
+        }
+        powerUps.splice(i, 1);
+        playSound('record'); haptic('eat'); updateHUD();
+        continue;
+      }
       const skinBonusDuration = skinBonus.type === 'powerup' ? skinBonus.value : 0;
       const totalDuration = powerUp.duration + skinBonusDuration;
       const existing = activePowerUps.find(item => item.type === powerUp.type);
@@ -385,7 +421,7 @@ function render() {
   const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
   const timeOfDay = (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
   // ПАТЧ 26: в меню используем biomeScore=0 — иначе фон залипал в позднем биоме
-  const biomeScore = isMenu ? 0 : distance;
+  const biomeScore = isMenu ? 0 : score;
   const colors = getObjectColors(timeOfDay, biomeScore);
   drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
   if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {

@@ -482,11 +482,15 @@ function drawTRexDucking(scale) {
 
 function drawDinoAt(x, y, ducking, jumping, phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
-  const spriteH = ducking && !jumping ? 15 : 30; const spriteW = 46; const dx = x - 8 * scale; const dy = y - spriteH * scale;
+  const isDucking = ducking && !jumping;
+  const spriteH = isDucking ? 18 : 30; const spriteW = 46; const dx = x - 8 * scale; const dy = y - spriteH * scale;
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.ellipse(dx + spriteW * scale * 0.55, y + 3, spriteW * scale * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
   // Standing gait bob is synchronized inside drawTRexStanding so the feet
   // stay grounded while the pelvis, torso, neck and head rise and fall together.
-  ctx.save(); ctx.translate(dx, dy); if (ducking && !jumping) drawTRexDucking(scale); else drawTRexStanding(jumping ? 0 : phase, dead, scale); ctx.restore();
+  ctx.save(); ctx.translate(dx, dy);
+  if (isDucking) { ctx.scale(1.18, 1.2); drawTRexDucking(scale); }
+  else drawTRexStanding(jumping ? 0 : phase, dead, scale);
+  ctx.restore();
 }
 
 function drawDino() {

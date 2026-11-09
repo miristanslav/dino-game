@@ -52,14 +52,15 @@ function spawnPterodactyl() {
     return;
   }
   const altitude = Math.random() < 0.58 ? 'medium' : 'high';
-  const biome = getBiomeState(distance).current.id;
+  const biome = getBiomeState(score).current.id;
   const playerChance = ({ desert: 0.2, forest: 0.4, snow: 0.6, volcano: 0.8 })[biome] || 0.2;
   const targetPlayer = altitude === 'high' && Math.random() < playerChance;
   const target = altitude === 'high' && !targetPlayer ? birds.find(x => x.kind === 'peaceful' && x.x > W * 0.25) : null;
   birds.push({ kind: 'predator', altitude, x: W + 35,
     y: GROUND_Y - (altitude === 'high' ? 178 : 18), w: 44, h: 24,
     speedFactor: 1.28, targetPlayer, targetId: target ? target.id : null,
-    diveStarted: false, magnetized: false, id: `hunter-${frame}-${Math.floor(Math.random() * 100000)}` });
+    diveTargetY: GROUND_Y - 19, diveComplete: false, playerAvoided: false,
+    magnetized: false, id: `hunter-${frame}-${Math.floor(Math.random() * 100000)}` });
 }
 
 function spawnBonusPterodactyl() {
@@ -72,31 +73,18 @@ function spawnGroundBone(x, amount) {
   groundBones.push({ x, y: GROUND_Y - 7, amount: Math.max(1, amount || 1), phase: Math.random() * 6 });
 }
 
-function resolveGoldenEgg() {
+function spawnGoldenReward(x) {
   const roll = Math.random();
-  if (roll < 0.6) {
-    cactusGuardHits += 5;
-    guardPulse = 1;
-    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🛡 ЗАЩИТА: +5 УДАРОВ!');
-  } else if (roll < 0.9) {
-    passiveBoneTimer = 20; passiveBoneTick = 1;
-    spawnFloatingText(W * 0.55, GROUND_Y - 75, '🦴 +1 КОСТЬ / СЕК');
-  } else {
-    let count = 0;
-    birds = birds.filter(b => {
-      if (b.kind && b.x > -60 && b.x < W + 60) {
-        spawnGroundBone(Math.max(dino.x + 55, b.x), 1 + (save.upgrades.doubleBones || 0));
-        count++; return false;
-      }
-      return true;
-    });
-    spawnFloatingText(W * 0.55, GROUND_Y - 75, `💥 ${count} ПТЕРОДАКТИЛЕЙ!`);
-  }
+  let reward;
+  if (roll < 0.6) reward = { special: 'shield', icon: '🛡', color: '#FFD700' };
+  else if (roll < 0.9) reward = { special: 'passiveBones', icon: '🦴', color: '#F4D35E' };
+  else reward = { special: 'clearBirds', icon: '💥', color: '#FF7043' };
+  powerUps.push({ x, y: GROUND_Y - 24, type: 'goldenReward', duration: 0, ...reward });
 }
 
 
 function spawnObstacle() {
-  const biome = getBiomeState(distance).current.id;
+  const biome = getBiomeState(score).current.id;
   const r = Math.random();
 
   if (biome === 'desert') {

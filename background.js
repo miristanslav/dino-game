@@ -280,7 +280,7 @@ function drawBackground(timeOfDay, showCelestial, biomeScore) {
     ctx.globalAlpha = 1;
   });
 
-  const activeBiome = getBiomeState(biomeScore === undefined ? distance : biomeScore).current;
+  const activeBiome = getBiomeState(biomeScore === undefined ? score : biomeScore).current;
   if (activeBiome.id === 'desert') {
     drawDesertLandscape(colors);
     drawDesertHerd();
