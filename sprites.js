@@ -548,8 +548,8 @@ function drawCactus(o, colors, scale) {
 function drawPterodactyl(b, colors) {
   const scale = 1.35, facingRight = b.kind === 'peaceful', direction = facingRight ? 1 : -1;
   const x = b.x, y = b.y, wingUp = Math.floor(frame / 5) % 2 === 0;
-  const body = b.kind === 'peaceful' ? '#687D45' : b.kind === 'predator' ? '#C62828' : '#FFD700';
-  const wing = b.kind === 'peaceful' ? '#82965A' : b.kind === 'predator' ? '#8E1717' : '#FFCA28';
+  const body = b.kind === 'peaceful' ? '#756B45' : b.kind === 'predator' ? '#C62828' : '#FFD700';
+  const wing = b.kind === 'peaceful' ? '#918657' : b.kind === 'predator' ? '#8E1717' : '#FFCA28';
   ctx.save(); if (b.kind === 'bonus') { ctx.shadowColor = '#FFC107'; ctx.shadowBlur = 16; }
   ctx.translate(x + 24 * scale, y); ctx.scale(direction, 1); ctx.fillStyle = body;
   ctx.beginPath(); ctx.ellipse(-2 * scale, 0, 15 * scale, 5.5 * scale, 0, 0, Math.PI * 2); ctx.fill();

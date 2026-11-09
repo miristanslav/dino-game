@@ -661,7 +661,7 @@ const TIME_KEYS = [
 ];
 
 const BIOMES = [
-  { id: 'desert', name: '🌵 Пустыня', minDistance: 0, ground: '#8BC34A', groundLine: '#33691E', dirt: '#795548', mountainFar: '#90CAF9', mountainNear: '#A5D6A7', cactus: '#388E3C', cactusLight: '#4CAF50', bird: '#37474F', cloud: '#FFFFFF', hasSnow: false },
+  { id: 'desert', name: '🌵 Пустыня', minDistance: 0, ground: '#D8B36A', groundLine: '#8B5E2D', dirt: '#B77B43', mountainFar: '#E8C985', mountainNear: '#C58A4A', cactus: '#388E3C', cactusLight: '#4CAF50', bird: '#37474F', cloud: '#FFFFFF', hasSnow: false },
   { id: 'forest', name: '🌲 Лес', minDistance: 1500, ground: '#4CAF50', groundLine: '#1B5E20', dirt: '#5D4037', mountainFar: '#2E7D32', mountainNear: '#1B5E20', cactus: '#2E7D32', cactusLight: '#4CAF50', bird: '#263238', cloud: '#E8F5E9', hasSnow: false },
   { id: 'snow', name: '❄️ Снег', minDistance: 4000, ground: '#FFFFFF', groundLine: '#B0BEC5', dirt: '#CFD8DC', mountainFar: '#E3F2FD', mountainNear: '#BBDEFB', cactus: '#90CAF9', cactusLight: '#E3F2FD', bird: '#ECEFF1', cloud: '#FAFAFA', hasSnow: true },
   { id: 'volcano', name: '🌋 Вулкан', minDistance: 6700, ground: '#3E2723', groundLine: '#1B0000', dirt: '#212121', mountainFar: '#BF360C', mountainNear: '#FF5722', cactus: '#BF360C', cactusLight: '#FF7043', bird: '#000000', cloud: '#4E342E', hasSnow: false }
