@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 54;
+const CURRENT_VERSION = 55;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 55,
+    changes: [
+      'Патч 55: Переработана анатомическая форма задних лап',
+      'Сформированы мощное бедро, выраженное колено и более длинная узкая голень',
+      'Стопы стали компактнее, пальцы направлены вперёд',
+      'Анимация шага пока не дорабатывалась — приоритетом стала форма лап'
+    ]
+  },
   {
     version: 54,
     changes: [
