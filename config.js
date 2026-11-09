@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 64;
+const CURRENT_VERSION = 65;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,15 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 65,
+    changes: [
+      'Патч 65: Нижняя челюсть T-Rex перестроена анатомически, верхняя часть головы сохранена',
+      'Основание челюсти начинается немного позади глаза и продолжается до кончика морды',
+      'Добавлены массивный подбородок и отдельные видимые зубы вдоль края пасти',
+      'Убрана длинная линия рта через всю голову; остальные части динозавра не менялись'
+    ]
+  },
   {
     version: 64,
     changes: [

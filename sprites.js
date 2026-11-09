@@ -188,39 +188,71 @@ function drawTRexStanding(phase, dead, scale) {
     ctx.quadraticCurveTo(30.2*scale, 9.9*scale+bob*scale, 30.0*scale, 9.5*scale+bob*scale);
   });
 
-  // Lower jaw: deep at the hinge, thick through the rear half and smoothly narrowed forward.
+  // Anatomical lower jaw: the hinge begins just behind the eye and the chin is deep and powerful.
+  // The jaw is a separate mass; its mouth opening is short and localized, not a stripe across the skull.
   headPath(c.outline, () => {
-    ctx.moveTo(29.8*scale, 9.7*scale+bob*scale);
-    ctx.quadraticCurveTo(31.1*scale, 10.0*scale+bob*scale, 32.6*scale, 10.3*scale+bob*scale);
-    ctx.quadraticCurveTo(36.0*scale, 10.9*scale+bob*scale, 39.5*scale, 10.4*scale+bob*scale);
-    ctx.quadraticCurveTo(42.5*scale, 10.0*scale+bob*scale, 44.2*scale, 9.2*scale+bob*scale);
-    ctx.quadraticCurveTo(44.7*scale, 10.0*scale+bob*scale, 43.7*scale, 10.9*scale+bob*scale);
-    ctx.quadraticCurveTo(42.0*scale, 12.0*scale+bob*scale, 39.0*scale, 12.5*scale+bob*scale);
-    ctx.quadraticCurveTo(35.6*scale, 12.9*scale+bob*scale, 32.7*scale, 12.2*scale+bob*scale);
-    ctx.quadraticCurveTo(30.5*scale, 11.8*scale+bob*scale, 29.8*scale, 10.7*scale+bob*scale);
-    ctx.quadraticCurveTo(29.5*scale, 10.1*scale+bob*scale, 29.8*scale, 9.7*scale+bob*scale);
+    ctx.moveTo(33.15*scale, 9.85*scale+bob*scale);
+    ctx.quadraticCurveTo(35.2*scale, 10.35*scale+bob*scale, 38.0*scale, 10.25*scale+bob*scale);
+    ctx.quadraticCurveTo(41.5*scale, 9.95*scale+bob*scale, 44.15*scale, 9.05*scale+bob*scale);
+    ctx.quadraticCurveTo(45.0*scale, 9.45*scale+bob*scale, 44.65*scale, 10.65*scale+bob*scale);
+    ctx.quadraticCurveTo(44.35*scale, 11.8*scale+bob*scale, 42.8*scale, 12.55*scale+bob*scale);
+    ctx.quadraticCurveTo(40.0*scale, 13.55*scale+bob*scale, 36.9*scale, 13.25*scale+bob*scale);
+    ctx.quadraticCurveTo(34.35*scale, 12.95*scale+bob*scale, 33.25*scale, 11.75*scale+bob*scale);
+    ctx.quadraticCurveTo(32.8*scale, 10.75*scale+bob*scale, 33.15*scale, 9.85*scale+bob*scale);
   });
   headPath(c.body, () => {
-    ctx.moveTo(31.1*scale, 10.4*scale+bob*scale);
-    ctx.quadraticCurveTo(34.4*scale, 11.0*scale+bob*scale, 38.0*scale, 10.9*scale+bob*scale);
-    ctx.quadraticCurveTo(41.3*scale, 10.7*scale+bob*scale, 43.7*scale, 9.8*scale+bob*scale);
-    ctx.quadraticCurveTo(43.0*scale, 11.1*scale+bob*scale, 40.3*scale, 11.7*scale+bob*scale);
-    ctx.quadraticCurveTo(36.7*scale, 12.4*scale+bob*scale, 33.5*scale, 11.7*scale+bob*scale);
-    ctx.quadraticCurveTo(31.8*scale, 11.4*scale+bob*scale, 31.1*scale, 10.4*scale+bob*scale);
+    ctx.moveTo(33.75*scale, 10.45*scale+bob*scale);
+    ctx.quadraticCurveTo(36.5*scale, 10.9*scale+bob*scale, 39.2*scale, 10.55*scale+bob*scale);
+    ctx.quadraticCurveTo(42.0*scale, 10.25*scale+bob*scale, 44.0*scale, 9.65*scale+bob*scale);
+    ctx.quadraticCurveTo(44.25*scale, 10.6*scale+bob*scale, 42.6*scale, 11.8*scale+bob*scale);
+    ctx.quadraticCurveTo(40.0*scale, 12.85*scale+bob*scale, 37.0*scale, 12.55*scale+bob*scale);
+    ctx.quadraticCurveTo(34.8*scale, 12.25*scale+bob*scale, 33.75*scale, 10.45*scale+bob*scale);
   });
+  // A narrow mouth cavity sits only between the rear hinge and the tip of the muzzle.
+  headPath("#45272A", () => {
+    ctx.moveTo(33.25*scale, 9.95*scale+bob*scale);
+    ctx.quadraticCurveTo(37.0*scale, 10.65*scale+bob*scale, 40.1*scale, 10.2*scale+bob*scale);
+    ctx.quadraticCurveTo(42.5*scale, 9.85*scale+bob*scale, 44.2*scale, 9.15*scale+bob*scale);
+    ctx.quadraticCurveTo(42.7*scale, 10.55*scale+bob*scale, 40.0*scale, 10.8*scale+bob*scale);
+    ctx.quadraticCurveTo(36.4*scale, 11.1*scale+bob*scale, 33.25*scale, 9.95*scale+bob*scale);
+  });
+  // Clearly visible, individually shaped teeth along both edges of the short jaw opening.
+  const upperTeeth = [
+    [[34.0,10.12],[34.65,10.22],[34.35,10.92]],
+    [[35.65,10.38],[36.35,10.46],[36.05,11.15]],
+    [[37.45,10.48],[38.15,10.48],[37.85,11.18]],
+    [[39.25,10.38],[39.95,10.28],[39.65,10.98]],
+    [[41.05,10.02],[41.72,9.82],[41.45,10.55]],
+    [[42.65,9.55],[43.25,9.32],[43.0,10.02]]
+  ];
+  for (const tooth of upperTeeth) {
+    headPath("#F3E5C8", () => {
+      ctx.moveTo(tooth[0][0]*scale,tooth[0][1]*scale+bob*scale);
+      ctx.lineTo(tooth[1][0]*scale,tooth[1][1]*scale+bob*scale);
+      ctx.lineTo(tooth[2][0]*scale,tooth[2][1]*scale+bob*scale);
+    });
+  }
+  const lowerTeeth = [
+    [[34.75,10.65],[35.4,10.9],[35.0,10.25]],
+    [[36.55,10.9],[37.2,11.02],[36.85,10.45]],
+    [[38.35,10.88],[39.0,10.82],[38.68,10.35]],
+    [[40.15,10.65],[40.8,10.48],[40.48,10.12]],
+    [[42.0,10.18],[42.6,9.92],[42.3,9.7]]
+  ];
+  for (const tooth of lowerTeeth) {
+    headPath("#F3E5C8", () => {
+      ctx.moveTo(tooth[0][0]*scale,tooth[0][1]*scale+bob*scale);
+      ctx.lineTo(tooth[1][0]*scale,tooth[1][1]*scale+bob*scale);
+      ctx.lineTo(tooth[2][0]*scale,tooth[2][1]*scale+bob*scale);
+    });
+  }
+  // Rounded chin volume and a soft underside highlight emphasize the heavy mandible.
   headPath(c.belly, () => {
-    ctx.moveTo(33.0*scale, 11.5*scale+bob*scale);
-    ctx.quadraticCurveTo(36.6*scale, 12.1*scale+bob*scale, 40.0*scale, 11.3*scale+bob*scale);
-    ctx.quadraticCurveTo(37.5*scale, 12.2*scale+bob*scale, 34.7*scale, 12.0*scale+bob*scale);
-    ctx.quadraticCurveTo(33.6*scale, 11.9*scale+bob*scale, 33.0*scale, 11.5*scale+bob*scale);
+    ctx.moveTo(35.0*scale, 12.25*scale+bob*scale);
+    ctx.quadraticCurveTo(38.2*scale, 13.05*scale+bob*scale, 41.8*scale, 11.95*scale+bob*scale);
+    ctx.quadraticCurveTo(40.0*scale, 13.0*scale+bob*scale, 37.0*scale, 12.75*scale+bob*scale);
+    ctx.quadraticCurveTo(35.7*scale, 12.65*scale+bob*scale, 35.0*scale, 12.25*scale+bob*scale);
   });
-
-  // Mouth seam follows the jaw hinge and rises gently toward the front of the muzzle.
-  headLine(() => {
-    ctx.moveTo(30.0*scale, 9.85*scale+bob*scale);
-    ctx.quadraticCurveTo(35.6*scale, 10.8*scale+bob*scale, 40.0*scale, 10.25*scale+bob*scale);
-    ctx.quadraticCurveTo(42.4*scale, 9.95*scale+bob*scale, 44.2*scale, 9.2*scale+bob*scale);
-  }, "#45272A", 0.62);
 
   // Small, high-set eye under a pronounced brow ridge.
   ctx.fillStyle = c.eye;
