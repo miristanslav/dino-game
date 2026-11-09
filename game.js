@@ -60,10 +60,22 @@ function jump() {
 function duck(on) { if (gameState !== 'playing' || dino.jumping || isPortraitMode) return; dino.ducking = on; }
 
 // ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
+function takeDamage() {
+  if (damageCooldown > 0 || gameState !== 'playing') return false;
+  currentLives = Math.max(0, currentLives - 1);
+  damageCooldown = 1.1;
+  shakeTime = 10;
+  haptic('crash'); playSound('crash');
+  spawnFloatingText(dino.x + 20, dino.y - 55, '-1 ❤️');
+  updateHUD();
+  if (currentLives <= 0) { gameOver(); return false; }
+  return true;
+}
+
 function clearRoundState() {
   obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; meteors = []; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; dino.jumpsLeft = 1;
-  score = 0; distance = 0; sessionBones = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
+  score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; meteorTimer = 15; dino.scale = DINO_SCALE_GAME;
   ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
   comboCount = 0; comboTimer = 0; updateComboHUD();
   dayNightTime = 0.25 * DAY_NIGHT_CYCLE; weatherTime = 0; isRaining = false; birdsEatenThisGame = 0; lastPowerUpSecond = -1;
@@ -118,6 +130,7 @@ function update(dt) {
   if (isPortraitMode || gameState === 'paused') return;
   frame++;
   if (gameState === 'playing') {
+    damageCooldown = Math.max(0, damageCooldown - dt);
     const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
     let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
     score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
@@ -146,7 +159,7 @@ function update(dt) {
       m.x += m.vx * (dt * 60); m.y += m.vy * (dt * 60);
       if (m.y >= GROUND_Y - m.r) { shakeTime = 15; spawnDust(m.x, GROUND_Y, 30, 8); playSound('crash'); haptic('crash'); sessionBones += 10; spawnFloatingText(m.x, GROUND_Y - 60, '+10 🦴'); updateHUD(); meteors.splice(i, 1); continue; }
       const meteorShield = activePowerUps.some(a => a.type === 'shield');
-      if (!meteorShield && rectCollide(getDinoBox(), { x: m.x - m.r, y: m.y - m.r, w: m.r * 2, h: m.r * 2 })) { gameOver(); return; }
+      if (!meteorShield && damageCooldown <= 0 && rectCollide(getDinoBox(), { x: m.x - m.r, y: m.y - m.r, w: m.r * 2, h: m.r * 2 })) { meteors.splice(i, 1); takeDamage(); if (gameState !== 'playing') return; continue; }
       if (m.x < -100 || m.y > H + 100) meteors.splice(i, 1);
     }
 
@@ -192,9 +205,11 @@ function update(dt) {
     if (!cactusShield) {
       for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
-        if (rectCollide(dinoBox, getCactusBox(o))) {
+        if (damageCooldown <= 0 && rectCollide(dinoBox, getCactusBox(o))) {
           if (save.currentPet === 'ghost' && !ghostUsed) { ghostUsed = true; spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻'); obstacles.splice(i, 1); shakeTime = 10; haptic('eat'); playSound('record'); continue; }
-          gameOver(); return;
+          obstacles.splice(i, 1);
+          takeDamage();
+          if (gameState !== 'playing') return;
         }
       }
     }

@@ -56,7 +56,7 @@ function initSnow() {
 }
 
 function updateSnow(dt) {
-  const biomeInfo = getBiomeState(distance);
+  const biomeInfo = getBiomeState(score);
   const isSnowBiome = biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5);
 
   if (!isSnowBiome) {

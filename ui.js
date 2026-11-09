@@ -2,6 +2,7 @@ function updateHUD() {
   hudHigh.textContent = String(Math.floor(save.highScore)).padStart(5, '0');
   hudScore.textContent = String(Math.floor(score)).padStart(5, '0');
   hudBones.textContent = save.bones + sessionBones;
+  if (hudLives) hudLives.textContent = `❤️ ${currentLives}`;
   if (xpLevel && xpBarFill) {
     const info = getLevelFromXp(save.xp);
     xpLevel.textContent = `Lv.${info.level}`;
@@ -90,7 +91,7 @@ function renderUpgrades() {
     UPGRADES.forEach(upg => {
       const level = save.upgrades[upg.id] || 0; const isMax = Number.isFinite(upg.maxLevel) && level >= upg.maxLevel; const cost = isMax ? null : getUpgradeCost(upg, level); const canAfford = !isMax && save.bones >= cost;
       const card = document.createElement('div'); card.className = 'upgrade-card'; if (isMax) card.classList.add('maxed');
-      card.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><div class="upgrade-name">${upg.name}</div><div class="upgrade-desc">${upg.desc}</div><div class="upgrade-level">Уровень ${level}/${upg.maxLevel}</div></div><button class="upgrade-buy ${isMax ? 'maxed' : ''}" ${isMax || !canAfford ? 'disabled' : ''}>${isMax ? '✓ MAX' : `${cost} 🦴`}</button>`;
+      card.innerHTML = `<div class="upgrade-icon">${upg.icon}</div><div class="upgrade-info"><div class="upgrade-name">${upg.name}</div><div class="upgrade-desc">${upg.desc}</div><div class="upgrade-level">Уровень ${level}/${upg.maxLevel == null ? '∞' : upg.maxLevel}</div></div><button class="upgrade-buy ${isMax ? 'maxed' : ''}" ${isMax || !canAfford ? 'disabled' : ''}>${isMax ? '✓ MAX' : `${cost} 🦴`}</button>`;
       if (!isMax) card.querySelector('.upgrade-buy').addEventListener('pointerdown', (e) => { e.stopPropagation(); buyUpgrade(upg.id); });
       upgradesList.appendChild(card);
     });

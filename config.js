@@ -757,6 +757,7 @@ let H = window.innerHeight;
 let GROUND_Y = H * 0.8;
 
 let score = 0, distance = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
+let currentLives = 1, damageCooldown = 0;
 let dayNightTime = 0.5 * DAY_NIGHT_CYCLE, weatherTime = 0, isRaining = false, lightning = null, lightningAmbient = 0;
 let birdsEatenThisGame = 0, comboCount = 0, comboTimer = 0;
 let lastPowerUpSecond = -1;
@@ -783,6 +784,7 @@ const hud = document.getElementById('hud');
 const hudHigh = document.getElementById('hudHigh');
 const hudScore = document.getElementById('hudScore');
 const hudBones = document.getElementById('hudBones');
+const hudLives = document.getElementById('hudLives');
 const tapHint = document.getElementById('tapHint');
 const speedBarContainer = document.getElementById('speedBarContainer');
 const speedBar = document.getElementById('speedBar');
