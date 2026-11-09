@@ -17,7 +17,7 @@ function updatePowerUpHUD() {
   if (activePowerUps.length === 0) { container.classList.add('hidden'); return; }
   container.classList.remove('hidden');
   let html = '';
-  activePowerUps.forEach(a => { html += `<div class="powerup-badge" style="border-color: ${a.color}">${a.icon} ${Math.max(0, Math.ceil(a.timer))}s</div>`; });
+  activePowerUps.forEach(a => { const seconds = Math.max(0, Math.ceil(a.timer)); a.displaySecond = seconds; html += `<div class="powerup-badge" style="border-color: ${a.color}">${a.icon} ${seconds}s</div>`; });
   container.innerHTML = html;
 }
 

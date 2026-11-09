@@ -289,6 +289,35 @@ function update(dt) {
       }
     }
 
+    // Подбор и обратный отсчёт обычных бонусов.
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+      const powerUp = powerUps[i];
+      if (!rectCollide(dinoBox, { x: powerUp.x - 15, y: powerUp.y - 15, w: 30, h: 30 })) continue;
+      const skinBonusDuration = skinBonus.type === 'powerup' ? skinBonus.value : 0;
+      const totalDuration = powerUp.duration + skinBonusDuration;
+      const existing = activePowerUps.find(item => item.type === powerUp.type);
+      if (existing) {
+        existing.timer = Math.max(existing.timer, totalDuration);
+        existing.maxTimer = existing.timer;
+      } else {
+        activePowerUps.push({ type: powerUp.type, timer: totalDuration, maxTimer: totalDuration, icon: powerUp.icon, color: powerUp.color });
+      }
+      if (powerUp.type === 'doubleJump') dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
+      playSound('record'); haptic('eat');
+      powerUps.splice(i, 1);
+      updatePowerUpHUD();
+    }
+
+    let powerUpChanged = false;
+    for (let i = activePowerUps.length - 1; i >= 0; i--) {
+      const powerUp = activePowerUps[i];
+      powerUp.timer -= dt;
+      const shownSecond = Math.max(0, Math.ceil(powerUp.timer));
+      if (powerUp.displaySecond !== shownSecond) powerUpChanged = true;
+      if (powerUp.timer <= 0) { activePowerUps.splice(i, 1); powerUpChanged = true; }
+    }
+    if (powerUpChanged) updatePowerUpHUD();
+
     // ПАТЧ 26: highScore хранится как int (был баг с float)
     const scoreFloored = Math.floor(score);
     if (scoreFloored > save.highScore) save.highScore = scoreFloored;
