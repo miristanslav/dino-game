@@ -174,23 +174,23 @@ function drawTRexStanding(phase, dead, scale) {
   line([[28,16+bob],[29,17+bob],[30,16.5+bob]], c.claw, 0.8);
   line([[27,16+bob],[28,17+bob],[29,16.8+bob]], c.claw, 0.65);
 
-  // Dorsal scutes form one smooth size progression from the tail tip toward the neck.
-  // Smallest at the tip; each next scute grows toward the back and neck.
-  poly([[-5.9,18.8+tailY],[-6.3,18.25+tailY],[-6.9,18.9+tailY]], c.outline);
-  poly([[-2.7,18.5+tailY],[-3.0,17.8+tailY],[-3.6,18.6+tailY]], c.outline);
-  poly([[0.5,18.1+tailY],[1.4,17.2+tailY],[2.2,18.25+tailY]], c.outline);
-  poly([[3.7,17.6+tailY],[4.7,16.45+tailY],[5.5,17.8+tailY]], c.outline);
-  poly([[7.1,16.9+tailY],[8.2,15.45+tailY],[9.1,17.1+tailY]], c.outline);
-  poly([[10.3,16.05+tailY],[11.4,14.35+tailY],[12.3,16.3+tailY]], c.outline);
-  poly([[14.0,14.7+tailY],[15.1,12.75+tailY],[16.0,14.95+tailY]], c.outline);
+  // Dorsal scutes peak in the middle of the back, then taper smoothly in both directions.
+  // Tail scutes stop before the pelvis overlap; back scutes begin beyond it so they cannot
+  // collide or cross one another as tailLift and bob move independently during the run cycle.
+  poly([[-5.9,18.8+tailY],[-6.3,18.35+tailY],[-6.9,18.9+tailY]], c.outline);
+  poly([[-2.8,18.55+tailY],[-3.0,17.95+tailY],[-3.6,18.65+tailY]], c.outline);
+  poly([[0.4,18.15+tailY],[1.2,17.35+tailY],[2.0,18.25+tailY]], c.outline);
+  poly([[3.6,17.7+tailY],[4.6,16.75+tailY],[5.4,17.85+tailY]], c.outline);
+  poly([[6.9,17.0+tailY],[8.0,15.85+tailY],[8.9,17.15+tailY]], c.outline);
+  poly([[10.1,16.15+tailY],[11.2,14.8+tailY],[12.1,16.35+tailY]], c.outline);
+  poly([[12.1,15.65+tailY],[13.0,14.35+tailY],[13.8,15.85+tailY]], c.outline);
 
-  // Continue the same progression across the back toward the neck.
-  poly([[16,11.5+bob],[17,9.9+bob],[18,11.2+bob],[17.5,12+bob]], c.outline);
-  poly([[19,10.2+bob],[20,8.4+bob],[21,10.1+bob],[20.5,10.8+bob]], c.outline);
-  poly([[22,9.3+bob],[23,7.3+bob],[24,9.4+bob],[23.5,10+bob]], c.outline);
-
-  // The dark dorsal ridge is drawn only on the exposed tail surface, never across the torso.
-  line([[14.4,15.15+tailY],[11.5,16.25+tailY],[7.5,17.0+tailY],[3.5,17.7+tailY],[-0.5,18.25+tailY],[-4.5,18.65+tailY],[-9.2,19.0+tailY]], c.outline, 0.65);
+  // A small clear gap at the tail/torso overlap prevents adjacent scutes from interpenetrating.
+  // The largest scute sits near the middle of the back; sizes decrease toward both tail and neck.
+  poly([[17.0,11.9+bob],[17.8,10.45+bob],[18.6,11.85+bob],[18.1,12.35+bob]], c.outline);
+  poly([[19.0,10.9+bob],[20.0,8.8+bob],[21.0,10.9+bob],[20.5,11.45+bob]], c.outline);
+  poly([[22.0,9.65+bob],[22.8,8.05+bob],[23.6,9.7+bob],[23.1,10.25+bob]], c.outline);
+  poly([[24.0,9.35+bob],[24.7,8.15+bob],[25.4,9.55+bob],[24.9,10.0+bob]], c.outline);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
