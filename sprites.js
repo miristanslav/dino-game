@@ -10,81 +10,96 @@ function drawTRexStanding(phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
   const step = ((Math.floor(phase) % 4) + 4) % 4;
-  const bob = dead ? 0 : [0, -0.5, -1, -0.5][step];
-  const tail = dead ? 0 : [0, -1, -1, 0][step];
+  const bob = dead ? 0 : [0, -0.35, -0.8, -0.35][step];
+  const tailBob = dead ? 0 : [0, -0.7, -1, 0][step];
 
-  // A finer 1-unit pixel silhouette: tapered tail, sloped back, deep chest and oversized skull.
-  const silhouette = [
-    [0,15,5],[3,14,8],[7,13,10],[11,11,20],[15,9,19],
-    [19,7,15],[23,5,12],[27,4,11],[31,3,14],[35,5,12],
-    [39,8,9],[42,11,6],[39,14,8],[34,17,8],[29,20,8]
+  // Fine pixel-art silhouette. Draw the tail first so the torso overlaps its root cleanly.
+  const tailRows = [
+    [2,16,10],[1,16,12],[0,16,13],[2,16,12],[4,16,10],
+    [6,16,9],[8,16,8],[10,16,7],[12,16,6]
   ];
-  for (const [x,y,w] of silhouette) uRect(x,y+bob+(x<15?tail:0),w,1,c.outline,scale);
+  for (const [y,x1,x2] of tailRows) {
+    uRect(x1,y+tailBob+bob,x2-x1+1,1,c.outline,scale);
+    uRect(x1+1,y+tailBob+bob,x2-x1-1,0.55,c.body,scale);
+  }
+  // Tail highlight follows the upper contour and gives it a tapered, flexible look.
+  uRect(2,17+tailBob+bob,8,1,c.body,scale);
+  uRect(5,18+tailBob+bob,7,1,c.belly,scale);
+  uRect(11,15+tailBob+bob,3,1,c.body,scale);
 
-  // Fill the silhouette with connected body masses and soft pixel highlights.
-  uRect(2,15+tail+bob,12,4,c.body,scale);
-  uRect(8,13+tail+bob,10,5,c.body,scale);
-  uRect(13,11+bob,16,12,c.body,scale);
-  uRect(17,9+bob,13,13,c.body,scale);
-  uRect(23,7+bob,11,13,c.body,scale);
-  uRect(28,5+bob,11,12,c.body,scale);
-  uRect(33,4+bob,10,9,c.body,scale);
-  uRect(39,8+bob,7,4,c.body,scale);
-  uRect(18,19+bob,10,3,c.belly,scale);
-  uRect(21,21+bob,8,1,c.belly,scale);
-  uRect(29,14+bob,4,5,c.belly,scale);
+  // Torso and chest: staggered pixel rows avoid the old rectangular block silhouette.
+  const bodyRows = [
+    [13,13,24],[12,12,27],[11,13,29],[10,15,30],[9,17,30],
+    [8,19,29],[7,21,28],[6,23,27],[5,24,27],[4,25,28]
+  ];
+  for (const [y,x1,x2] of bodyRows) {
+    uRect(x1,y+bob,x2-x1+1,1,c.outline,scale);
+    uRect(x1+1,y+bob,x2-x1-1,0.65,c.body,scale);
+  }
+  // Lower belly and shoulder planes.
+  uRect(15,17+bob,13,4,c.outline,scale);
+  uRect(16,17+bob,11,3,c.body,scale);
+  uRect(19,20+bob,8,2,c.belly,scale);
+  uRect(22,22+bob,6,1,c.belly,scale);
+  uRect(24,10+bob,5,7,c.body,scale);
+  uRect(25,11+bob,3,5,c.belly,scale);
+  uRect(18,13+bob,2,3,c.belly,scale);
 
-  // Tail ridge, back scutes and subtle lit planes.
-  uRect(3,16+tail+bob,9,1,c.belly,scale);
-  uRect(10,14+tail+bob,5,1,c.body,scale);
-  uRect(17,10+bob,9,1,c.belly,scale);
-  uRect(20,8+bob,2,2,c.outline,scale);
-  uRect(25,7+bob,2,2,c.outline,scale);
-  uRect(30,5+bob,2,2,c.outline,scale);
-  uRect(15,14+bob,2,5,c.outline,scale);
+  // Neck and head with a sloped crown, broad snout and separate lower jaw.
+  uRect(27,5+bob,12,7,c.outline,scale);
+  uRect(29,4+bob,10,7,c.outline,scale);
+  uRect(31,5+bob,13,5,c.outline,scale);
+  uRect(33,6+bob,12,4,c.body,scale);
+  uRect(30,5+bob,9,5,c.body,scale);
+  uRect(29,8+bob,13,4,c.body,scale);
+  uRect(35,9+bob,10,2,c.body,scale);
+  uRect(31,11+bob,13,3,c.outline,scale);
+  uRect(33,11+bob,10,1,c.body,scale);
+  uRect(35,12+bob,7,1,c.belly,scale);
+  // Jaw line, mouth cavity and two tiny teeth.
+  uRect(34,10+bob,10,1,"#45272A",scale);
+  uRect(36,10+bob,1,2,"#FFF0D2",scale);
+  uRect(40,10+bob,1,2,"#FFF0D2",scale);
+  uRect(44,9+bob,1,1,c.outline,scale);
+  // Brow ridge and focused eye.
+  uRect(32,5+bob,7,2,c.outline,scale);
+  uRect(34,6+bob,3,1,c.eye,scale);
+  uRect(35,6+bob,1,1,"#17212A",scale);
+  uRect(31,4+bob,6,1,c.outline,scale);
+  // Small folded forearm, tucked against the chest.
+  uRect(28,14+bob,5,3,c.outline,scale);
+  uRect(29,14+bob,3,2,c.body,scale);
+  uRect(32,16+bob,2,1,c.claw,scale);
 
-  // Characterful T-Rex head: brow, eye, muzzle, jaw and tiny teeth.
-  uRect(33,5+bob,11,5,c.outline,scale);
-  uRect(35,6+bob,9,3,c.body,scale);
-  uRect(39,8+bob,7,3,c.body,scale);
-  uRect(36,10+bob,10,2,"#4C2525",scale);
-  uRect(36,12+bob,10,3,c.outline,scale);
-  uRect(38,12+bob,7,1,c.body,scale);
-  uRect(37,11+bob,1,2,"#FFF1D0",scale);
-  uRect(40,11+bob,1,2,"#FFF1D0",scale);
-  uRect(43,9+bob,1,1,c.outline,scale);
-  uRect(35,6+bob,5,3,c.outline,scale);
-  uRect(36,7+bob,3,1,c.eye,scale);
-  uRect(37,7+bob,1,1,"#17212A",scale);
-  uRect(34,5+bob,6,1,c.outline,scale);
-
-  // Small folded arms and shoulder.
-  uRect(29,15+bob,5,3,c.outline,scale);
-  uRect(30,15+bob,3,2,c.body,scale);
-  uRect(33,17+bob,2,1,c.claw,scale);
-
-  // Opposing hind-leg poses. Feet stay close to the ground and alternate naturally.
+  // Muscular thighs and alternating feet; the torso remains stable between frames.
   const poses = [
-    {far:[17,21,-1,0], near:[25,21,1,0]},
-    {far:[16,19,-3,-1], near:[26,21,3,1]},
-    {far:[18,20,2,1], near:[24,18,-2,-2]},
-    {far:[17,21,1,1], near:[25,20,-1,-1]}
+    {back:[16,21,-1,0], front:[24,21,1,0]},
+    {back:[16,20,-2,-1], front:[25,21,2,1]},
+    {back:[17,20,2,1], front:[23,19,-2,-2]},
+    {back:[16,21,1,1], front:[24,20,-1,-1]}
   ];
   const pose = dead ? poses[0] : poses[step];
-  const drawLeg = (v, far) => {
-    const [x,y,fx,fy] = v;
-    uRect(x,y+bob,6,6,c.outline,scale);
-    uRect(x+1,y+1+bob,4,4,far ? c.body : c.belly,scale);
-    uRect(x-1+fx,26+fy+bob,9,3,c.outline,scale);
-    uRect(x+fx,26+fy+bob,6,1,c.body,scale);
-    uRect(x+6+fx,27+fy+bob,2,1,c.claw,scale);
+  const drawLeg = (p, front) => {
+    const [x,y,fx,fy] = p;
+    uRect(x,y+bob,7,7,c.outline,scale);
+    uRect(x+1,y+1+bob,5,5,front ? c.body : c.belly,scale);
+    uRect(x-1+fx,27+fy+bob,10,3,c.outline,scale);
+    uRect(x+fx,27+fy+bob,7,1,c.body,scale);
+    uRect(x+7+fx,28+fy+bob,2,1,c.claw,scale);
+    uRect(x+2,y+2+bob,2,2,c.body,scale);
   };
-  drawLeg(pose.far,true);
-  drawLeg(pose.near,false);
+  drawLeg(pose.back,false);
+  drawLeg(pose.front,true);
+
+  // Small back scutes and cheek highlight add definition without noisy detail.
+  uRect(18,9+bob,2,1,c.belly,scale);
+  uRect(22,7+bob,2,1,c.belly,scale);
+  uRect(27,6+bob,1,2,c.belly,scale);
+  uRect(39,8+bob,3,1,c.belly,scale);
 
   if (dead) {
-    uRect(36,7,3,1,c.outline,scale);
-    uRect(37,6,1,3,c.outline,scale);
+    uRect(34,6,3,1,c.outline,scale);
+    uRect(35,5,1,3,c.outline,scale);
   }
 }
 function drawTRexDucking(scale) {
