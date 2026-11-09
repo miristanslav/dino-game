@@ -18,7 +18,7 @@ let gameState = 'menu';
 let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
 const portraitQuery = window.matchMedia("(orientation: portrait)");
 
-const CURRENT_VERSION = 60;
+const CURRENT_VERSION = 61;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +27,16 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 61,
+    changes: [
+      'Патч 61: Гармонизация формы ближней и дальней задних лап',
+      'Дальняя лапа теперь повторяет анатомический силуэт ближней с небольшим уменьшением для перспективы',
+      'Согласованы объём бедра и голени, форма голеностопа, плюсны, пальцев и когтей',
+      'Сохранены перекрытие корпусом, пальцеходящая постановка и опора на пальцы; анимация не менялась'
+    ]
+  },
+
   {
     version: 60,
     changes: [
