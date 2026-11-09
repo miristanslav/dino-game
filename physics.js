@@ -22,8 +22,7 @@ function getDinoBox() {
 function getCactusBox(o) {
   const s = dino.scale;
   if (o.type === 'rock') return { x: o.x + 2 * s, y: o.y - o.h * s * 0.8, w: Math.max(12, o.w - 4) * s, h: o.h * s * 0.8 };
-  if (o.type === 'stump') return { x: o.x + 2 * s, y: o.y - o.h * s, w: (o.w - 4) * s, h: o.h * s };
-  if (o.type === 'poisonFlower') return { x: o.x + 2 * s, y: o.y - o.h * s, w: (o.w - 4) * s, h: o.h * s };
+  if (['stump','poisonFlower','iceSpike','snowBoulder','obsidian','lavaVent'].includes(o.type)) return { x: o.x + 2 * s, y: o.y - o.h * s, w: Math.max(8, o.w - 4) * s, h: o.h * s };
   return o.type === 'cactus_small'
     ? { x: o.x - 0.5 * s, y: o.y - o.h * s, w: 11 * s, h: o.h * s }
     : { x: o.x, y: o.y - o.h * s, w: 16 * s, h: o.h * s };

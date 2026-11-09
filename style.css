@@ -464,3 +464,19 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 @media (orientation: portrait) {
   #pauseBtn, #pauseScreen { display: none !important; }
 }
+
+/* Patch 100: защитный счётчик располагается поверх индикатора жизней. */
+#hud #hudLives { position: relative; }
+#hud #hudLives[data-guard]:not([data-guard=""])::before {
+  content: attr(data-guard); position: absolute; left: 50%; top: -25px; transform: translateX(-50%);
+  min-width: 24px; height: 21px; padding: 0 5px; display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid #fff; border-radius: 9px; color: #fff; background: #D99000; font-size: 12px;
+  line-height: 1; letter-spacing: 0; text-shadow: none; box-shadow: 0 2px 7px rgba(0,0,0,.28);
+  animation: shieldChargePulse .34s ease-out;
+}
+#hud #hudLives[data-guard-mode="timed"]::before { background: #087FC1; min-width: 42px; }
+@keyframes shieldChargePulse {
+  0% { scale: 1; }
+  45% { scale: 1.32; }
+  100% { scale: 1; }
+}

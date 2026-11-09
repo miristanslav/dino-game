@@ -70,46 +70,36 @@ function duck(on, duration) {
 
 // ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
 function takeDamage(source = 'obstacle') {
-  if (damageCooldown > 0 || gameState !== 'playing') return false;
-
-  // Временный обычный щит имеет высший приоритет и не расходует щит-счётчик.
+  if (gameState !== 'playing') return false;
   const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
   if (timedShield) {
     timedShield.hitPulse = 1;
     spawnFloatingText(dino.x + 20, dino.y - 55, '🛡 ЗАЩИТА');
-    damageCooldown = 0.22;
     return false;
   }
-
-  // Золотой бонус даёт пять отдельных блокировок столкновений.
   if (cactusGuardHits > 0) {
     cactusGuardHits--;
     guardPulse = 1;
-    damageCooldown = 0.22;
+    updateHUD();
     spawnFloatingText(dino.x + 20, dino.y - 55, cactusGuardHits > 0 ? '🛡 ' + cactusGuardHits : '🛡 БЛОК!');
     if (cactusGuardHits === 0) spawnFloatingText(dino.x + 20, dino.y - 82, 'ЩИТ ИСЧЕЗ');
     return false;
   }
-
-  // Способность питомца срабатывает только после двух видов щита.
+  if (damageCooldown > 0) return false;
   if (source === 'obstacle' && save.currentPet === 'ghost' && !ghostUsed) {
-    ghostUsed = true;
-    damageCooldown = 0.22;
+    ghostUsed = true; damageCooldown = 0.22;
     spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
     shakeTime = 10; haptic('eat'); playSound('record');
     return false;
   }
-
   currentLives = Math.max(0, currentLives - 1);
-  damageCooldown = 1.1;
-  shakeTime = 10;
+  damageCooldown = 1.1; shakeTime = 10;
   haptic('crash'); playSound('crash');
   spawnFloatingText(dino.x + 20, dino.y - 55, '-1 ❤️');
   updateHUD();
   if (currentLives <= 0) { gameOver(); return false; }
   return true;
 }
-
 function clearRoundState() {
   obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; eggs = []; groundBones = []; cactusGuardHits = 0; guardPulse = 0; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
   dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; duckTimer = 0; dino.jumpsLeft = 1;
@@ -343,6 +333,7 @@ function update(dt) {
     for (let i = activePowerUps.length - 1; i >= 0; i--) {
       const powerUp = activePowerUps[i];
       powerUp.timer -= dt;
+      powerUp.hitPulse = Math.max(0, (powerUp.hitPulse || 0) - dt * 5);
       const shownSecond = Math.max(0, Math.ceil(powerUp.timer));
       if (powerUp.displaySecond !== shownSecond) powerUpChanged = true;
       if (powerUp.timer <= 0) { activePowerUps.splice(i, 1); powerUpChanged = true; }

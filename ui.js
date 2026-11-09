@@ -2,7 +2,12 @@ function updateHUD() {
   hudHigh.textContent = String(Math.floor(save.highScore)).padStart(5, '0');
   hudScore.textContent = String(Math.floor(score)).padStart(5, '0');
   hudBones.textContent = save.bones + sessionBones;
-  if (hudLives) hudLives.textContent = `❤️ ${currentLives}`;
+  if (hudLives) {
+    hudLives.textContent = `❤️ ${currentLives}`;
+    const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
+    hudLives.dataset.guard = timedShield ? '🛡 ' + Math.max(0, Math.ceil(timedShield.timer)) : (cactusGuardHits > 0 ? String(cactusGuardHits) : '');
+    hudLives.dataset.guardMode = timedShield ? 'timed' : (cactusGuardHits > 0 ? 'charges' : '');
+  }
   if (xpLevel && xpBarFill) {
     const info = getLevelFromXp(save.xp);
     xpLevel.textContent = `Lv.${info.level}`;
