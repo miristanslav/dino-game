@@ -10,62 +10,95 @@ function drawTRexStanding(phase, dead, scale) {
   if (scale === undefined) scale = dino.scale;
   const c = getDinoColors();
   const step = ((Math.floor(phase) % 4) + 4) % 4;
-  const bob = dead ? 0 : [0, -0.25, -0.6, -0.25][step];
-  const tailBob = dead ? 0 : [0, -0.45, -0.8, 0][step];
+  const bob = dead ? 0 : [0, -0.2, -0.55, -0.2][step];
+  const tailLift = dead ? 0 : [0, -0.35, -0.7, 0][step];
 
-  // Polygon helper keeps the character in the same 46x30 sprite space.
-  const poly = (points, fill, stroke, lineWidth) => {
+  const poly = (points, fill) => {
     ctx.beginPath();
     ctx.moveTo(points[0][0] * scale, points[0][1] * scale);
     for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0] * scale, points[i][1] * scale);
     ctx.closePath();
     ctx.fillStyle = fill;
     ctx.fill();
-    if (stroke) {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = (lineWidth || 1.15) * scale;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.stroke();
-    }
+  };
+  const line = (points, color, width) => {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0] * scale, points[0][1] * scale);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0] * scale, points[i][1] * scale);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width * scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
   };
 
-  // Hind legs are drawn first: broad thighs, angled shins and planted three-toed feet.
-  const legPoses = [
-    {rear:[[16,17],[22,18],[22,23],[19,26],[14,27],[13,24]], rearFoot:[[14,25],[20,25],[23,27],[22,28],[13,28]], front:[[24,17],[29,18],[28,23],[26,26],[22,25]], frontFoot:[[23,24],[28,24],[31,26],[30,27],[22,27]]},
-    {rear:[[16,17],[22,18],[22,22],[19,24],[15,23],[14,20]], rearFoot:[[15,22],[20,22],[22,24],[20,25],[13,24]], front:[[24,17],[29,18],[30,22],[31,25],[27,26],[24,23]], frontFoot:[[28,24],[32,25],[34,27],[32,28],[27,27]]},
-    {rear:[[16,17],[22,18],[21,22],[18,25],[14,24],[13,21]], rearFoot:[[14,23],[18,23],[20,25],[18,26],[12,25]], front:[[24,17],[29,18],[27,22],[24,24],[21,22]], frontFoot:[[21,22],[25,22],[27,24],[25,25],[20,24]]},
-    {rear:[[16,17],[22,18],[23,22],[21,25],[17,26],[14,23]], rearFoot:[[16,24],[21,24],[24,26],[22,27],[15,27]], front:[[24,17],[29,18],[29,23],[27,25],[23,24]], frontFoot:[[24,23],[29,23],[31,25],[29,26],[23,26]]}
+  // Tail sits behind the hips and follows the spine in a smooth taper.
+  poly([[2,18+tailLift],[5,16.2+tailLift],[9,14.8+tailLift],[13,14+tailLift],[17,14.5+tailLift],[20,16+tailLift],[17,17.8+tailLift],[13,18.8+tailLift],[9,19.6+tailLift],[5,20+tailLift],[2,19.5+tailLift]], c.outline);
+  poly([[3,18+tailLift],[6,16.9+tailLift],[10,15.7+tailLift],[14,15.1+tailLift],[18,15.6+tailLift],[16,17+tailLift],[12,18+tailLift],[8,18.9+tailLift],[4,19+tailLift]], c.body);
+  poly([[5,18.3+tailLift],[9,17.8+tailLift],[13,16.9+tailLift],[16,16.4+tailLift],[12,18+tailLift],[8,18.7+tailLift]], c.belly);
+  line([[5,16.9+tailLift],[9,15.8+tailLift],[13,15.2+tailLift]], c.belly, 0.65);
+
+  // Far leg: visible hip, bent knee, narrow ankle and three toes.
+  const farLegs = [
+    [[15,17],[20,17.5],[21,21],[18,24],[15,23],[13,20]],
+    [[15,17],[20,18],[21,21],[20,23],[16,23],[14,20]],
+    [[15,17],[20,18],[20,21],[17,24],[14,22],[13,19]],
+    [[15,17],[20,17.5],[22,21],[20,24],[16,24],[14,21]]
   ];
-  const pose = dead ? legPoses[0] : legPoses[step];
-  const legY = bob;
-  poly(pose.rear.map(([x,y]) => [x,y+legY]), c.outline, null);
-  poly(pose.rear.map(([x,y]) => [x+0.7,y+0.55+legY]), c.body, null);
-  poly(pose.rearFoot.map(([x,y]) => [x,y+legY]), c.outline, null);
-  poly(pose.rearFoot.map(([x,y]) => [x+0.5,y-0.55+legY]), c.body, null);
-  poly(pose.front.map(([x,y]) => [x,y+legY]), c.outline, null);
-  poly(pose.front.map(([x,y]) => [x+0.65,y+0.55+legY]), c.belly, null);
-  poly(pose.frontFoot.map(([x,y]) => [x,y+legY]), c.outline, null);
-  poly(pose.frontFoot.map(([x,y]) => [x+0.5,y-0.55+legY]), c.body, null);
+  const farFeet = [
+    [[15,22],[18,22],[20,24],[19,25],[14,25]],
+    [[16,22],[20,22],[22,24],[20,25],[15,25]],
+    [[14,21],[18,22],[20,24],[18,25],[13,24]],
+    [[16,23],[20,23],[22,25],[20,26],[15,26]]
+  ];
+  const pose = dead ? 0 : step;
+  const shift = bob;
+  const move = pts => pts.map(([x,y])=>[x,y+shift]);
+  poly(move(farLegs[pose]), c.outline);
+  poly(move(farLegs[pose].map(([x,y])=>[x+0.65,y+0.45])), c.body);
+  poly(move(farFeet[pose]), c.outline);
+  poly(move(farFeet[pose].map(([x,y])=>[x+0.4,y-0.45])), c.body);
+  line([[16,19+shift],[18,21+shift],[17,23+shift]], c.belly, 0.7);
 
-  // Long counterbalancing tail: thick at the hip and sharply tapered at the tip.
-  poly([[2,18+tailBob],[5,16+tailBob],[10,15+tailBob],[15,13.5+tailBob],[19,14+tailBob],[20,16+tailBob],[16,18+tailBob],[11,19.5+tailBob],[6,20+tailBob],[3,20+tailBob]], c.outline, null);
-  poly([[3,18+tailBob],[7,16.8+tailBob],[12,15.8+tailBob],[16,14.7+tailBob],[18,15+tailBob],[15,17+tailBob],[10,18.5+tailBob],[6,19+tailBob]], c.body, null);
-  poly([[4,18.7+tailBob],[9,18+tailBob],[13,17+tailBob],[16,16+tailBob],[12,18.2+tailBob],[7,19+tailBob]], c.belly, null);
+  // Main torso: sloping back, deep rib cage and compact powerful pelvis.
+  poly([[12,17+bob],[13,14+bob],[16,11.5+bob],[20,9.5+bob],[24,9+bob],[28,10.5+bob],[31,13+bob],[32,16+bob],[30,19+bob],[27,21+bob],[22,21.5+bob],[17,20.5+bob],[13,19+bob]], c.outline);
+  poly([[13,16.5+bob],[14.5,14+bob],[17,12+bob],[20.5,10.5+bob],[24,10+bob],[27.5,11.2+bob],[30,13.3+bob],[30.5,16+bob],[28.5,18.5+bob],[26,19.8+bob],[22,20+bob],[18,19.4+bob],[14.5,18.2+bob]], c.body);
 
-  // Torso silhouette: deep chest, narrow waist and sloping back instead of a box.
-  poly([[12,17+bob],[14,13+bob],[18,10+bob],[22,8.5+bob],[26,8.5+bob],[30,11+bob],[32,14+bob],[31,18+bob],[28,21+bob],[23,22+bob],[18,21+bob],[14,19+bob]], c.outline, null);
-  poly([[13,16.5+bob],[15,13.5+bob],[19,11+bob],[23,9.7+bob],[27,10+bob],[30,12+bob],[31,15+bob],[29,18.5+bob],[26,20+bob],[22,20.5+bob],[18,19.8+bob],[15,18.5+bob]], c.body, null);
-  // Warm underside follows the rib cage and narrows into the abdomen.
-  poly([[15,17.5+bob],[18,17+bob],[22,18+bob],[26,17.5+bob],[29,16.5+bob],[28,19+bob],[25,20+bob],[21,20+bob],[17,19.2+bob]], c.belly, null);
-  // Shoulder and chest planes create visible volume without changing the head.
-  poly([[22,10.5+bob],[26,10+bob],[29,12+bob],[30,15+bob],[27,16+bob],[23,14.5+bob]], c.body, null);
-  poly([[18,12+bob],[21,10.8+bob],[24,11+bob],[22,13+bob],[19,14+bob]], c.belly, null);
-  poly([[16,14+bob],[19,12.5+bob],[20,13.5+bob],[18,16+bob]], c.belly, null);
+  // Separate shoulder mass and rib cage planes make the torso read as muscle.
+  poly([[21,10.8+bob],[24,10.2+bob],[27.5,11.5+bob],[29,14+bob],[28,16.5+bob],[25,16+bob],[22,14+bob]], c.body);
+  poly([[15,15+bob],[17,12.8+bob],[20,11.5+bob],[22,12.5+bob],[20,15.5+bob],[17,17+bob]], c.belly);
+  poly([[17,17+bob],[20,16+bob],[23,17+bob],[27,16.5+bob],[29,16+bob],[27.5,18.5+bob],[24,19.5+bob],[20,19+bob],[17,18.5+bob]], c.belly);
+  line([[16,15+bob],[18,13.2+bob],[20,12.5+bob]], c.body, 0.8);
+  line([[18,18+bob],[21,18.5+bob],[24,18.3+bob]], c.body, 0.65);
 
-  // Neck joins the chest naturally; the successful head artwork below is preserved.
-  poly([[25,12+bob],[27,9+bob],[31,8+bob],[34,10+bob],[34,14+bob],[30,16+bob],[26,15+bob]], c.outline, null);
-  poly([[26,12+bob],[28,10+bob],[31,9.5+bob],[33,11+bob],[32,14+bob],[29,15+bob],[27,14+bob]], c.body, null);
+  // Near leg overlaps the belly: thick thigh narrows through a clear knee and shin.
+  const nearLegs = [
+    [[20,17+bob],[25,17.5+bob],[27,20+bob],[26,23+bob],[23,25+bob],[19,23+bob],[18,20+bob]],
+    [[20,17+bob],[25,17.5+bob],[27,20+bob],[28,23+bob],[26,25+bob],[22,24+bob],[20,21+bob]],
+    [[20,17+bob],[25,17.5+bob],[26,20+bob],[24,23+bob],[21,24+bob],[18,22+bob]],
+    [[20,17+bob],[25,17.5+bob],[27,20+bob],[26,23+bob],[23,25+bob],[19,23+bob]]
+  ];
+  const nearFeet = [
+    [[22,23+bob],[26,23+bob],[29,25+bob],[29,26.5+bob],[26,26+bob],[24,27+bob],[20,26+bob]],
+    [[25,23+bob],[29,24+bob],[32,26+bob],[31,27+bob],[27,27+bob],[24,26+bob]],
+    [[19,22+bob],[23,22+bob],[26,24+bob],[25,25+bob],[22,25+bob],[18,24+bob]],
+    [[22,23+bob],[26,23+bob],[29,25+bob],[28,26+bob],[24,26+bob],[20,25+bob]]
+  ];
+  poly(nearLegs[pose], c.outline);
+  poly(nearLegs[pose].map(([x,y])=>[x+0.75,y+0.55]), c.body);
+  line([[22,19+bob],[24,21+bob],[24,23+bob]], c.belly, 0.8);
+  poly(nearFeet[pose], c.outline);
+  poly(nearFeet[pose].map(([x,y])=>[x+0.45,y-0.5]), c.body);
+  // Three separated toes and small dark claws make the foot read clearly.
+  line([[23,25+bob],[24,26+bob],[25,26+bob]], c.belly, 0.55);
+  poly([[27,25+bob],[28.5,25.2+bob],[29,25.8+bob],[27.5,25.7+bob]], c.claw);
+  poly([[24,26+bob],[25.5,26.2+bob],[26,26.8+bob],[24.5,26.7+bob]], c.claw);
+  poly([[21,25+bob],[22.5,25.2+bob],[23,25.8+bob],[21.5,25.7+bob]], c.claw);
+
+  // Neck slopes forward from the chest; head artwork below remains untouched.
+  poly([[25,13+bob],[26,10+bob],[29,8.5+bob],[33,9+bob],[35,12+bob],[33,15+bob],[29,16+bob],[26,15+bob]], c.outline);
+  poly([[26,13+bob],[27.5,10.8+bob],[30,9.6+bob],[33,10.2+bob],[34,12.2+bob],[32,14.2+bob],[29,15+bob],[27,14.5+bob]], c.body);
+  poly([[27,14+bob],[30,14+bob],[32,13.2+bob],[31,14.8+bob],[28,15+bob]], c.belly);
 
   // Original head and face details retained.
   uRect(27,5+bob,12,7,c.outline,scale);
@@ -87,17 +120,16 @@ function drawTRexStanding(phase, dead, scale) {
   uRect(35,6+bob,1,1,"#17212A",scale);
   uRect(31,4+bob,6,1,c.outline,scale);
 
-  // Small tucked forearms with distinct elbows and claws.
-  poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline, null);
-  poly([[26,14.5+bob],[27,14+bob],[29,15+bob],[28,16+bob],[27,15.8+bob]], c.body, null);
-  uRect(29,16+bob,2,1,c.claw,scale);
-  uRect(31,15.5+bob,1.5,0.8,c.claw,scale);
+  // Tiny forearms stay tucked under the chest, with visible elbow and hooked fingers.
+  poly([[25,14+bob],[27,13+bob],[29,14+bob],[30,16+bob],[28,17+bob],[26,16+bob]], c.outline);
+  poly([[26,14.5+bob],[27.3,14+bob],[29,15+bob],[28,16+bob],[27,15.8+bob]], c.body);
+  line([[28,16+bob],[29,17+bob],[30,16.5+bob]], c.claw, 0.8);
+  line([[27,16+bob],[28,17+bob],[29,16.8+bob]], c.claw, 0.65);
 
-  // Subtle dorsal scutes and highlights.
-  uRect(17,11+bob,2,0.8,c.belly,scale);
-  uRect(20,9.8+bob,2,0.8,c.belly,scale);
-  uRect(23,9.2+bob,2,0.7,c.belly,scale);
-  uRect(18,18+bob,5,0.7,c.body,scale);
+  // A few restrained dorsal scutes connect the silhouette along the spine.
+  poly([[16,11.5+bob],[17,10.6+bob],[18,11.2+bob],[17.5,12+bob]], c.outline);
+  poly([[19,10.2+bob],[20,9.5+bob],[21,10.1+bob],[20.5,10.8+bob]], c.outline);
+  poly([[22,9.3+bob],[23,8.8+bob],[24,9.4+bob],[23.5,10+bob]], c.outline);
 
   if (dead) {
     uRect(34,6,3,1,c.outline,scale);
