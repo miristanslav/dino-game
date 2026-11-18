@@ -32,20 +32,6 @@ html, body {
 .splash-title { font-size: 60px; text-shadow: 0 4px 0 #2E7D32; margin-bottom: 10px; }
 .splash-subtitle { font-size: 20px; letter-spacing: 4px; opacity: 0.9; }
 
-#orientationWarning {
-  display: none; position: fixed; inset: 0; z-index: 99999 !important;
-  background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
-  flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; padding: 20px; color: #263238;
-}
-@media (orientation: portrait) { 
-  #orientationWarning { display: flex !important; } 
-  #gameCanvas, #hud, #speedBarContainer, #fullscreenBtn, .ui-screen, .version-btn, #comboHud, #xpBarContainer, #powerUpHudContainer { display: none !important; }
-}
-#orientationWarning .rotate-icon { font-size: 90px; margin-bottom: 24px; display: inline-block; animation: rotatePhone 2.5s ease-in-out infinite; }
-@keyframes rotatePhone { 0%, 20% { transform: rotate(0deg); } 50%, 70% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
-#orientationWarning h2 { font-size: 26px; margin-bottom: 12px; color: #1565C0; }
-#orientationWarning p { font-size: 16px; color: #455A64; max-width: 320px; line-height: 1.6; }
 
 #fullscreenBtn {
   position: fixed; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left));
@@ -461,9 +447,6 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 .pixel-action:active { transform: translateY(3px); box-shadow: 0 1px 0 #263238; }
 .pixel-action.primary { background: #8bc34a; color: #17251a; }
 .pixel-action.secondary { background: #d7e2e8; color: #263238; }
-@media (orientation: portrait) {
-  #pauseBtn, #pauseScreen { display: none !important; }
-}
 
 /* Patch 100: защитный счётчик располагается поверх индикатора жизней. */
 #hud #hudLives { position: relative; }
@@ -479,4 +462,133 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   0% { scale: 1; }
   45% { scale: 1.32; }
   100% { scale: 1; }
+}
+
+
+/* PATCH 102: portrait-first mobile layout */
+@media (orientation: portrait) {
+  html, body {
+    min-height: 100%;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  #gameCanvas {
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  #menuScreen {
+    align-items: center;
+    justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    gap: 0;
+  }
+
+  #menuScreen h1,
+  #menuScreen > .subtitle,
+  #menuScreen > .online-badge,
+  #menuScreen .menu-buttons {
+    align-self: center;
+    width: min(360px, calc(100vw - 32px));
+    max-width: 360px;
+  }
+
+  #menuScreen h1 { font-size: clamp(34px, 10vw, 48px); }
+  #menuScreen .subtitle { font-size: 15px; margin-bottom: 12px; }
+  #menuScreen .online-badge { margin-bottom: 12px; }
+  #menuScreen .menu-buttons {
+    padding: 10px;
+    gap: 7px;
+  }
+  #menuScreen .btn {
+    min-height: 44px;
+    padding: 9px 12px;
+    font-size: clamp(12px, 3.7vw, 15px);
+    letter-spacing: .3px;
+  }
+
+  .ui-screen {
+    padding: max(54px, env(safe-area-inset-top) + 40px) 14px max(18px, env(safe-area-inset-bottom));
+  }
+  #recordsScreen, #upgradesScreen, #achievementsScreen, #settingsScreen, #dailyScreen {
+    align-items: center;
+    overflow-y: auto;
+  }
+  .records-list, .upgrades-list, #settingsScreen .settings-list {
+    width: 100%;
+    max-width: 440px;
+  }
+  .upgrade-card { padding: 10px; gap: 8px; }
+  .upgrade-name { font-size: 14px; }
+  .upgrade-desc { font-size: 11px; }
+
+  #hud {
+    top: max(26px, env(safe-area-inset-top) + 18px);
+    width: calc(100vw - 24px);
+    max-width: 460px;
+    justify-content: space-around;
+    gap: 5px;
+    padding: 7px 8px;
+    font-size: clamp(10px, 3vw, 14px);
+    letter-spacing: 0;
+    flex-wrap: nowrap;
+  }
+  #hud .bones-counter { margin-left: 0; gap: 2px; }
+  #hud .bones-counter svg { width: 15px; }
+
+  #speedBarContainer {
+    top: max(8px, env(safe-area-inset-top));
+    width: min(100px, 28vw);
+    height: 5px;
+  }
+  #comboHud {
+    top: max(72px, env(safe-area-inset-top) + 64px);
+    font-size: 13px;
+    min-width: 76px;
+    padding: 4px 10px 6px;
+  }
+  #pauseBtn {
+    top: max(12px, env(safe-area-inset-top) + 8px);
+    bottom: auto;
+    left: max(10px, env(safe-area-inset-left) + 6px);
+    width: 36px;
+    height: 36px;
+  }
+  #xpBarContainer {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    padding: 4px 8px;
+    gap: 5px;
+  }
+  #xpBar { width: 48px; }
+  #powerUpHudContainer {
+    bottom: max(12px, env(safe-area-inset-bottom) + 4px);
+    left: 50%;
+    max-width: calc(100vw - 110px);
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .powerup-badge { padding: 4px 8px; font-size: 11px; }
+  #tapHint {
+    bottom: max(54px, env(safe-area-inset-bottom) + 44px);
+    padding: 0 12px;
+    font-size: clamp(11px, 3vw, 14px);
+  }
+  .pixel-pause-btn { font-size: 17px; }
+  .pixel-dialog { width: min(360px, calc(100vw - 36px)); }
+  #versionBtn {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+  }
+}
+
+@media (orientation: portrait) and (max-height: 650px) {
+  #menuScreen { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  #menuScreen h1 { font-size: 32px; }
+  #menuScreen .subtitle { margin-bottom: 6px; }
+  #menuScreen .online-badge { margin-bottom: 6px; padding: 4px 10px; }
+  #menuScreen .menu-buttons { gap: 5px; padding: 7px; }
+  #menuScreen .btn { min-height: 38px; padding: 6px 10px; }
 }

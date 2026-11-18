@@ -35,18 +35,8 @@ function toggleFullscreen() {
   });
 });
 
-// ===== ORIENTATION =====
-function updateOrientation() {
-  isPortraitMode = portraitQuery.matches;
-}
-
-if (portraitQuery.addEventListener) {
-  portraitQuery.addEventListener("change", updateOrientation);
-}
-window.addEventListener('orientationchange', () => {
-  setTimeout(updateOrientation, 100);
-  setTimeout(() => resizeCanvas(), 200);
-});
+// Orientation changes are handled by resizeCanvas(); portrait is now the primary layout.
+window.addEventListener('orientationchange', () => setTimeout(() => resizeCanvas(), 200));
 
 // ===== ОБРАБОТЧИК [data-action] =====
 document.addEventListener('pointerdown', (e) => {
@@ -106,7 +96,7 @@ document.addEventListener('pointerdown', (e) => {
     }
     return;
   }
-  if (gameState === 'playing' && !isPortraitMode) {
+  if (gameState === 'playing') {
     // Touch input is resolved by the swipe recognizer below, not as an instant jump.
     if (e.pointerType !== 'touch') jump();
   }
@@ -114,7 +104,7 @@ document.addEventListener('pointerdown', (e) => {
 
 // ===== КЛАВИАТУРА =====
 document.addEventListener('keydown', (e) => {
-  if (gameState !== 'playing' || isPortraitMode) return;
+  if (gameState !== 'playing') return;
   if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
     e.preventDefault();
     jump();
@@ -135,7 +125,7 @@ let touchStartX = null;
 let touchMoved = false;
 
 document.addEventListener('touchstart', (e) => {
-  if (e.target.closest('button') || gameState !== 'playing' || isPortraitMode) return;
+  if (e.target.closest('button') || gameState !== 'playing') return;
   const touch = e.changedTouches[0];
   touchStartY = touch.clientY;
   touchStartX = touch.clientX;
