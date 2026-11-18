@@ -22,8 +22,13 @@ function toggleFullscreen() {
   try {
     if (isFullscreen()) {
       if (document.exitFullscreen) document.exitFullscreen();
-    } else {
-      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    } else if (document.documentElement.requestFullscreen) {
+      const request = document.documentElement.requestFullscreen();
+      if (request && typeof request.then === 'function') {
+        request.then(() => {
+          if (typeof lockPortraitOrientation === 'function') lockPortraitOrientation();
+        }).catch(() => {});
+      }
     }
   } catch (e) {}
 }
