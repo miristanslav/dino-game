@@ -15,7 +15,7 @@ try {
 } catch (e) {}
 
 let gameState = 'menu';
-const CURRENT_VERSION = 102;
+const CURRENT_VERSION = 103;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
