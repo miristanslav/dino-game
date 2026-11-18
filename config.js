@@ -15,7 +15,7 @@ try {
 } catch (e) {}
 
 let gameState = 'menu';
-const CURRENT_VERSION = 106;
+const CURRENT_VERSION = 107;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -24,6 +24,13 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 107,
+    changes: [
+      "Патч 107: В браузере кнопка паузы перенесена ниже HUD и больше не перекрывает рекорд и счёт",
+      "Кнопка полноэкранного режима скрывается во время игры и остаётся доступной в главном меню; режим Telegram сохранён"
+    ]
+  },
   {
     version: 106,
     changes: [
