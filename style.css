@@ -634,3 +634,16 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
     font-size: 12px;
   }
 }
+
+
+/* PATCH 104: reserve Telegram's native top bar and Android status area. */
+body.telegram-mode #speedBarContainer { top: max(120px, calc(env(safe-area-inset-top) + 112px)); }
+body.telegram-mode #hud { top: max(132px, calc(env(safe-area-inset-top) + 124px)); width: calc(100% - 20px); max-width: 460px; gap: 4px; padding: 6px 7px; font-size: clamp(9px, 2.8vw, 13px); }
+body.telegram-mode #comboHud { top: max(184px, calc(env(safe-area-inset-top) + 176px)); }
+body.telegram-mode #pauseBtn { top: max(184px, calc(env(safe-area-inset-top) + 176px)); bottom: auto; left: max(10px, env(safe-area-inset-left) + 6px); }
+body.telegram-mode #tapHint { bottom: max(62px, env(safe-area-inset-bottom) + 52px); }
+@media (max-height: 720px) {
+  body.telegram-mode #speedBarContainer { top: max(108px, calc(env(safe-area-inset-top) + 100px)); }
+  body.telegram-mode #hud { top: max(120px, calc(env(safe-area-inset-top) + 112px)); }
+  body.telegram-mode #comboHud, body.telegram-mode #pauseBtn { top: max(170px, calc(env(safe-area-inset-top) + 162px)); }
+}
