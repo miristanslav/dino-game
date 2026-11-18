@@ -4,8 +4,57 @@ window.addEventListener('load', () => setTimeout(removeSplash, 1000)); setTimeou
 function haptic(type) { if (isTelegram && tgApp?.HapticFeedback) { try { const hf = tgApp.HapticFeedback; if (type === 'jump') hf.impactOccurred('light'); if (type === 'eat') hf.notificationOccurred('success'); if (type === 'crash') hf.notificationOccurred('error'); if (type === 'buy') hf.impactOccurred('medium'); } catch (e) {} } }
 
 let fullscreenRequested = false;
-function requestTgFullscreen() { if (!isTelegram || fullscreenRequested) return; try { if (tgApp && tgApp.requestFullscreen) { tgApp.requestFullscreen(); fullscreenRequested = true; setTimeout(() => resizeCanvas(), 300); } } catch (e) {} }
-if (isTelegram) { setTimeout(requestTgFullscreen, 50); document.addEventListener('pointerdown', function firstTap() { requestTgFullscreen(); document.removeEventListener('pointerdown', firstTap); }); }
+let portraitLockRequested = false;
+
+function lockPortraitOrientation() {
+  if (portraitLockRequested) return;
+  portraitLockRequested = true;
+
+  let browserLockPromise = null;
+  try {
+    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+      browserLockPromise = screen.orientation.lock('portrait');
+    }
+  } catch (e) {}
+
+  if (browserLockPromise && typeof browserLockPromise.then === 'function') {
+    browserLockPromise.then(() => {
+      if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
+        try { tgApp.lockOrientation(); } catch (e) {}
+      }
+    }).catch(() => {
+      // Telegram can still provide a native orientation lock when browser locking is unavailable.
+      if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
+        try { tgApp.lockOrientation(); } catch (e) {}
+      }
+      portraitLockRequested = false;
+    });
+  } else if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
+    try { tgApp.lockOrientation(); } catch (e) { portraitLockRequested = false; }
+  } else {
+    portraitLockRequested = false;
+  }
+}
+
+function requestTgFullscreen() {
+  if (!isTelegram) return;
+  try {
+    if (tgApp && tgApp.requestFullscreen && !fullscreenRequested) {
+      tgApp.requestFullscreen();
+      fullscreenRequested = true;
+      setTimeout(() => {
+        lockPortraitOrientation();
+        resizeCanvas();
+      }, 300);
+    } else {
+      lockPortraitOrientation();
+    }
+  } catch (e) {
+    portraitLockRequested = false;
+  }
+}
+if (isTelegram) { setTimeout(requestTgFullscreen, 50); document.addEventListener('pointerdown', function firstTap() { requestTgFullscreen(); lockPortraitOrientation(); document.removeEventListener('pointerdown', firstTap); }); }
+else { document.addEventListener('pointerdown', function firstTap() { lockPortraitOrientation(); document.removeEventListener('pointerdown', firstTap); }, { once: true }); }
 
 function resizeCanvas() {
   const oldGroundY = GROUND_Y; const vv = window.visualViewport;
