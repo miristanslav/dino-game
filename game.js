@@ -189,7 +189,7 @@ function reset() {
   hud.classList.remove('hidden');
   xpBarContainer.classList.remove('hidden');
   speedBarContainer.classList.add('active');
-  fullscreenBtn.classList.remove('hidden');
+  fullscreenBtn.classList.add('hidden');
   versionBtn.style.display = 'none';
   tapHint.classList.remove('hidden');
   setTimeout(() => tapHint.classList.add('hidden'), 2000);
