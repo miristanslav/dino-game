@@ -32,16 +32,6 @@ html, body {
 .splash-title { font-size: 60px; text-shadow: 0 4px 0 #2E7D32; margin-bottom: 10px; }
 .splash-subtitle { font-size: 20px; letter-spacing: 4px; opacity: 0.9; }
 
-#orientationWarning {
-  display: none; position: fixed; inset: 0; z-index: 99999 !important;
-  background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
-  flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; padding: 20px; color: #263238;
-}
-#orientationWarning .rotate-icon { font-size: 90px; margin-bottom: 24px; display: inline-block; animation: rotatePhone 2.5s ease-in-out infinite; }
-@keyframes rotatePhone { 0%, 20% { transform: rotate(0deg); } 50%, 70% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
-#orientationWarning h2 { font-size: 26px; margin-bottom: 12px; color: #1565C0; }
-#orientationWarning p { font-size: 16px; color: #455A64; max-width: 320px; line-height: 1.6; }
 
 #fullscreenBtn {
   position: fixed; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left));
