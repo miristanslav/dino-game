@@ -549,8 +549,9 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
     min-width: 76px;
     padding: 4px 10px 6px;
   }
+  /* Keep pause below the HUD instead of covering the record/score row. */
   #pauseBtn {
-    top: max(12px, env(safe-area-inset-top) + 8px);
+    top: max(76px, env(safe-area-inset-top) + 70px);
     bottom: auto;
     left: max(10px, env(safe-area-inset-left) + 6px);
     width: 36px;
