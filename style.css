@@ -466,7 +466,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 
 
 /* PATCH 102: portrait-first mobile layout */
-@media (orientation: portrait) {
+@media (orientation: portrait), (orientation: landscape) {
   html, body {
     min-height: 100%;
     min-height: 100dvh;
@@ -525,7 +525,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 
   #hud {
     top: max(26px, env(safe-area-inset-top) + 18px);
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
     max-width: 460px;
     justify-content: space-around;
     gap: 5px;
@@ -565,7 +565,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   #powerUpHudContainer {
     bottom: max(12px, env(safe-area-inset-bottom) + 4px);
     left: 50%;
-    max-width: calc(100vw - 110px);
+    max-width: calc(100% - 110px);
     flex-wrap: wrap;
     justify-content: center;
     gap: 4px;
@@ -584,7 +584,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   }
 }
 
-@media (orientation: portrait) and (max-height: 650px) {
+@media (orientation: portrait) and (max-height: 650px), (orientation: landscape) {
   #menuScreen { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   #menuScreen h1 { font-size: 32px; }
   #menuScreen .subtitle { margin-bottom: 6px; }
@@ -594,23 +594,43 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 }
 
 
-/* PATCH 103: keep portrait-sized interface rules if a host ignores orientation lock.
-   Native Telegram/browser locking remains the primary mechanism. */
+/* PATCH 103: portrait stage remains portrait even when the device is landscape. */
+#portraitStage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100vw;
+  height: 100dvh;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  background: #E3F2FD;
+  isolation: isolate;
+}
+#portraitStage #gameCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 @media (orientation: landscape) {
-  #menuScreen {
-    align-items: center;
-    justify-content: center;
-    padding-left: 16px;
-    padding-right: 16px;
+  #portraitStage {
+    width: min(100vw, 56.25dvh);
+    height: 100dvh;
   }
-  #menuScreen h1,
-  #menuScreen > .subtitle,
-  #menuScreen > .online-badge,
-  #menuScreen .menu-buttons {
-    align-self: center;
-    width: min(360px, 48vw);
+  #portraitStage .ui-screen {
+    width: 100%;
+    height: 100%;
+  }
+  #portraitStage #menuScreen h1,
+  #portraitStage #menuScreen > .subtitle,
+  #portraitStage #menuScreen > .online-badge,
+  #portraitStage #menuScreen .menu-buttons {
+    width: calc(100% - 20px);
     max-width: 360px;
   }
-  #menuScreen .menu-buttons { gap: 7px; padding: 10px; }
-  #menuScreen .btn { min-height: 44px; padding: 9px 12px; font-size: 14px; }
+  #portraitStage #menuScreen .btn {
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
 }
