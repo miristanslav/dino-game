@@ -206,6 +206,7 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
 #confirmDialog .dialog-buttons { display: flex; gap: 10px; justify-content: center; }
 #confirmDialog .btn { min-width: 100px; flex: 1; }
 
+#achievementPopup.hidden { display: none !important; }
 #achievementPopup { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-100px); background: #fff; padding: 12px 20px; border-radius: 50px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid #FFC107; }
 #achievementPopup.show { transform: translateX(-50%) translateY(0); }
 .ach-icon { font-size: 28px; }
