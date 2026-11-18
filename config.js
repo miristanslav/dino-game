@@ -15,7 +15,7 @@ try {
 } catch (e) {}
 
 let gameState = 'menu';
-const CURRENT_VERSION = 105;
+const CURRENT_VERSION = 106;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -24,6 +24,13 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 106,
+    changes: [
+      "Патч 106: Восстановлена отсутствующая запись о выпуске патча 100 в истории обновлений",
+      "История патча 100 описывает подтверждённый релиз: игровые механики, биомы, птеродактили и система защиты"
+    ]
+  },
   {
     version: 105,
     changes: [
