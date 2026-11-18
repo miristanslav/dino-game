@@ -72,8 +72,11 @@ if (isTelegram) {
 }
 
 function resizeCanvas() {
-  const oldGroundY = GROUND_Y; const vv = window.visualViewport;
-  W = vv ? vv.width : window.innerWidth; H = vv ? vv.height : window.innerHeight;
+  const oldGroundY = GROUND_Y;
+  const stage = document.getElementById('portraitStage');
+  const rect = stage ? stage.getBoundingClientRect() : null;
+  W = rect && rect.width ? rect.width : window.innerWidth;
+  H = rect && rect.height ? rect.height : window.innerHeight;
   canvas.width = W; canvas.height = H; GROUND_Y = H * 0.78;
   dino.x = Math.max(30, Math.min(60, W * 0.16));
   if (!dino.jumping) dino.y = GROUND_Y;
