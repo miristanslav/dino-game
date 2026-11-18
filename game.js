@@ -10,7 +10,8 @@ if (isTelegram) { setTimeout(requestTgFullscreen, 50); document.addEventListener
 function resizeCanvas() {
   const oldGroundY = GROUND_Y; const vv = window.visualViewport;
   W = vv ? vv.width : window.innerWidth; H = vv ? vv.height : window.innerHeight;
-  canvas.width = W; canvas.height = H; GROUND_Y = H * 0.8;
+  canvas.width = W; canvas.height = H; GROUND_Y = H * 0.78;
+  dino.x = Math.max(30, Math.min(60, W * 0.16));
   if (!dino.jumping) dino.y = GROUND_Y;
   groundDots.forEach(d => { d.y = GROUND_Y + 6 + Math.random() * 20; }); obstacles.forEach(o => { o.y = GROUND_Y; });
   const dY = GROUND_Y - oldGroundY; birds.forEach(b => { b.y += dY; }); powerUps.forEach(p => { p.y += dY; });
@@ -52,7 +53,7 @@ function resumeGame() {
 }
 
 function jump() {
-  if (gameState !== 'playing' || dino.ducking || isPortraitMode) return;
+  if (gameState !== 'playing' || dino.ducking) return;
   duckTimer = 0;
   const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump');
   if (!dino.jumping) {
@@ -63,7 +64,7 @@ function jump() {
   }
 }
 function duck(on, duration) {
-  if (gameState !== 'playing' || dino.jumping || isPortraitMode) return;
+  if (gameState !== 'playing' || dino.jumping) return;
   dino.ducking = on;
   duckTimer = on ? (Number.isFinite(duration) ? Math.max(0, duration) : Infinity) : 0;
 }
@@ -157,7 +158,7 @@ function gameOver() {
 }
 
 function update(dt) {
-  if (isPortraitMode || gameState === 'paused') return;
+  if (gameState === 'paused') return;
   frame++;
   if (gameState === 'playing') {
     damageCooldown = Math.max(0, damageCooldown - dt);
