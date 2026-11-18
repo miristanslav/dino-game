@@ -15,10 +15,7 @@ try {
 } catch (e) {}
 
 let gameState = 'menu';
-let isPortraitMode = window.matchMedia("(orientation: portrait)").matches;
-const portraitQuery = window.matchMedia("(orientation: portrait)");
-
-const CURRENT_VERSION = 101;
+const CURRENT_VERSION = 102;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -27,6 +24,13 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 102,
+    changes: [
+      "Патч 102: Игра переведена на вертикальную ориентацию 9:16; адаптированы поле, меню, HUD и сенсорное управление",
+      "Сохранены существующие игровые механики, биомы, препятствия, птеродактилы, бонусы, жизни, улучшения и прогресс"
+    ]
+  },
   {
     version: 101,
     changes: [
@@ -764,7 +768,7 @@ const ctx = canvas.getContext('2d');
 
 let W = window.innerWidth;
 let H = window.innerHeight;
-let GROUND_Y = H * 0.8;
+let GROUND_Y = H * 0.78;
 
 let score = 0, distance = 0, speed = BASE_SPEED, frame = 0, lastTime = 0, spawnTimer = 0, shakeTime = 0, sessionBones = 0;
 let currentLives = 1, damageCooldown = 0, poisonOverlayTimer = 0, cactusGuardHits = 0, guardPulse = 0;
@@ -774,7 +778,7 @@ let lastPowerUpSecond = -1;
 let ghostUsed = false;
 let petX = 0, petY = 0;
 
-const dino = { x: 60, y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
+const dino = { x: Math.max(30, Math.min(60, W * 0.16)), y: GROUND_Y, scale: DINO_SCALE_GAME, vy: 0, jumping: false, ducking: false, jumpsLeft: 1 };
 let duckTimer = 0;
 let obstacles = [], birds = [], particles = [], bonesFlying = [], powerUps = [], rainDrops = [], snowflakes = [], activePowerUps = [], meteors = [], eggs = [], groundBones = [];
 let bonusPteroTimer = 5, passiveBoneTimer = 0, passiveBoneTick = 1;
