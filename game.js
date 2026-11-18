@@ -8,9 +8,21 @@ let portraitLockRequested = false;
 
 function lockPortraitOrientation() {
   if (portraitLockRequested) return;
-  portraitLockRequested = true;
 
+  const isPortraitNow = window.matchMedia('(orientation: portrait)').matches;
   let browserLockPromise = null;
+
+  // Telegram locks the current orientation, not a requested target.
+  // Never ask Telegram to lock while the viewport is landscape.
+  if (isTelegram && isPortraitNow && tgApp && typeof tgApp.lockOrientation === 'function') {
+    try {
+      if (!tgApp.isVersionAtLeast || tgApp.isVersionAtLeast('8.0')) {
+        tgApp.lockOrientation();
+        portraitLockRequested = true;
+      }
+    } catch (e) {}
+  }
+
   try {
     if (screen.orientation && typeof screen.orientation.lock === 'function') {
       browserLockPromise = screen.orientation.lock('portrait');
@@ -19,20 +31,17 @@ function lockPortraitOrientation() {
 
   if (browserLockPromise && typeof browserLockPromise.then === 'function') {
     browserLockPromise.then(() => {
-      if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
+      portraitLockRequested = true;
+      // Lock Telegram only after the viewport is actually portrait.
+      if (isTelegram && window.matchMedia('(orientation: portrait)').matches &&
+          tgApp && typeof tgApp.lockOrientation === 'function' &&
+          (!tgApp.isVersionAtLeast || tgApp.isVersionAtLeast('8.0'))) {
         try { tgApp.lockOrientation(); } catch (e) {}
       }
     }).catch(() => {
-      // Telegram can still provide a native orientation lock when browser locking is unavailable.
-      if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
-        try { tgApp.lockOrientation(); } catch (e) {}
-      }
-      portraitLockRequested = false;
+      // Browser may reject orientation locking outside supported fullscreen contexts.
+      // Telegram's native lock above remains active when available.
     });
-  } else if (isTelegram && tgApp && typeof tgApp.lockOrientation === 'function') {
-    try { tgApp.lockOrientation(); } catch (e) { portraitLockRequested = false; }
-  } else {
-    portraitLockRequested = false;
   }
 }
 
@@ -42,19 +51,25 @@ function requestTgFullscreen() {
     if (tgApp && tgApp.requestFullscreen && !fullscreenRequested) {
       tgApp.requestFullscreen();
       fullscreenRequested = true;
-      setTimeout(() => {
-        lockPortraitOrientation();
-        resizeCanvas();
-      }, 300);
-    } else {
-      lockPortraitOrientation();
     }
-  } catch (e) {
-    portraitLockRequested = false;
-  }
+    // Lock immediately while the app is still in portrait; the API locks current mode.
+    lockPortraitOrientation();
+    setTimeout(() => resizeCanvas(), 300);
+  } catch (e) {}
 }
-if (isTelegram) { setTimeout(requestTgFullscreen, 50); document.addEventListener('pointerdown', function firstTap() { requestTgFullscreen(); lockPortraitOrientation(); document.removeEventListener('pointerdown', firstTap); }); }
-else { document.addEventListener('pointerdown', function firstTap() { lockPortraitOrientation(); document.removeEventListener('pointerdown', firstTap); }, { once: true }); }
+if (isTelegram) {
+  setTimeout(requestTgFullscreen, 50);
+  document.addEventListener('pointerdown', function firstTap() {
+    requestTgFullscreen();
+    lockPortraitOrientation();
+    document.removeEventListener('pointerdown', firstTap);
+  });
+} else {
+  document.addEventListener('pointerdown', function firstTap() {
+    lockPortraitOrientation();
+    document.removeEventListener('pointerdown', firstTap);
+  }, { once: true });
+}
 
 function resizeCanvas() {
   const oldGroundY = GROUND_Y; const vv = window.visualViewport;
