@@ -592,3 +592,25 @@ body.telegram-mode #fullscreenBtn { display: none !important; }
   #menuScreen .menu-buttons { gap: 5px; padding: 7px; }
   #menuScreen .btn { min-height: 38px; padding: 6px 10px; }
 }
+
+
+/* PATCH 103: keep portrait-sized interface rules if a host ignores orientation lock.
+   Native Telegram/browser locking remains the primary mechanism. */
+@media (orientation: landscape) {
+  #menuScreen {
+    align-items: center;
+    justify-content: center;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  #menuScreen h1,
+  #menuScreen > .subtitle,
+  #menuScreen > .online-badge,
+  #menuScreen .menu-buttons {
+    align-self: center;
+    width: min(360px, 48vw);
+    max-width: 360px;
+  }
+  #menuScreen .menu-buttons { gap: 7px; padding: 10px; }
+  #menuScreen .btn { min-height: 44px; padding: 9px 12px; font-size: 14px; }
+}
