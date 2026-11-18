@@ -647,3 +647,11 @@ body.telegram-mode #tapHint { bottom: max(62px, env(safe-area-inset-bottom) + 52
   body.telegram-mode #hud { top: max(120px, calc(env(safe-area-inset-top) + 112px)); }
   body.telegram-mode #comboHud, body.telegram-mode #pauseBtn { top: max(170px, calc(env(safe-area-inset-top) + 162px)); }
 }
+
+/* Keep top-anchored secondary screens and notifications clear of Telegram chrome. */
+body.telegram-mode .ui-screen:not(#menuScreen):not(#gameoverScreen) {
+  padding-top: max(136px, calc(env(safe-area-inset-top) + 128px));
+}
+body.telegram-mode #achievementPopup {
+  top: max(132px, calc(env(safe-area-inset-top) + 124px));
+}
