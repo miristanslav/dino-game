@@ -15,7 +15,7 @@ try {
 } catch (e) {}
 
 let gameState = 'menu';
-const CURRENT_VERSION = 103;
+const CURRENT_VERSION = 104;
 function formatVersion(v) {
   const thousands = Math.floor(v / 1000);
   const hundreds = Math.floor((v % 1000) / 100);
@@ -24,6 +24,13 @@ function formatVersion(v) {
 }
 
 const CHANGELOG = [
+  {
+    version: 104,
+    changes: [
+      "Патч 104: Верхняя игровая панель опущена ниже системной строки и панели Telegram; добавлены отступы для HUD, индикатора скорости, комбо и паузы",
+      "Добавлены компактные размеры HUD и безопасные отступы для экранов разной высоты; игровые механики и графика не менялись"
+    ]
+  },
   {
     version: 102,
     changes: [
