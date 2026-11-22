@@ -94,8 +94,8 @@
       ground=new THREE.Group();scene.add(ground);
       const tileGeo=new THREE.PlaneGeometry(8,8);
       for(let z=-4;z<=4;z++)for(let x=-4;x<=4;x++){
-        const m=new THREE.Mesh(tileGeo,materials.ground[(Math.abs(x*13+z*7)+x*x+z*z)%4]);
-        m.rotation.x=-Math.PI/2;m.position.set(x*8,-.035,z*8);m.receiveShadow=true;ground.add(m);groundTiles.push(m);
+        const m=new THREE.Mesh(tileGeo,materials.ground[0]);
+        m.userData={ox:x,oz:z};m.rotation.x=-Math.PI/2;m.position.set(x*8,-.035,z*8);m.receiveShadow=true;ground.add(m);groundTiles.push(m);
       }
       const ambientPatch=mesh(new THREE.CircleGeometry(2.2,12),materials.soil,scene,0,-.02,0,1,1,1);
       ambientPatch.rotation.x=-Math.PI/2;ambientPatch.material=materials.soil;ambientPatch.material.transparent=true;ambientPatch.material.opacity=.13;ambientPatch.receiveShadow=true;
@@ -120,8 +120,10 @@
     if(!ready)return;
     const p=data.player||{x:0,y:0,dx:1,dy:0};
     const px=p.x||0,pz=p.y||0,unit=.035;
-    camera.position.set(0,18.5,16.5);camera.lookAt(0,0,0);
-    ground.position.set(-((px*unit)%8),0,-((pz*unit)%8));
+    const aspect=width/Math.max(1,height),portraitZoom=aspect<1.15?Math.min(1.42,1+(1.15-aspect)*.48):1;
+    camera.position.set(0,18.5*portraitZoom,16.5*portraitZoom);camera.lookAt(0,0,0);
+    const worldX=px*unit,worldZ=pz*unit,baseTileX=Math.floor(worldX/8),baseTileZ=Math.floor(worldZ/8);
+    for(const tile of groundTiles){const tx=baseTileX+tile.userData.ox,tz=baseTileZ+tile.userData.oz;let hash=(tx*374761393+tz*668265263)|0;hash=(hash^(hash>>>13))*1274126177;hash=(hash^(hash>>>16))>>>0;tile.material=materials.ground[hash%materials.ground.length];tile.position.set(tx*8-worldX,-.035,tz*8-worldZ);}
     for(const d of decorMeshes){
       const wrap=(v,span)=>((v+span/2)%span+span)%span-span/2;
       d.group.position.set(wrap(d.x-px*unit,44),0,wrap(d.z-pz*unit,44));
@@ -138,7 +140,7 @@
       const e=data.enemies[i],id='enemy'+i;active.add(id);
       const a=actor(id,e.brute?'brute':e.behavior,false);
       a.root.visible=true;a.root.position.set((e.x-px)*unit,0,(e.y-pz)*unit);
-      const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(-dy||0,-dx||1);
+      const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
       a.body.position.y=e.hit>0?.05:Math.sin(data.time*5+i)*.012;
       a.legs.forEach((leg,j)=>{leg.rotation.z=Math.sin(data.time*7+i+j*Math.PI)*.16;});
       if(e.hostile||e.alerted||e.hit>0){
