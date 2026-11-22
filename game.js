@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false});
+const canvas=document.getElementById('gameCanvas');
 const $=id=>document.getElementById(id);
 const ui={menu:$('menu'),hud:$('hud'),controls:$('mobileControls'),pause:$('pauseScreen'),level:$('levelScreen'),over:$('gameOverScreen'),changelog:$('changelog'),hint:$('worldHint')};
 const SAVE_KEY='dino_game_rpg_save_v1';
@@ -13,7 +13,7 @@ window.addEventListener('resize',resize);if(window.visualViewport)window.visualV
 function freshPlayer(){return{x:0,y:0,r:13,hp:100,maxHp:100,speed:145,damage:14,attackRate:.72,attackCooldown:0,attackWindup:0,attackVisual:0,attackAngle:0,level:1,xp:0,nextXp:35,range:190,specialCd:0,dashCd:0,dashTime:0,dx:0,dy:0,invuln:0,armor:0}}
 function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({bestKills:Math.max(saved.bestKills||0,kills),lastLevel:player?.level||1}))}catch{}}
 function show(name){Object.values(ui).forEach(x=>x.classList.add('hidden'));if(name&&ui[name])ui[name].classList.remove('hidden');ui.controls.classList.toggle('hidden',name!=='hud');$('pauseBtn').classList.toggle('hidden',name!=='hud')}
-function start(){player=freshPlayer();enemies=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function start(){if(!window.Dino3D||!window.Dino3D.ready){const reason=window.Dino3D?.error?.message||'3D-рендерер ещё не готов';alert('Не удалось запустить 3D-мир Dino Game. '+reason+' Обнови страницу и попробуй снова.');return}player=freshPlayer();enemies=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function pause(){if(state!=='playing')return;state='paused';show('pause');$('pauseBtn').classList.add('hidden')}
 function resume(){if(state!=='paused')return;state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
 function endRun(){state='over';saveProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Достигнут уровень: '+player.level;show('over')}
@@ -52,35 +52,6 @@ e.x=clamp(e.x+e.vx*dt,-11350,11350);e.y=clamp(e.y+e.vy*dt,-11350,11350);
 enemies=enemies.filter(e=>!e.dead);
 for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72&&d>.001){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
 for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;p.vx*=.94;p.vy*=.94}particles=particles.filter(p=>p.t>0);decor.forEach(d=>{if(d.x-player.x>620)d.x-=1240;if(d.x-player.x< -620)d.x+=1240;if(d.y-player.y>780)d.y-=1560;if(d.y-player.y< -780)d.y+=1560})}
-function tileHash(x,y){let n=(Math.floor(x/40)*374761393+Math.floor(y/40)*668265263)|0;n=(n^(n>>>13))*1274126177;return(n^(n>>>16))>>>0}
-function drawWorld(){const cx=player?player.x:0,cy=player?player.y:0;ctx.fillStyle='#314c32';ctx.fillRect(0,0,W,H);const tile=40,startX=Math.floor((cx-W/2)/tile)-1,endX=Math.ceil((cx+W/2)/tile)+1,startY=Math.floor((cy-H/2)/tile)-1,endY=Math.ceil((cy+H/2)/tile)+1;
-for(let gy=startY;gy<=endY;gy++)for(let gx=startX;gx<=endX;gx++){const h=tileHash(gx*tile,gy*tile),x=gx*tile-cx+W/2,y=gy*tile-cy+H/2;ctx.fillStyle=h%5===0?'#38583a':h%3===0?'#345334':'#314f33';ctx.fillRect(Math.round(x),Math.round(y),tile+1,tile+1);if(h%7===0){ctx.fillStyle='#587044';ctx.fillRect(x+8,y+9,3,3);ctx.fillRect(x+26,y+27,2,2)}}
-for(const d of decor){const x=d.x-cx+W/2,y=d.y-cy+H/2;if(x< -45||x>W+45||y< -45||y>H+45)continue;if(d.type==='fern'){ctx.fillStyle='#203d29';ctx.fillRect(x-3*d.s,y-2*d.s,6*d.s,12*d.s);ctx.fillStyle='#63864a';for(let i=0;i<4;i++){ctx.fillRect(x-10*d.s+i*2*d.s,y-10*d.s+i*3*d.s,8*d.s,3*d.s);ctx.fillRect(x+2*d.s+i*2*d.s,y-10*d.s+i*3*d.s,7*d.s,3*d.s)}}else{ctx.fillStyle='#293d2d';ctx.fillRect(x-8*d.s,y-4*d.s,17*d.s,10*d.s);ctx.fillStyle='#71806a';ctx.fillRect(x-5*d.s,y-6*d.s,8*d.s,4*d.s)}}
-}
-function drawDino(x,y,r,color,dirX=1,dirY=0,isPlayer=false){ctx.save();ctx.translate(Math.round(x),Math.round(y));const facing=Math.atan2(dirY,dirX);ctx.rotate(facing*.12);const shade=isPlayer?'#426d38':(color==='#91ad69'?'#536d40':color==='#b49a61'?'#75603c':'#754633');ctx.fillStyle='#101a1370';ctx.beginPath();ctx.ellipse(0,r*.78,r*1.48,r*.48,0,0,Math.PI*2);ctx.fill();
-const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0][0]*r,pts[0][1]*r);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0]*r,pts[i][1]*r);ctx.closePath();ctx.fill()};
-const bodyGrad=ctx.createLinearGradient(0,-r,0,r);bodyGrad.addColorStop(0,color);bodyGrad.addColorStop(1,shade);
-poly([[-.42,-.28],[-1.72,-.03],[-1.1,.12],[-.55,.28],[-.34,.48],[.42,.45],[.86,.2],[.8,-.34],[.3,-.56],[-.18,-.5]],bodyGrad);
-ctx.fillStyle=bodyGrad;ctx.beginPath();ctx.ellipse(-.02*r,.02*r,.78*r,.53*r,-.08,0,Math.PI*2);ctx.fill();
-poly([[.25,-.28],[.48,-.83],[.78,-1.04],[1.22,-.98],[1.48,-.78],[1.3,-.55],[.78,-.48],[.48,-.34]],color);
-ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(1.03*r,-.82*r,.55*r,.34*r,-.12,0,Math.PI*2);ctx.fill();
-poly([[.92,-.61],[1.45,-.65],[1.62,-.52],[1.42,-.43],[.98,-.45]],shade);
-poly([[-.2,.28],[-.42,.54],[-.35,1.02],[-.1,1.04],[.02,.93],[-.02,.48],[.22,.35]],shade);
-poly([[.42,.24],[.58,.52],[.72,.98],[.98,1.02],[1.03,.88],[.82,.35],[.7,.18]],color);
-poly([[-.12,.99],[-.32,1.02],[-.48,1.12],[-.06,1.12],[.08,1.04]],'#d7d8b0');
-poly([[.78,.96],[.68,1.08],[.56,1.15],[1.02,1.13],[1.08,1.04]],'#d7d8b0');
-poly([[.38,-.54],[.58,-.78],[.73,-.62],[.9,-.83],[1.04,-.62],[1.22,-.72],[1.3,-.54]],isPlayer?'#d6ef91':'#d5b17b');
-for(let i=0;i<5;i++){const px=(-.45+i*.27)*r,py=(-.43-Math.sin(i/4*Math.PI)*.08)*r;poly([[px/r,py/r],[px/r-.11,py/r-.22],[px/r+.08,py/r-.16]],isPlayer?'#d5ef91':'#c9a36e')}
-ctx.fillStyle='#f4e8bd';ctx.beginPath();ctx.arc(1.22*r,-.88*r,Math.max(1.8,r*.105),0,Math.PI*2);ctx.fill();ctx.fillStyle='#182017';ctx.beginPath();ctx.arc(1.25*r,-.88*r,Math.max(1,r*.052),0,Math.PI*2);ctx.fill();
-ctx.fillStyle='#26301f';ctx.beginPath();ctx.arc(1.52*r,-.57*r,Math.max(1,r*.035),0,Math.PI*2);ctx.fill();
-if(isPlayer){ctx.strokeStyle='#e5f5b7';ctx.lineWidth=Math.max(1,r*.08);ctx.beginPath();ctx.moveTo(-.48*r,-.2*r);ctx.lineTo(-.18*r,-.28*r);ctx.stroke();ctx.fillStyle='#e7f5bb';ctx.beginPath();ctx.arc(1.22*r,-.88*r,Math.max(2,r*.13),0,Math.PI*2);ctx.fill();ctx.fillStyle='#182017';ctx.beginPath();ctx.arc(1.25*r,-.88*r,Math.max(1,r*.06),0,Math.PI*2);ctx.fill()}
-ctx.restore()}
-function render(){if(window.Dino3D&&window.Dino3D.ready){window.Dino3D.render({player,enemies,orbs,time:worldTime,moveX:joy.x,moveY:joy.y});if(shake>0)shake=Math.max(0,shake-1);return}drawWorld();const cx=player?player.x:0,cy=player?player.y:0;const sx=x=>x-cx+W/2,sy=y=>y-cy+H/2;
-for(const o of orbs){ctx.fillStyle='#f1d47c';ctx.fillRect(sx(o.x)-4,sy(o.y)-4,8,8);ctx.fillStyle='#fff2b3';ctx.fillRect(sx(o.x)-1,sy(o.y)-1,3,3)}
-for(const e of enemies){const x=sx(e.x),y=sy(e.y);drawDino(x,y,e.r,e.hit>0?'#e7c77e':(e.behavior==='grazer'?'#91ad69':e.behavior==='territorial'?'#b49a61':(e.brute?'#a85e49':'#c27a54')),player.x-e.x,player.y-e.y);if(e.hostile||e.alerted||e.hit>0){ctx.fillStyle='#1b251c';ctx.fillRect(x-e.r,y-e.r-9,e.r*2,3);ctx.fillStyle='#e56c57';ctx.fillRect(x-e.r,y-e.r-9,e.r*2*(e.hp/e.maxHp),3)}}
-if(player){if(player.invuln>0&&Math.floor(worldTime*18)%2===0){}else drawDino(W/2,H/2,player.r,'#82b85b',player.dx,player.dy,true);if(player.attackVisual>0){ctx.save();ctx.translate(W/2,H/2);ctx.rotate(player.attackAngle);ctx.strokeStyle='#dff7a8';ctx.lineWidth=4;ctx.globalAlpha=Math.min(1,player.attackVisual/.12);ctx.beginPath();ctx.arc(0,0,player.r+17,-.82,.82);ctx.stroke();ctx.restore();ctx.globalAlpha=1}if(player.specialCd>0){ctx.strokeStyle='#9bd9d766';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,H/2,player.r+5,0,Math.PI*2);ctx.stroke()}}
-for(const p of particles){ctx.globalAlpha=clamp(p.t/.55,0,1);ctx.fillStyle=p.color;ctx.fillRect(sx(p.x),sy(p.y),3,3)}ctx.globalAlpha=1;
-if(shake>0){shake=Math.max(0,shake-1)}}
 function loop(now){if(state!=='playing')return;const dt=Math.min(.033,(now-last)/1000||0);last=now;update(dt);if(state==='playing'){render();raf=requestAnimationFrame(loop)}}
 function bindHold(id,fn){const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();fn();el.setPointerCapture?.(e.pointerId)})}
 const joyEl=$('joystick'),stick=$('stick');function joyMove(e){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,l=Math.hypot(dx,dy),k=l>max?max/l:1;joy.x=dx*k/max;joy.y=dy*k/max;stick.style.transform='translate('+dx*k+'px,'+dy*k+'px)'}
