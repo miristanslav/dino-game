@@ -86,8 +86,16 @@
     const legs=[],arms=[];
     for(const side of [-1,1]){
       const leg=new THREE.Group();leg.position.set(-.12,.48,side*.24);body.add(leg);
-      mesh(sphere,skin,leg,0,-.18,0,.17,.34,.16);
-      mesh(box,materials.claw,leg,.08,-.38,.025,.34,.09,.22);
+      mesh(sphere,skin,leg,0,-.15,0,.19,.29,.17);
+      const knee=new THREE.Group();knee.position.set(.015,-.29,0);leg.add(knee);
+      mesh(sphere,skin,knee,.015,-.105,0,.115,.22,.12);
+      const foot=new THREE.Group();foot.position.set(.07,-.22,.025;knee.add(foot);
+      mesh(box,skin,foot,.055,-.005,0,.31,.105,.22);
+      for(let clawIndex=0;clawIndex<3;clawIndex++){
+        const toe=mesh(cone,materials.claw,foot,.17,-.018,(clawIndex-1)*.065,.045,.12,.045);
+        toe.rotation.z=-Math.PI/2;
+      }
+      leg.userData.knee=knee;leg.userData.foot=foot;
       legs.push(leg);
       const armGroup=new THREE.Group();armGroup.position.set(.43,.67,side*.25);body.add(armGroup);
       const arm=mesh(sphere,skin,armGroup,0,-.04,0,.12,.23,.11);arm.rotation.z=-.35;
@@ -256,15 +264,27 @@
     // Re-center a persistent jungle set around the moving player; avoid creating objects per frame.
     const playerActor=actor('player','player',true);
     playerActor.root.position.set(0,terrainHeight(px*unit,pz*unit),0);
-    playerActor.root.rotation.y=-Math.atan2(p.dy||0,p.dx||1);
+    const attacking=(p.attackVisual||0)>0;
+    const facingAngle=attacking&&Number.isFinite(p.attackAngle)?p.attackAngle:Math.atan2(p.dy||0,p.dx||1);
+    playerActor.root.rotation.y=-facingAngle;
     const moving=Math.hypot(data.moveX||0,data.moveY||0)>.08;
-    const playerPhase=data.time*10.5;
-    const playerStride=moving?Math.sin(playerPhase):0;
-    playerActor.body.position.y=moving?Math.abs(Math.sin(playerPhase))*.045:Math.sin(data.time*1.8)*.008;
-    playerActor.body.rotation.z=moving?Math.sin(playerPhase*2)*.018:Math.sin(data.time*1.3)*.008;
-    playerActor.legs.forEach((leg,i)=>{leg.rotation.z=playerStride*(i===0?-.48:.48);});
-    playerActor.arms.forEach((arm,i)=>{arm.rotation.z=playerStride*(i===0?.16:-.16);});
-    playerActor.tailPivot.rotation.y=Math.sin(data.time*4.2)*.13;
+    const playerPhase=data.time*(moving?11.5:2.2);
+    const attackPulse=attacking?Math.sin((1-(p.attackVisual/.24))*Math.PI):0;
+    playerActor.body.position.y=moving?Math.max(0,Math.sin(playerPhase*2))*.055:Math.sin(data.time*1.8)*.008;
+    playerActor.body.position.x=attacking?attackPulse*.105:0;
+    playerActor.body.rotation.z=(moving?Math.sin(playerPhase*2)*.024:Math.sin(data.time*1.3)*.008)-(attacking?attackPulse*.055:0);
+    playerActor.legs.forEach((leg,i)=>{
+      const phase=playerPhase+(i===0?0:Math.PI);
+      const swing=moving?Math.sin(phase):0;
+      const lift=moving?Math.max(0,Math.cos(phase))*.19:0;
+      leg.rotation.z=swing*.48;
+      leg.userData.knee.rotation.z=moving?Math.max(0,-Math.cos(phase))*.72:0;
+      leg.userData.foot.rotation.z=moving?-swing*.22:0;
+      leg.position.y=.48+lift*.22;
+    });
+    playerActor.arms.forEach((arm,i)=>{arm.rotation.z=attacking?(i===0?-.95:.45)+attackPulse*.18:(moving?Math.sin(playerPhase+(i===0?0:Math.PI))*(i===0?.2:-.2):0);});
+    playerActor.tailPivot.rotation.y=Math.sin(data.time*4.2)*.16;
+    playerActor.tailPivot.rotation.z=moving?Math.sin(playerPhase)*.045:Math.sin(data.time*1.3)*.012;
     const active=new Set(['player']);
     for(let i=0;i<(data.enemies||[]).length;i++){
       const e=data.enemies[i],id='enemy'+(e.id??i);active.add(id);
@@ -273,11 +293,18 @@
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
       const enemyMoving=!!(e.alerted||e.hostile||e.fleeing);
       const gait=data.time*(enemyMoving?8.5:2.2)+i*.7;
-      a.body.position.y=e.hit>0?.06:enemyMoving?Math.abs(Math.sin(gait))*.025:Math.sin(gait)*.008;
-      a.body.rotation.z=e.hit>0?-.035:Math.sin(gait*.5)*.008;
-      a.legs.forEach((leg,j)=>{leg.rotation.z=enemyMoving?Math.sin(gait+j*Math.PI)*.34:Math.sin(gait+j*Math.PI)*.025;});
-      a.arms.forEach((arm,j)=>{arm.rotation.z=enemyMoving?Math.sin(gait+j*Math.PI)*.12:0;});
-      a.tailPivot.rotation.y=Math.sin(gait*.55)*.11;
+      a.body.position.y=e.hit>0?.065:enemyMoving?Math.max(0,Math.sin(gait*2))*.035:Math.sin(gait)*.008;
+      a.body.rotation.z=e.hit>0?-.075:Math.sin(gait*.5)*.012;
+      a.legs.forEach((leg,j)=>{
+        const phase=gait+(j===0?0:Math.PI),swing=enemyMoving?Math.sin(phase):0;
+        leg.rotation.z=swing*.4;
+        leg.userData.knee.rotation.z=enemyMoving?Math.max(0,-Math.cos(phase))*.55:0;
+        leg.userData.foot.rotation.z=enemyMoving?-swing*.18:0;
+        leg.position.y=.48+(enemyMoving?Math.max(0,Math.cos(phase))*.035:0);
+      });
+      a.arms.forEach((arm,j)=>{arm.rotation.z=enemyMoving?Math.sin(gait+(j===0?0:Math.PI))*.15:0;});
+      a.tailPivot.rotation.y=Math.sin(gait*.55)*.14;
+      a.tailPivot.rotation.z=enemyMoving?Math.sin(gait)*.035:0;
       if(e.hostile||e.alerted||e.hit>0){
         const ratio=Math.max(0,Math.min(1,e.hp/e.maxHp));
         a.healthFill.scale.x=ratio;
