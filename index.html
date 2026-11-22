@@ -1,240 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🦖 T-Rex Runner Color</title>
-  <link rel="stylesheet" href="style.css?v=120">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <!-- Firebase SDK (compat версия) -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17251b">
+<title>DINO GAME — Эволюция начинается</title>
+<link rel="stylesheet" href="style.css?v=121">
 </head>
 <body>
-
-<script>
-(function () {
-  function reportRuntimeProblem(message) {
-    function show() {
-      var panel = document.getElementById('runtimeErrorPanel');
-      if (!panel) {
-        panel = document.createElement('div');
-        panel.id = 'runtimeErrorPanel';
-        panel.style.cssText = 'position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:45vh;overflow:auto;padding:14px;background:#300;color:#fff;border:2px solid #ff7777;border-radius:8px;font:14px/1.45 monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 3px 18px #0008';
-        document.body.appendChild(panel);
-      }
-      panel.textContent = 'ОШИБКА ЗАПУСКА ИГРЫ\\n' + String(message || 'Неизвестная ошибка') + '\\n\\nПерепиши этот текст в чат.';
-    }
-    if (document.body) show();
-    else document.addEventListener('DOMContentLoaded', show, { once: true });
-  }
-  window.addEventListener('error', function (event) {
-    if (event.target && event.target !== window) {
-      var target = event.target;
-      reportRuntimeProblem('Не загрузился файл: ' + (target.src || target.href || target.tagName));
-    } else {
-      reportRuntimeProblem((event.message || 'JavaScript error') + (event.filename ? '\\nФайл: ' + event.filename : '') + (event.lineno ? '\\nСтрока: ' + event.lineno : ''));
-    }
-  }, true);
-  window.addEventListener('unhandledrejection', function (event) {
-    var reason = event.reason;
-    reportRuntimeProblem('Unhandled promise rejection: ' + (reason && (reason.stack || reason.message) || reason));
-  });
-})();
-</script>
-
-<div id="portraitStage">
-<div id="splashScreen">
-  <h1 class="splash-title">🦖 T-REX</h1>
-  <div class="splash-subtitle">COLOR RUNNER</div>
-</div>
-
-<button id="fullscreenBtn" title="На весь экран" data-action="fullscreen">
-  <svg id="fsIconExpand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
-  <svg id="fsIconCollapse" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
-</button>
-
-<canvas id="gameCanvas"></canvas>
-
-<div id="powerUpHudContainer" class="hidden"></div>
-<div id="speedBarContainer"><div id="speedBar"></div></div>
-
-<div id="hud">
-  <span>HI <span id="hudHigh">00000</span></span>
-  <span id="hudScore">00000</span>
-  <span id="hudLives" aria-label="Жизни">❤️ 1</span>
-  <span class="bones-counter">
-    <svg width="20" height="11" viewBox="-18 -10 36 20" style="display:inline-block; vertical-align:middle;">
-      <rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/><circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="-12" cy="4" r="6" fill="#f0e0b0"/><circle cx="12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="12" cy="4" r="6" fill="#f0e0b0"/>
-    </svg>
-    <span id="hudBones">0</span>
-  </span>
-</div>
-
-<div id="xpBarContainer">
-  <span id="xpLevel">Lv.1</span>
-  <div id="xpBar"><div id="xpBarFill"></div></div>
-</div>
-
-<div id="comboHud" class="hidden">
-  <span id="comboMult">🔥 x2</span>
-  <div id="comboTimerBar"><div id="comboTimerFill"></div></div>
-</div>
-
-<div id="tapHint" class="hidden">Тап — прыжок · свайп вниз — уклонение 🦖</div>
-
-<button id="pauseBtn" class="pixel-pause-btn hidden" data-action="pause" aria-label="Пауза">Ⅱ</button>
-
-<div id="pauseScreen" class="hidden" aria-label="Игра на паузе">
-  <div class="pixel-dialog pause-dialog">
-    <div class="pixel-dialog-kicker">T-REX RUNNER</div>
-    <h2>ПАУЗА</h2>
-    <div class="pause-dino-mark">🦖</div>
-    <button class="pixel-action primary" data-action="resume">▶ ВОЗОБНОВИТЬ</button>
-    <button class="pixel-action secondary" data-action="pause-menu">⌂ В МЕНЮ</button>
-  </div>
-</div>
-
-<div id="menuScreen" class="ui-screen">
-  <h1>🦖 T-REX</h1>
-  <div class="subtitle">COLOR RUNNER</div>
-  
-  <div class="online-badge">
-    <span class="online-dot"></span> Онлайн: <span id="onlineCount">0</span>
-  </div>
-
-  <div class="menu-buttons">
-    <button class="btn" data-action="start">▶ НАЧАТЬ ИГРУ</button>
-    <button class="btn secondary" data-action="daily">📅 ЕЖЕДНЕВКИ <span id="dailyBadge" class="hidden">🔥</span></button>
-    <button class="btn secondary" data-action="records">🏆 РЕЙТИНГ</button>
-    <button class="btn secondary" data-action="upgrades">🦴 УЛУЧШЕНИЯ</button>
-    <button class="btn secondary" data-action="achievements">🏅 ДОСТИЖЕНИЯ</button>
-    <button class="btn secondary" data-action="settings">⚙️ НАСТРОЙКИ</button>
-  </div>
-</div>
-
-<button id="versionBtn" class="version-btn" style="display: none;">
-  <span>Версия</span>
-  <strong id="versionNumber">0.1.07</strong>
-</button>
-
-<div id="dailyScreen" class="ui-screen hidden">
-  <h1>📅 ЕЖЕДНЕВКА</h1>
-  <div class="streak-display">🔥 Серия: <span id="dailyStreak">0</span> дн.</div>
-  <div class="daily-card" id="dailyCard">
-    <div class="daily-icon" id="dailyIcon">⭐</div>
-    <div class="daily-title" id="dailyTitle">Загрузка...</div>
-    <div class="daily-progress-text"><span id="dailyProgressText">0</span> / <span id="dailyTargetText">0</span></div>
-    <div class="daily-progress-bar"><div class="daily-progress-fill" id="dailyProgressFill"></div></div>
-    <div class="daily-rewards">Награда: <span id="dailyBoneReward">50</span> 🦴 + <span id="dailyXpReward">100</span> XP</div>
-    <button class="btn" id="btnClaimDaily" data-action="claim-daily" disabled>ЗАБРАТЬ НАГРАДУ</button>
-  </div>
-  <button class="btn btn-back" data-action="back">← НАЗАД</button>
-</div>
-
-<div id="recordsScreen" class="ui-screen hidden">
-  <h1>🏆 МИРОВОЙ РЕЙТИНГ</h1>
-  <div class="records-list" id="recordsList">
-    <div style="text-align:center; padding: 20px; color: #666;">Загрузка рейтинга...</div>
-  </div>
-  <button class="btn btn-back" data-action="back">← НАЗАД</button>
-</div>
-
-<div id="upgradesScreen" class="ui-screen hidden">
-  <h1>🦴 УЛУЧШЕНИЯ</h1>
-  <div class="bones-balance">
-    <svg width="28" height="15.5" viewBox="-18 -10 36 20"><rect x="-12" y="-3" width="24" height="6" fill="#f0e0b0"/><circle cx="-12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="-12" cy="4" r="6" fill="#f0e0b0"/><circle cx="12" cy="-4" r="6" fill="#f0e0b0"/><circle cx="12" cy="4" r="6" fill="#f0e0b0"/></svg>
-    <span id="upgradesBones">0</span>
-  </div>
-  <div class="tab-buttons">
-    <button class="tab-btn active" id="tabUpg">Улучшения</button>
-    <button class="tab-btn" id="tabSkins">Скины</button>
-    <button class="tab-btn" id="tabPets">Питомцы</button>
-  </div>
-  <div class="upgrades-list" id="upgradesList"></div>
-  <div class="upgrades-list hidden" id="skinsList"></div>
-  <div class="upgrades-list hidden" id="petsList"></div>
-  <button class="btn btn-back" data-action="back">← НАЗАД</button>
-</div>
-
-<div id="achievementsScreen" class="ui-screen hidden">
-  <h1>🏅 ДОСТИЖЕНИЯ</h1>
-  <div class="records-list" id="achievementsList"></div>
-  <button class="btn btn-back" data-action="back">← НАЗАД</button>
-</div>
-
-<div id="settingsScreen" class="ui-screen hidden">
-  <h1>⚙️ НАСТРОЙКИ</h1>
-  <div class="settings-list">
-    <button class="btn secondary" data-action="toggle-sound" id="btnSound">🔊 ЗВУКИ: ВКЛ</button>
-    <button class="btn secondary" data-action="toggle-music" id="btnMusic">🎵 МУЗЫКА: ВКЛ</button>
-    <button class="btn danger" data-action="reset">🗑️ СБРОСИТЬ ПРОГРЕСС</button>
-  </div>
-  <button class="btn btn-back" data-action="back">← НАЗАД</button>
-</div>
-
-<div id="gameoverScreen" class="ui-screen hidden">
-  <h1>💥 ИГРА ОКОНЧЕНА</h1>
-  <div id="newRecordText" class="new-record hidden">🏆 НОВЫЙ РЕКОРД!</div>
-  <div class="stat">Счёт: <span id="goScore">0</span></div>
-  <div class="stat">Рекорд: <span id="goHigh">0</span></div>
-  <div class="bones-earned" id="goBones">+0 🦴</div>
-  <div class="xp-earned" id="goXp">+0 XP</div>
-  <div class="gameover-buttons">
-    <button class="btn" data-action="start">▶ ИГРАТЬ СНОВА</button>
-    <button class="btn secondary" data-action="back">🏠 В МЕНЮ</button>
-  </div>
-</div>
-
-<div id="confirmDialog" class="hidden">
-  <div class="dialog-box">
-    <h2>Сбросить прогресс?</h2>
-    <p>Все рекорды, кости, улучшения, скины, питомцы и уровни будут удалены!</p>
-    <div class="dialog-buttons">
-      <button class="btn secondary" data-action="reset-no">Нет</button>
-      <button class="btn danger" data-action="reset-yes">Да</button>
+<main id="app">
+  <canvas id="gameCanvas" aria-label="Игровой мир Dino Game"></canvas>
+  <section id="menu" class="screen">
+    <div class="logo-mark">D</div>
+    <p class="eyebrow">НОВАЯ ЭПОХА НАЧИНАЕТСЯ</p>
+    <h1>DINO <span>GAME</span></h1>
+    <p class="subtitle">Доисторический мир. Твоя эволюция.</p>
+    <div class="menu-card">
+      <div class="menu-feature"><b>01</b><span>Исследуй древние джунгли</span></div>
+      <div class="menu-feature"><b>02</b><span>Сражайся с хищниками</span></div>
+      <div class="menu-feature"><b>03</b><span>Развивай своего динозавра</span></div>
+    </div>
+    <button id="startBtn" class="primary-btn">НАЧАТЬ ИГРУ <span>→</span></button>
+    <button id="continueBtn" class="text-btn hidden">ПРОДОЛЖИТЬ РАЗВИТИЕ</button>
+    <button id="versionBtn" class="version">Версия <b>0.1.08</b> · История обновлений</button>
+  </section>
+  <header id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="health-track"><i id="healthFill"></i></div>
+      <div class="hud-meta"><b id="levelText">УРОВЕНЬ 1</b><span id="healthText">100 / 100</span></div>
+      <div class="xp-track"><i id="xpFill"></i></div>
+    </div>
+    <div class="hud-right"><span>ДРЕВНИЕ ДЖУНГЛИ</span><b id="killText">ПОБЕДЫ: 0</b></div>
+  </header>
+  <div id="worldHint" class="world-hint hidden">Исследуй территорию и побеждай хищников</div>
+  <button id="pauseBtn" class="pause-btn hidden" aria-label="Пауза">Ⅱ</button>
+  <div id="mobileControls" class="hidden">
+    <div id="joystick" class="joystick"><div id="stick" class="stick"></div></div>
+    <div class="action-stack">
+      <button id="specialBtn" class="action special"><strong>✦</strong><small>ИМПУЛЬС</small><i id="specialCooldown"></i></button>
+      <button id="dashBtn" class="action dash"><strong>➤</strong><small>РЫВОК</small></button>
     </div>
   </div>
-</div>
-
-<div id="achievementPopup" class="hidden">
-  <div class="ach-icon" id="achPopupIcon">🏅</div>
-  <div class="ach-text">
-    <div class="ach-title">ДОСТИЖЕНИЕ</div>
-    <div class="ach-name" id="achPopupName">Название</div>
+  <div id="pauseScreen" class="screen overlay hidden">
+    <div class="dialog"><p class="eyebrow">DINO GAME</p><h2>ПАУЗА</h2><p>Мир подождёт. Твоя эволюция продолжается.</p><button id="resumeBtn" class="primary-btn">ПРОДОЛЖИТЬ</button><button id="menuBtn" class="secondary-btn">В ГЛАВНОЕ МЕНЮ</button></div>
   </div>
-</div>
-
-<div id="levelUpPopup">
-  <div class="levelup-icon">⭐</div>
-  <div class="levelup-title">НОВЫЙ УРОВЕНЬ!</div>
-  <div class="levelup-name" id="levelUpName">Lv.2</div>
-  <div class="levelup-reward" id="levelUpReward">+20 🦴</div>
-</div>
-
-<div id="changelogDialog" style="display: none;">
-  <div class="changelog-box">
-    <h2>📋 Список обновлений</h2>
-    <div id="changelogContent"></div>
-    <button class="btn secondary" data-action="changelog-close" style="margin-top: 16px; width: 100%;">Закрыть</button>
+  <div id="levelScreen" class="screen overlay hidden">
+    <div class="dialog"><p class="eyebrow">ГЕНЕТИЧЕСКАЯ АДАПТАЦИЯ</p><h2>НОВЫЙ УРОВЕНЬ</h2><p>Выбери, какое свойство усилить</p><div id="upgradeChoices" class="upgrade-choices"></div></div>
   </div>
-</div>
-
-</div><!-- /portraitStage -->
-
-<script src="firebase-config.js?v=120"></script>
-<script src="config.js?v=120"></script>
-<script src="db.js?v=120"></script>
-<script src="audio.js?v=120"></script>
-<script src="storage.js?v=120"></script>
-<script src="physics.js?v=120"></script>
-<script src="sprites.js?v=120"></script>
-<script src="background.js?v=120"></script>
-<script src="weather.js?v=120"></script>
-<script src="ui.js?v=120"></script>
-<script src="input.js?v=120"></script>
-<script src="game.js?v=120"></script>
+  <div id="gameOverScreen" class="screen overlay hidden">
+    <div class="dialog"><p class="eyebrow">ЭКСПЕДИЦИЯ ЗАВЕРШЕНА</p><h2>ДИНОЗАВР ПОВЕРЖЕН</h2><p id="runSummary">Ты победил 0 хищников</p><button id="retryBtn" class="primary-btn">ЕЩЁ ОДНА ПОПЫТКА</button><button id="gameOverMenuBtn" class="secondary-btn">В МЕНЮ</button></div>
+  </div>
+  <div id="changelog" class="screen overlay hidden">
+    <div class="dialog changelog"><button id="closeChangelog" class="close-btn">×</button><p class="eyebrow">ИСТОРИЯ РАЗРАБОТКИ</p><h2>ОБНОВЛЕНИЯ</h2><div class="change-entry"><b>0.1.08 — Новая эпоха Dino Game</b><p>Начало перехода от раннера к пиксельной top-down Action RPG. Новое игровое ядро, свободное перемещение, хищники, автоматические атаки и эволюционные улучшения.</p></div><div class="change-entry"><b>0.1.07 — Улучшения интерфейса</b><p>Исправления мобильного HUD и полноэкранного режима прежней версии.</p></div><button id="closeChangelogBtn" class="secondary-btn">ЗАКРЫТЬ</button></div>
+  </div>
+  <div class="build-mark">DINO GAME <span>·</span> ACTION RPG</div>
+</main>
+<script src="game.js?v=121"></script>
 </body>
-  </html>
+</html>
