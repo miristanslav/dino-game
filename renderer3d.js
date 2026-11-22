@@ -89,7 +89,7 @@
       mesh(sphere,skin,leg,0,-.15,0,.19,.29,.17);
       const knee=new THREE.Group();knee.position.set(.015,-.29,0);leg.add(knee);
       mesh(sphere,skin,knee,.015,-.105,0,.115,.22,.12);
-      const foot=new THREE.Group();foot.position.set(.07,-.22,.025;knee.add(foot);
+      const foot=new THREE.Group();foot.position.set(.07,-.22,.025);knee.add(foot);
       mesh(box,skin,foot,.055,-.005,0,.31,.105,.22);
       for(let clawIndex=0;clawIndex<3;clawIndex++){
         const toe=mesh(cone,materials.claw,foot,.17,-.018,(clawIndex-1)*.065,.045,.12,.045);
