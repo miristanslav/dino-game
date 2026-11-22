@@ -8,7 +8,7 @@
       player.attackVisual=Math.max(0,player.attackVisual-dt);
       let target=null,nearest=150;
       for(const enemy of enemies){
-        if(enemy.dead) continue;
+        if(enemy.dead || !(enemy.hostile || enemy.alerted)) continue;
         const d=distance(player,enemy);
         if(d<nearest){nearest=d;target=enemy}
       }
