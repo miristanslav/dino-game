@@ -127,16 +127,39 @@
     const river=Math.abs(z-riverCenter(x));
     return broad+ridgeA*2.1+ridgeB*1.45-Math.max(0,1-river/10)*.34;
   }
+  function distanceToSegment(x,z,a,b){
+    const dx=b[0]-a[0],dz=b[1]-a[1],len=dx*dx+dz*dz;
+    const t=len?THREE.MathUtils.clamp(((x-a[0])*dx+(z-a[1])*dz)/len,0,1):0;
+    return Math.hypot(x-(a[0]+dx*t),z-(a[1]+dz*t));
+  }
+  const trailSegments=[
+    [[-210,125],[-125,70],[-30,-25]],
+    [[-30,-25],[48,-60],[128,-128]],
+    [[-30,-25],[95,35],[250,170]],
+    [[128,-128],[190,-190],[235,-255]]
+  ];
   function makeTerrain(){
     const segments=168,size=MAP_HALF*2,positions=[],colors=[],indices=[];
-    const low=new THREE.Color('#304d32'),mid=new THREE.Color('#456b3d'),high=new THREE.Color('#68734a'),bank=new THREE.Color('#786d4b');
+    const low=new THREE.Color('#304d32'),mid=new THREE.Color('#456b3d'),high=new THREE.Color('#68734a'),bank=new THREE.Color('#786d4b'),meadow=new THREE.Color('#587747'),trail=new THREE.Color('#806d4b'),wet=new THREE.Color('#456b50');
     for(let iz=0;iz<=segments;iz++)for(let ix=0;ix<=segments;ix++){
       const x=-MAP_HALF+size*ix/segments,z=-MAP_HALF+size*iz/segments,h=terrainHeight(x,z);
       positions.push(x,h,z);
       const riverDist=Math.abs(z-riverCenter(x));
       const t=THREE.MathUtils.clamp((h+1.8)/5,0,1);
       const c=low.clone().lerp(mid,t*.72).lerp(high,Math.max(0,t-.55)*.65);
-      if(riverDist<15)c.lerp(bank,Math.max(0,1-riverDist/15)*.55);
+      if(riverDist<19)c.lerp(bank,Math.max(0,1-riverDist/19)*.62);
+      const clearings=[[-30,-25,54],[130,-125,40],[-210,125,39],[250,170,37]];
+      for(const patch of clearings){
+        const d=Math.hypot(x-patch[0],z-patch[1]);
+        if(d<patch[2])c.lerp(meadow,(1-d/patch[2])*.34);
+      }
+      const wetDist=Math.hypot(x-112,z-(-92));
+      if(wetDist<58)c.lerp(wet,(1-wetDist/58)*.2);
+      let pathDist=Infinity;
+      for(const segment of trailSegments){
+        for(let k=0;k<segment.length-1;k++)pathDist=Math.min(pathDist,distanceToSegment(x,z,segment[k],segment[k+1]));
+      }
+      if(pathDist<11)c.lerp(trail,(1-pathDist/11)*.62);
       const variation=(hash2(ix,iz)%100)/1000;c.offsetHSL(0,0,variation-.045);
       colors.push(c.r,c.g,c.b);
       if(ix<segments&&iz<segments){const a=iz*(segments+1)+ix,b=a+1,c0=a+segments+1,d=c0+1;indices.push(a,c0,b,b,c0,d);}
