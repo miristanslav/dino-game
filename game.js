@@ -50,7 +50,7 @@ e.x+=e.vx*dt;e.y+=e.vy*dt;
 }
 }e.attack-=dt;if((e.hostile||e.alerted)&&d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
 enemies=enemies.filter(e=>!e.dead);
-for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
+for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72&&d>.001){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
 for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;p.vx*=.94;p.vy*=.94}particles=particles.filter(p=>p.t>0);decor.forEach(d=>{if(d.x-player.x>620)d.x-=1240;if(d.x-player.x< -620)d.x+=1240;if(d.y-player.y>780)d.y-=1560;if(d.y-player.y< -780)d.y+=1560})}
 function tileHash(x,y){let n=(Math.floor(x/40)*374761393+Math.floor(y/40)*668265263)|0;n=(n^(n>>>13))*1274126177;return(n^(n>>>16))>>>0}
 function drawWorld(){const cx=player?player.x:0,cy=player?player.y:0;ctx.fillStyle='#314c32';ctx.fillRect(0,0,W,H);const tile=40,startX=Math.floor((cx-W/2)/tile)-1,endX=Math.ceil((cx+W/2)/tile)+1,startY=Math.floor((cy-H/2)/tile)-1,endY=Math.ceil((cy+H/2)/tile)+1;
