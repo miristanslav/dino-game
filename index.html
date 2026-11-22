@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#17251b">
 <title>DINO GAME — Эволюция начинается</title>
-<link rel="stylesheet" href="style.css?v=121">
+<link rel="stylesheet" href="style.css?v=122">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <main id="app">
   <canvas id="gameCanvas" aria-label="Игровой мир Dino Game"></canvas>
+  <button id="fullscreenBtn" class="fullscreen-btn" type="button" aria-label="Полноэкранный режим" title="Полноэкранный режим">⛶</button>
   <section id="menu" class="screen">
     <div class="logo-mark">D</div>
     <p class="eyebrow">НОВАЯ ЭПОХА НАЧИНАЕТСЯ</p>
@@ -22,7 +24,7 @@
     </div>
     <button id="startBtn" class="primary-btn">НАЧАТЬ ИГРУ <span>→</span></button>
     <button id="continueBtn" class="text-btn hidden">ПРОДОЛЖИТЬ РАЗВИТИЕ</button>
-    <button id="versionBtn" class="version">Версия <b>0.1.08</b> · История обновлений</button>
+    <button id="versionBtn" class="version">Версия <b>0.1.09</b> · История обновлений</button>
   </section>
   <header id="hud" class="hidden">
     <div class="hud-left">
@@ -51,10 +53,12 @@
     <div class="dialog"><p class="eyebrow">ЭКСПЕДИЦИЯ ЗАВЕРШЕНА</p><h2>ДИНОЗАВР ПОВЕРЖЕН</h2><p id="runSummary">Ты победил 0 хищников</p><button id="retryBtn" class="primary-btn">ЕЩЁ ОДНА ПОПЫТКА</button><button id="gameOverMenuBtn" class="secondary-btn">В МЕНЮ</button></div>
   </div>
   <div id="changelog" class="screen overlay hidden">
-    <div class="dialog changelog"><button id="closeChangelog" class="close-btn">×</button><p class="eyebrow">ИСТОРИЯ РАЗРАБОТКИ</p><h2>ОБНОВЛЕНИЯ</h2><div class="change-entry"><b>0.1.08 — Новая эпоха Dino Game</b><p>Начало перехода от раннера к пиксельной top-down Action RPG. Новое игровое ядро, свободное перемещение, хищники, автоматические атаки и эволюционные улучшения.</p></div><div class="change-entry"><b>0.1.07 — Улучшения интерфейса</b><p>Исправления мобильного HUD и полноэкранного режима прежней версии.</p></div><button id="closeChangelogBtn" class="secondary-btn">ЗАКРЫТЬ</button></div>
+    <div class="dialog changelog"><button id="closeChangelog" class="close-btn">×</button><p class="eyebrow">ИСТОРИЯ РАЗРАБОТКИ</p><h2>ОБНОВЛЕНИЯ</h2><div class="change-entry"><b>0.1.09 — Естественный бой и полноэкранный режим</b><p>Убраны обычные выстрелы. Динозавр атакует укусами и ударами когтей вблизи, самостоятельно выбирает ближайшую цель и мягко сближается, не отбирая управление у игрока. Возвращена кнопка полноэкранного режима для браузера и Telegram Mini Apps.</p></div><div class="change-entry"><b>0.1.08 — Новая эпоха Dino Game</b><p>Начало перехода от раннера к пиксельной top-down Action RPG. Новое игровое ядро, свободное перемещение, хищники, автоматические атаки и эволюционные улучшения.</p></div><div class="change-entry"><b>0.1.07 — Улучшения интерфейса</b><p>Исправления мобильного HUD и полноэкранного режима прежней версии.</p></div><button id="closeChangelogBtn" class="secondary-btn">ЗАКРЫТЬ</button></div>
   </div>
   <div class="build-mark">DINO GAME <span>·</span> ACTION RPG</div>
 </main>
-<script src="game.js?v=121"></script>
+<script src="combat.js?v=122"></script>
+<script src="game.js?v=122"></script>
+<script src="fullscreen.js?v=122"></script>
 </body>
 </html>
