@@ -30,15 +30,52 @@
     const root=new THREE.Group(), body=new THREE.Group();root.add(body);
     const skin=isPlayer?materials.player:(kind==='grazer'?materials.grazer:kind==='territorial'?materials.territorial:kind==='brute'?materials.brute:materials.hunter);
     mesh(sphere,skin,body,0,.64,0,.72,.48,.42);
-    mesh(sphere,isPlayer?materials.playerLight:skin,body,.42,.98,0,.27,.48,.25);
-    mesh(sphere,skin,body,.76,1.3,0,.43,.3,.29);
-    mesh(sphere,isPlayer?materials.playerLight:skin,body,1.02,1.18,0,.28,.17,.23);
+    const neck=mesh(sphere,isPlayer?materials.playerLight:skin,body,.42,.98,0,.27,.48,.25);
+    const head=mesh(sphere,skin,body,.76,1.3,0,.43,.3,.29);
+    const snout=mesh(sphere,isPlayer?materials.playerLight:skin,body,1.02,1.18,0,.28,.17,.23);
     const tailPivot=new THREE.Group();tailPivot.position.set(-.48,.66,0);body.add(tailPivot);
     mesh(cone,skin,tailPivot,-.43,0,0,.2,.95,.2).rotation.z=-Math.PI/2;
     mesh(sphere,materials.belly,body,.05,.39,0,.48,.15,.34);
     for(let i=0;i<5;i++){
       const spike=mesh(cone,isPlayer?materials.playerLight:materials.claw,body,-.35+i*.19,1.08-Math.abs(i-2)*.035,0,.12,.28,.12);
       spike.rotation.z=Math.PI;
+    }
+    // Give each species a readable silhouette instead of relying on color alone.
+    if(!isPlayer){
+      if(kind==='grazer'){
+        body.scale.set(1.12,1.02,1.05);
+        neck.scale.set(.24,.55,.24);
+        head.scale.set(.34,.25,.25);
+        snout.scale.set(.25,.14,.19);
+        for(const side of [-1,1]){
+          const horn=mesh(cone,materials.claw,body,.83,1.48,side*.17,.075,.2,.075);
+          horn.rotation.z=-.32;
+        }
+      }else if(kind==='territorial'){
+        body.scale.set(1.04,1.04,1.06);
+        head.scale.set(.46,.32,.34);
+        for(const side of [-1,1]){
+          const horn=mesh(cone,materials.claw,body,.98,1.48,side*.22,.095,.27,.09);
+          horn.rotation.z=-Math.PI/2.8;
+        }
+      }else if(kind==='hunter'){
+        body.scale.set(1.12,.9,.92);
+        neck.scale.set(.24,.42,.22);
+        head.scale.set(.48,.25,.24);
+        snout.scale.set(.34,.12,.17);
+        const jaw=mesh(sphere,materials.belly,body,1.04,1.08,0,.27,.055,.17);
+        jaw.rotation.z=-.08;
+      }else if(kind==='brute'){
+        body.scale.set(1.24,1.12,1.15);
+        head.scale.set(.49,.36,.37);
+        snout.scale.set(.32,.2,.27);
+        for(const side of [-1,1]){
+          const brow=mesh(sphere,skin,body,.83,1.52,side*.2,.24,.12,.16);
+          brow.rotation.z=-.12;
+          const tusk=mesh(cone,materials.claw,body,1.08,1.12,side*.2,.085,.22,.08);
+          tusk.rotation.z=-Math.PI/2;
+        }
+      }
     }
     const eyeL=mesh(sphere,materials.eye,body,.93,1.39,-.205,.095,.105,.055);
     mesh(sphere,materials.pupil,body,.965,1.39,-.25,.043,.055,.028);
