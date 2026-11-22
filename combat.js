@@ -38,9 +38,8 @@
           }
         }
       }
-      // A subtle combat approach only assists when a target is nearby;
-      // the player's joystick/keyboard direction always remains dominant.
-      if(d>player.r+target.r+22&&d<150) return {x:dx/d,y:dy/d,strength:target.behavior==='territorial'?.68:.5};
+      // Combat targeting and automatic attacks never steer the player.
+      // Movement is controlled exclusively by the joystick or keyboard.
       return null;
     }
   };
