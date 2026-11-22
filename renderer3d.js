@@ -120,7 +120,7 @@
     if(!ready)return;
     const p=data.player||{x:0,y:0,dx:1,dy:0};
     const px=p.x||0,pz=p.y||0,unit=.035;
-    const aspect=width/Math.max(1,height),portraitZoom=aspect<1.15?Math.min(1.42,1+(1.15-aspect)*.48):1;
+    const aspect=width/Math.max(1,height),portraitZoom=aspect<1.15?Math.min(1.78,1+(1.15-aspect)*1.05):1;
     camera.position.set(0,18.5*portraitZoom,16.5*portraitZoom);camera.lookAt(0,0,0);
     const worldX=px*unit,worldZ=pz*unit,baseTileX=Math.floor(worldX/8),baseTileZ=Math.floor(worldZ/8);
     for(const tile of groundTiles){const tx=baseTileX+tile.userData.ox,tz=baseTileZ+tile.userData.oz;let hash=(tx*374761393+tz*668265263)|0;hash=(hash^(hash>>>13))*1274126177;hash=(hash^(hash>>>16))>>>0;tile.material=materials.ground[hash%materials.ground.length];tile.position.set(tx*8-worldX,-.035,tz*8-worldZ);}
