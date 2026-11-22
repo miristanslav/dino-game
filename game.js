@@ -5,19 +5,73 @@ const $=id=>document.getElementById(id);
 const ui={menu:$('menu'),hud:$('hud'),controls:$('mobileControls'),pause:$('pauseScreen'),level:$('levelScreen'),over:$('gameOverScreen'),changelog:$('changelog'),hint:$('worldHint')};
 const SAVE_KEY='dino_game_rpg_save_v1';
 const saved=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch{return {}}})();
+const defaultProfile={dna:0,runs:0,totalKills:0,stats:{vitality:0,power:0,agility:0,armor:0,haste:0,instinct:0}};
+saved.profile={...defaultProfile,...(saved.profile||{}),stats:{...defaultProfile.stats,...(saved.profile?.stats||{})}};
 let W=480,H=800,scale=1,last=0,raf=0,state='menu',worldTime=0,shake=0;
 let player,enemies=[],orbs=[],particles=[],decor=[],kills=0,spawnClock=0,elapsed=0,levelChoices=[],keys={},joy={x:0,y:0,active:false},pointerId=null,nextEnemyId=1;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function resize(){const tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null,vv=window.visualViewport;W=Math.round((tg&&tg.viewportWidth)||(vv&&vv.width)||window.innerWidth);H=Math.round((tg&&tg.viewportHeight)||(vv&&vv.height)||window.innerHeight);if(window.Dino3D&&window.Dino3D.resize)window.Dino3D.resize()}
 window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);resize();
-function freshPlayer(){return{x:0,y:0,r:13,hp:100,maxHp:100,speed:145,damage:14,attackRate:.72,attackCooldown:0,attackWindup:0,attackVisual:0,attackAngle:0,level:1,xp:0,nextXp:35,range:190,specialCd:0,dashCd:0,dashTime:0,dx:0,dy:0,invuln:0,armor:0}}
-function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({bestKills:Math.max(saved.bestKills||0,kills),lastLevel:player?.level||1}))}catch{}}
+function freshPlayer(){
+const st=saved.profile.stats;
+const maxHp=100+st.vitality*10;
+return{x:0,y:0,r:13,hp:maxHp,maxHp,speed:145*(1+st.agility*.03),damage:14+st.power*1.5,attackRate:.72*Math.pow(.975,st.haste),attackCooldown:0,attackWindup:0,attackVisual:0,attackAngle:0,level:1,xp:0,nextXp:35,range:190+st.instinct*8,specialCd:0,dashCd:0,dashTime:0,dx:0,dy:0,invuln:0,armor:st.armor}}
+let runReward=0,runSaved=false;
+function saveProgress(){
+try{
+saved.bestKills=Math.max(saved.bestKills||0,kills);
+saved.lastLevel=player?.level||1;
+localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
+}catch{}
+}
+function awardRunProgress(){
+if(runSaved)return;
+runSaved=true;
+const earned=Math.max(0,Math.floor(kills/5)+Math.floor(Math.max(0,(player?.level||1)-1)/3));
+runReward=earned;
+saved.profile.dna+=earned;
+saved.profile.runs++;
+saved.profile.totalKills+=kills;
+saveProgress();
+renderProfile();
+}
 function show(name){Object.values(ui).forEach(x=>x.classList.add('hidden'));if(name&&ui[name])ui[name].classList.remove('hidden');ui.controls.classList.toggle('hidden',name!=='hud');$('pauseBtn').classList.toggle('hidden',name!=='hud')}
-function start(){if(!window.Dino3D||!window.Dino3D.ready){const reason=window.Dino3D?.error?.message||'3D-рендерер ещё не готов';alert('Не удалось запустить 3D-мир Dino Game. '+reason+' Обнови страницу и попробуй снова.');return}player=freshPlayer();enemies=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function start(){if(!window.Dino3D||!window.Dino3D.ready){const reason=window.Dino3D?.error?.message||'3D-рендерер ещё не готов';alert('Не удалось запустить 3D-мир Dino Game. '+reason+' Обнови страницу и попробуй снова.');return}player=freshPlayer();runReward=0;runSaved=false;enemies=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function pause(){if(state!=='playing')return;state='paused';show('pause');$('pauseBtn').classList.add('hidden')}
 function resume(){if(state!=='paused')return;state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
-function endRun(){state='over';saveProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Достигнут уровень: '+player.level;show('over')}
+function endRun(){state='over';awardRunProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Уровень: '+player.level+' · ДНК получено: '+runReward;show('over')}
 function updateHud(){$('healthFill').style.width=(player.hp/player.maxHp*100)+'%';$('healthText').textContent=Math.ceil(player.hp)+' / '+player.maxHp;$('xpFill').style.width=(player.xp/player.nextXp*100)+'%';$('levelText').textContent='УРОВЕНЬ '+player.level;$('killText').textContent='ПОБЕДЫ: '+kills}
+const permanentStats=[
+{id:'vitality',name:'Живучесть',desc:'+10 к максимальному здоровью за уровень',base:100,step:10},
+{id:'power',name:'Сила',desc:'+1,5 к урону основной атаки за уровень',base:14,step:1.5},
+{id:'agility',name:'Ловкость',desc:'+3% к скорости передвижения за уровень',base:145,step:3},
+{id:'armor',name:'Природная броня',desc:'−1 к получаемому урону за уровень',base:0,step:1},
+{id:'haste',name:'Скорость атаки',desc:'+2,5% к частоте атак за уровень',base:0,step:2.5},
+{id:'instinct',name:'Инстинкт',desc:'+8 к радиусу подбора опыта за уровень',base:190,step:8}
+];
+function renderProfile(){
+const p=saved.profile;
+$('dnaCount').textContent=p.dna;
+$('profileMeta').textContent='Забегов: '+p.runs+' · Побед: '+p.totalKills;
+const box=$('permanentStats');box.innerHTML='';
+permanentStats.forEach(st=>{
+const level=p.stats[st.id]||0;
+const row=document.createElement('div');row.className='stat-row';
+const info=document.createElement('div');info.className='stat-info';
+const name=document.createElement('b');name.textContent=st.name+' · '+level;
+const desc=document.createElement('small');desc.textContent=st.desc;
+info.append(name,desc);
+const buy=document.createElement('button');buy.className='stat-buy';buy.textContent='+';buy.disabled=p.dna<1;buy.setAttribute('aria-label','Улучшить: '+st.name);
+buy.addEventListener('click',()=>buyPermanentStat(st.id));
+row.append(info,buy);box.appendChild(row);
+});
+}
+function buyPermanentStat(id){
+const st=permanentStats.find(x=>x.id===id);
+if(!st||saved.profile.dna<1)return;
+saved.profile.dna--;saved.profile.stats[id]=(saved.profile.stats[id]||0)+1;
+saveProgress();renderProfile();
+}
 const upgrades=[{name:'Усиленные когти',desc:'Урон основной атаки +25%',apply:p=>p.damage=Math.round(p.damage*1.25)},{name:'Быстрая реакция',desc:'Скорость атаки +20%',apply:p=>p.attackRate*=.8},{name:'Крепкая чешуя',desc:'Максимальное здоровье +25 и лечение',apply:p=>{p.maxHp+=25;p.hp=Math.min(p.maxHp,p.hp+35)}},{name:'Охотничий инстинкт',desc:'Дальность автоматической атаки +20%',apply:p=>p.range*=1.2},{name:'Мускулистые лапы',desc:'Скорость передвижения +12%',apply:p=>p.speed*=1.12},{name:'Природная броня',desc:'Получаемый урон снижается на 2',apply:p=>p.armor+=2}];
 function levelUp(){state='level';const picks=[...upgrades].sort(()=>Math.random()-.5).slice(0,3);const box=$('upgradeChoices');box.innerHTML='';picks.forEach(u=>{const b=document.createElement('button');b.className='upgrade-choice';b.innerHTML=u.name+'<small>'+u.desc+'</small>';b.addEventListener('click',()=>{u.apply(player);state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');updateHud();last=performance.now();raf=requestAnimationFrame(loop)},{once:true});box.appendChild(b)});show('level')}
 function gainXp(n){player.xp+=n;if(player.xp>=player.nextXp){player.xp-=player.nextXp;player.level++;player.nextXp=Math.round(player.nextXp*1.32+12);updateHud();levelUp()}else updateHud()}
@@ -58,8 +112,9 @@ function loop(now){if(state!=='playing')return;const dt=Math.min(.033,(now-last)
 function bindHold(id,fn){const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();fn();el.setPointerCapture?.(e.pointerId)})}
 const joyEl=$('joystick'),stick=$('stick');function joyMove(e){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,l=Math.hypot(dx,dy),k=l>max?max/l:1;joy.x=dx*k/max;joy.y=dy*k/max;stick.style.transform='translate('+dx*k+'px,'+dy*k+'px)'}
 joyEl.addEventListener('pointerdown',e=>{e.preventDefault();pointerId=e.pointerId;joy.active=true;joyEl.setPointerCapture(e.pointerId);joyMove(e)});joyEl.addEventListener('pointermove',e=>{if(joy.active&&e.pointerId===pointerId)joyMove(e)});function joyEnd(e){if(e.pointerId!==pointerId)return;joy.active=false;pointerId=null;joy.x=joy.y=0;stick.style.transform='translate(0,0)'}joyEl.addEventListener('pointerup',joyEnd);joyEl.addEventListener('pointercancel',joyEnd);
-bindHold('specialBtn',special);bindHold('dashBtn',dash);$('pauseBtn').addEventListener('click',pause);$('resumeBtn').addEventListener('click',resume);$('menuBtn').addEventListener('click',()=>{state='menu';show('menu');$('pauseBtn').classList.add('hidden');saveProgress()});$('retryBtn').addEventListener('click',start);$('gameOverMenuBtn').addEventListener('click',()=>{state='menu';show('menu')});$('startBtn').addEventListener('click',start);$('continueBtn').addEventListener('click',start);$('versionBtn').addEventListener('click',()=>show('changelog'));$('closeChangelog').addEventListener('click',()=>show('menu'));$('closeChangelogBtn').addEventListener('click',()=>show('menu'));
+bindHold('specialBtn',special);bindHold('dashBtn',dash);$('pauseBtn').addEventListener('click',pause);$('resumeBtn').addEventListener('click',resume);$('menuBtn').addEventListener('click',()=>{state='menu';show('menu');$('pauseBtn').classList.add('hidden');saveProgress()});$('retryBtn').addEventListener('click',start);$('gameOverMenuBtn').addEventListener('click',()=>{state='menu';show('menu')});$('startBtn').addEventListener('click',start);$('continueBtn').addEventListener('click',()=>{renderProfile();show('profile')});$('closeProfile').addEventListener('click',()=>show('menu'));$('versionBtn').addEventListener('click',()=>show('changelog'));$('closeChangelog').addEventListener('click',()=>show('menu'));$('closeChangelogBtn').addEventListener('click',()=>show('menu'));
 window.addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key==='Escape'||e.key==='p')pause();if(e.key===' '||e.key==='Shift')dash();if(e.key==='e'||e.key==='E')special()});window.addEventListener('keyup',e=>keys[e.key]=false);
-if(saved.bestKills>0)$('continueBtn').classList.remove('hidden');
+$('continueBtn').classList.remove('hidden');
+renderProfile();
 show('menu');render();
 })();
