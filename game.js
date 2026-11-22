@@ -30,7 +30,26 @@ function update(dt){elapsed+=dt;worldTime+=dt;player.specialCd=Math.max(0,player
 let mx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),my=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}DinoCombat.update(player,enemies,dt,burst,killEnemy);if(Math.hypot(mx,my)>.1){player.dx=mx;player.dy=my}
 const boost=player.dashTime>0?3.5:1;player.x+=mx*player.speed*boost*dt;player.y+=my*player.speed*boost*dt;
 spawnClock-=dt;if(spawnClock<=0&&enemies.length<Math.min(22,5+Math.floor(elapsed/18))){spawnEnemy();spawnClock=Math.max(.55,1.8-elapsed*.006)}
-for(const e of enemies){e.hit=Math.max(0,(e.hit||0)-dt);e.alertCooldown=Math.max(0,(e.alertCooldown||0)-dt);const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1,homeDistance=Math.hypot(e.x-(e.homeX??e.x),e.y-(e.homeY??e.y));e.wanderTimer-=dt;if(e.behavior==='hunter'){if(!e.alerted&&e.alertCooldown<=0&&d<185){e.alerted=true;e.alertTime=0}if(e.alerted){e.alertTime=(e.alertTime||0)+dt;if(d>300||homeDistance>230||e.alertTime>7){e.alerted=false;e.alertCooldown=6}else{e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt}}else{if(e.wanderTimer<=0){e.wanderAngle=rand(0,Math.PI*2);e.wanderTimer=rand(1.5,3.8)}e.x+=Math.cos(e.wanderAngle)*e.speed*.34*dt;e.y+=Math.sin(e.wanderAngle)*e.speed*.34*dt}}else if(e.behavior==='territorial'){if(!e.alerted&&e.alertCooldown<=0&&d<115){e.alerted=true;e.alertTime=0}if(e.alerted){e.alertTime=(e.alertTime||0)+dt;if(d>180||homeDistance>125||e.alertTime>4.5){e.alerted=false;e.alertCooldown=4}else{e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt}}else{if(e.wanderTimer<=0){e.wanderAngle+=rand(-1.7,1.7);e.wanderTimer=rand(1.2,3.2)}e.x+=Math.cos(e.wanderAngle)*e.speed*.38*dt;e.y+=Math.sin(e.wanderAngle)*e.speed*.38*dt}}else{if(d<155){e.wanderAngle=Math.atan2(-dy,-dx);e.x+=dx/d*-e.speed*1.25*dt;e.y+=dy/d*-e.speed*1.25*dt}else{if(e.wanderTimer<=0){e.wanderAngle=rand(0,Math.PI*2);e.wanderTimer=rand(1.5,3.8)}e.x+=Math.cos(e.wanderAngle)*e.speed*.42*dt;e.y+=Math.sin(e.wanderAngle)*e.speed*.42*dt}}e.attack-=dt;if((e.hostile||e.alerted)&&d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
+for(const e of enemies){e.hit=Math.max(0,(e.hit||0)-dt);e.alertCooldown=Math.max(0,(e.alertCooldown||0)-dt);const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1,homeDistance=Math.hypot(e.x-(e.homeX??e.x),e.y-(e.homeY??e.y));e.wanderTimer-=dt;if(e.behavior==='hunter'){if(!e.alerted&&e.alertCooldown<=0&&d<185){e.alerted=true;e.alertTime=0}if(e.alerted){e.alertTime=(e.alertTime||0)+dt;if(d>300||homeDistance>230||e.alertTime>7){e.alerted=false;e.alertCooldown=6}else{e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt}}else{if(e.wanderTimer<=0){e.wanderAngle=rand(0,Math.PI*2);e.wanderTimer=rand(1.5,3.8)}e.x+=Math.cos(e.wanderAngle)*e.speed*.34*dt;e.y+=Math.sin(e.wanderAngle)*e.speed*.34*dt}}else if(e.behavior==='territorial'){if(!e.alerted&&e.alertCooldown<=0&&d<115){e.alerted=true;e.alertTime=0}if(e.alerted){e.alertTime=(e.alertTime||0)+dt;if(d>180||homeDistance>125||e.alertTime>4.5){e.alerted=false;e.alertCooldown=4}else{e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt}}else{if(e.wanderTimer<=0){e.wanderAngle+=rand(-1.7,1.7);e.wanderTimer=rand(1.2,3.2)}e.x+=Math.cos(e.wanderAngle)*e.speed*.38*dt;e.y+=Math.sin(e.wanderAngle)*e.speed*.38*dt}}else{
+if(!e.fleeing&&e.fleeCooldown<=0&&d<175){e.fleeing=true;e.fleeAngle=Math.atan2(e.y-player.y,e.x-player.x)+rand(-.28,.28)}
+if(e.fleeing){
+if(d>245){e.fleeing=false;e.fleeCooldown=3.2;e.wanderTimer=rand(.8,1.8)}
+else{
+const away=Math.atan2(e.y-player.y,e.x-player.x);
+let delta=Math.atan2(Math.sin(away-e.fleeAngle),Math.cos(away-e.fleeAngle));
+e.fleeAngle+=clamp(delta,-2.2*dt,2.2*dt);
+const side=Math.sin(e.fleeAngle-away);
+e.x+=(Math.cos(e.fleeAngle)*e.speed*1.35-side* Math.sin(e.fleeAngle)*e.speed*.18)*dt;
+e.y+=(Math.sin(e.fleeAngle)*e.speed*1.35+side* Math.cos(e.fleeAngle)*e.speed*.18)*dt;
+}
+}else{
+e.fleeCooldown=Math.max(0,e.fleeCooldown-dt);
+if(e.wanderTimer<=0){e.wanderAngle+=rand(-1.15,1.15);e.wanderTimer=rand(1.8,4.2)}
+const turn=Math.atan2(Math.sin(e.wanderAngle-Math.atan2(e.vy||0,e.vx||0)),Math.cos(e.wanderAngle-Math.atan2(e.vy||0,e.vx||0)));
+e.vx=Math.cos(e.wanderAngle)*e.speed*.42;e.vy=Math.sin(e.wanderAngle)*e.speed*.42;
+e.x+=e.vx*dt;e.y+=e.vy*dt;
+}
+}}e.attack-=dt;if((e.hostile||e.alerted)&&d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
 enemies=enemies.filter(e=>!e.dead);
 for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
 for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;p.vx*=.94;p.vy*=.94}particles=particles.filter(p=>p.t>0);decor.forEach(d=>{if(d.x-player.x>620)d.x-=1240;if(d.x-player.x< -620)d.x+=1240;if(d.y-player.y>780)d.y-=1560;if(d.y-player.y< -780)d.y+=1560})}
