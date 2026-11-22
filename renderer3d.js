@@ -104,9 +104,11 @@
     const healthGroup=new THREE.Group();root.add(healthGroup);
     const healthBack=mesh(new THREE.BoxGeometry(.8,.075,.04),materials.playerDark,healthGroup,0,1.95,0);
     const healthFill=mesh(new THREE.BoxGeometry(1,.055,.05),materials.health,healthGroup,0,1.96,.03);
+    const attackWarning=mesh(new THREE.RingGeometry(.19,.28,12),materials.health,root,0,.035,0);
+    attackWarning.rotation.x=-Math.PI/2;attackWarning.visible=false;
     healthGroup.visible=false;
     body.traverse(node=>{if(node.isMesh)node.castShadow=true;});
-    return {root,body,legs,arms,tailPivot,healthGroup,healthFill,kind,isPlayer};
+    return {root,body,legs,arms,tailPivot,healthGroup,healthFill,attackWarning,kind,isPlayer};
   }
   function addFern(x,z,s=1){
     const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);g.scale.setScalar(s);
@@ -291,10 +293,17 @@
       const a=actor(id,e.brute?'brute':e.behavior,false);
       a.root.visible=true;a.root.position.set((e.x-px)*unit,terrainHeight(e.x*unit,e.y*unit),(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
-      const enemyMoving=!!(e.alerted||e.hostile||e.fleeing);
+      const winding=(e.attackWindup||0)>0;
+      const enemyMoving=!!(e.alerted||e.hostile||e.fleeing||winding);
       const gait=data.time*(enemyMoving?8.5:2.2)+i*.7;
+      a.attackWarning.visible=winding;
+      if(winding){
+        const pulse=1+Math.sin(data.time*24)*.12;
+        a.attackWarning.scale.setScalar(pulse);
+        a.attackWarning.material=materials.health;
+      }
       a.body.position.y=e.hit>0?.065:enemyMoving?Math.max(0,Math.sin(gait*2))*.035:Math.sin(gait)*.008;
-      a.body.rotation.z=e.hit>0?-.075:Math.sin(gait*.5)*.012;
+      a.body.rotation.z=e.hit>0?-.075:winding?-.12+Math.sin(data.time*24)*.025:Math.sin(gait*.5)*.012;
       a.legs.forEach((leg,j)=>{
         const phase=gait+(j===0?0:Math.PI),swing=enemyMoving?Math.sin(phase):0;
         leg.rotation.z=swing*.4;
@@ -302,7 +311,7 @@
         leg.userData.foot.rotation.z=enemyMoving?-swing*.18:0;
         leg.position.y=.48+(enemyMoving?Math.max(0,Math.cos(phase))*.035:0);
       });
-      a.arms.forEach((arm,j)=>{arm.rotation.z=enemyMoving?Math.sin(gait+(j===0?0:Math.PI))*.15:0;});
+      a.arms.forEach((arm,j)=>{arm.rotation.z=winding?(j===0?-.82:.32)+Math.sin(data.time*24)*.08:(enemyMoving?Math.sin(gait+(j===0?0:Math.PI))*.15:0);});
       a.tailPivot.rotation.y=Math.sin(gait*.55)*.14;
       a.tailPivot.rotation.z=enemyMoving?Math.sin(gait)*.035:0;
       if(e.hostile||e.alerted||e.hit>0){
