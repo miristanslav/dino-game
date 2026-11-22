@@ -227,7 +227,7 @@
     camera.position.set(0,18.5*portraitZoom,16.5*portraitZoom);camera.lookAt(0,0,0);
     // Re-center a persistent jungle set around the moving player; avoid creating objects per frame.
     const playerActor=actor('player','player',true);
-    playerActor.root.position.set(0,terrainHeight(px*unit,pz*unit)-terrainHeight(px*unit,pz*unit),0);
+    playerActor.root.position.set(0,terrainHeight(px*unit,pz*unit),0);
     playerActor.root.rotation.y=-Math.atan2(p.dy||0,p.dx||1);
     const moving=Math.hypot(data.moveX||0,data.moveY||0)>.08;
     const playerPhase=data.time*10.5;
@@ -241,7 +241,7 @@
     for(let i=0;i<(data.enemies||[]).length;i++){
       const e=data.enemies[i],id='enemy'+(e.id??i);active.add(id);
       const a=actor(id,e.brute?'brute':e.behavior,false);
-      a.root.visible=true;a.root.position.set((e.x-px)*unit,terrainHeight(e.x*unit,e.y*unit)-terrainHeight(px*unit,pz*unit),(e.y-pz)*unit);
+      a.root.visible=true;a.root.position.set((e.x-px)*unit,terrainHeight(e.x*unit,e.y*unit),(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
       const enemyMoving=!!(e.alerted||e.hostile||e.fleeing);
       const gait=data.time*(enemyMoving?8.5:2.2)+i*.7;
