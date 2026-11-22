@@ -62,6 +62,9 @@ for(const o of orbs){ctx.fillStyle='#f1d47c';ctx.fillRect(sx(o.x)-4,sy(o.y)-4,8,
 for(const e of enemies){const x=sx(e.x),y=sy(e.y);drawDino(x,y,e.r,e.hit>0?'#e7c77e':(e.behavior==='grazer'?'#91ad69':e.behavior==='territorial'?'#b49a61':(e.brute?'#a85e49':'#c27a54')),player.x-e.x,player.y-e.y);if(e.hostile||e.alerted||e.hit>0){ctx.fillStyle='#1b251c';ctx.fillRect(x-e.r,y-e.r-9,e.r*2,3);ctx.fillStyle='#e56c57';ctx.fillRect(x-e.r,y-e.r-9,e.r*2*(e.hp/e.maxHp),3)}}
 if(player){if(player.invuln>0&&Math.floor(worldTime*18)%2===0){}else drawDino(W/2,H/2,player.r,'#82b85b',player.dx,player.dy,true);if(player.attackVisual>0){ctx.save();ctx.translate(W/2,H/2);ctx.rotate(player.attackAngle);ctx.strokeStyle='#dff7a8';ctx.lineWidth=4;ctx.globalAlpha=Math.min(1,player.attackVisual/.12);ctx.beginPath();ctx.arc(0,0,player.r+17,-.82,.82);ctx.stroke();ctx.restore();ctx.globalAlpha=1}if(player.specialCd>0){ctx.strokeStyle='#9bd9d766';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,H/2,player.r+5,0,Math.PI*2);ctx.stroke()}}
 for(const p of particles){ctx.globalAlpha=clamp(p.t/.55,0,1);ctx.fillStyle=p.color;ctx.fillRect(sx(p.x),sy(p.y),3,3)}ctx.globalAlpha=1;
+if(window.Dino3D&&window.Dino3D.ready){
+  window.Dino3D.render({player,enemies,orbs,time:worldTime,moveX:joy.x,moveY:joy.y});
+}
 if(shake>0){shake=Math.max(0,shake-1)}}
 function loop(now){if(state!=='playing')return;const dt=Math.min(.033,(now-last)/1000||0);last=now;update(dt);if(state==='playing'){render();raf=requestAnimationFrame(loop)}}
 function bindHold(id,fn){const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();fn();el.setPointerCapture?.(e.pointerId)})}
