@@ -24,7 +24,7 @@
   };
   const sphere=new THREE.SphereGeometry(1,8,6), cone=new THREE.ConeGeometry(1,1,5), box=new THREE.BoxGeometry(1,1,1);
   function mesh(geometry,material,parent,x=0,y=0,z=0,sx=1,sy=1,sz=1){
-    const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+    const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m;
   }
   function makeDino(kind,isPlayer=false){
     const root=new THREE.Group(), body=new THREE.Group();root.add(body);
@@ -58,6 +58,7 @@
     const healthBack=mesh(new THREE.BoxGeometry(.8,.075,.04),materials.playerDark,healthGroup,0,1.95,0);
     const healthFill=mesh(new THREE.BoxGeometry(1,.055,.05),materials.health,healthGroup,0,1.96,.03);
     healthGroup.visible=false;
+    body.traverse(node=>{if(node.isMesh)node.castShadow=true;});
     return {root,body,legs,arms,tailPivot,healthGroup,healthFill,kind,isPlayer};
   }
   function addFern(x,z,s=1){
@@ -78,10 +79,11 @@
     mesh(new THREE.DodecahedronGeometry(.18,0),materials.stoneLight,g,-.15,.48,-.1,s*.65,.45*s,s*.55);
     decorMeshes.push({group:g,x,z});
   }
+  function isMobile(){return window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;}
   function init(){
     try{
       renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'low-power'});
-      renderer.setPixelRatio(Math.min(1.5,window.devicePixelRatio||1));
+      renderer.setPixelRatio(Math.min(isMobile()?1.25:1.5,window.devicePixelRatio||1));
       renderer.setSize(width,height,false);
       renderer.shadowMap.enabled=true;
       renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -93,7 +95,7 @@
       camera.position.set(0,19,17);camera.lookAt(0,0,0);
       const hemi=new THREE.HemisphereLight('#d9edc4','#263b29',2.0);scene.add(hemi);
       const sun=new THREE.DirectionalLight('#fff0c8',2.25);sun.position.set(-9,18,10);sun.castShadow=true;
-      sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-22;sun.shadow.bias=-.0004;scene.add(sun);
+      sun.shadow.mapSize.set(isMobile()?512:1024,isMobile()?512:1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-22;sun.shadow.bias=-.0004;scene.add(sun);
       ground=new THREE.Group();scene.add(ground);
       const tileGeo=new THREE.PlaneGeometry(8,8);
       for(let z=-4;z<=4;z++)for(let x=-4;x<=4;x++){
@@ -112,7 +114,7 @@
   function resize(){
     width=innerWidth;height=innerHeight;
     if(!ready||!renderer)return;
-    renderer.setPixelRatio(Math.min(1.5,window.devicePixelRatio||1));renderer.setSize(width,height,false);
+    renderer.setPixelRatio(Math.min(isMobile()?1.25:1.5,window.devicePixelRatio||1));renderer.setSize(width,height,false);
     camera.aspect=width/height;camera.updateProjectionMatrix();
   }
   function actor(id,kind,isPlayer=false){
