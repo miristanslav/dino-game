@@ -33,7 +33,8 @@
     mesh(sphere,isPlayer?materials.playerLight:skin,body,.42,.98,0,.27,.48,.25);
     mesh(sphere,skin,body,.76,1.3,0,.43,.3,.29);
     mesh(sphere,isPlayer?materials.playerLight:skin,body,1.02,1.18,0,.28,.17,.23);
-    mesh(cone,skin,body,-.84,.65,0,.2,.95,.2).rotation.z=-Math.PI/2;
+    const tailPivot=new THREE.Group();tailPivot.position.set(-.48,.66,0);body.add(tailPivot);
+    mesh(cone,skin,tailPivot,-.43,0,0,.2,.95,.2).rotation.z=-Math.PI/2;
     mesh(sphere,materials.belly,body,.05,.39,0,.48,.15,.34);
     for(let i=0;i<5;i++){
       const spike=mesh(cone,isPlayer?materials.playerLight:materials.claw,body,-.35+i*.19,1.08-Math.abs(i-2)*.035,0,.12,.28,.12);
@@ -43,19 +44,21 @@
     mesh(sphere,materials.pupil,body,.965,1.39,-.25,.043,.055,.028);
     mesh(sphere,materials.eye,body,.93,1.39,.205,.095,.105,.055);
     mesh(sphere,materials.pupil,body,.965,1.39,.25,.043,.055,.028);
-    const legs=[];
+    const legs=[],arms=[];
     for(const side of [-1,1]){
       const leg=new THREE.Group();leg.position.set(-.12,.48,side*.24);body.add(leg);
       mesh(sphere,skin,leg,0,-.18,0,.17,.34,.16);
       mesh(box,materials.claw,leg,.08,-.38,.025,.34,.09,.22);
       legs.push(leg);
-      const arm=mesh(sphere,skin,body,.43,.67,side*.25,.12,.23,.11);arm.rotation.z=-.35;
+      const armGroup=new THREE.Group();armGroup.position.set(.43,.67,side*.25);body.add(armGroup);
+      const arm=mesh(sphere,skin,armGroup,0,-.04,0,.12,.23,.11);arm.rotation.z=-.35;
+      arms.push(armGroup);
     }
     const healthGroup=new THREE.Group();root.add(healthGroup);
     const healthBack=mesh(new THREE.BoxGeometry(.8,.075,.04),materials.playerDark,healthGroup,0,1.95,0);
     const healthFill=mesh(new THREE.BoxGeometry(1,.055,.05),materials.health,healthGroup,0,1.96,.03);
     healthGroup.visible=false;
-    return {root,body,legs,healthGroup,healthFill,kind,isPlayer};
+    return {root,body,legs,arms,tailPivot,healthGroup,healthFill,kind,isPlayer};
   }
   function addFern(x,z,s=1){
     const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);g.scale.setScalar(s);
@@ -133,16 +136,26 @@
     playerActor.root.position.set(0,0,0);
     playerActor.root.rotation.y=-Math.atan2(p.dy||0,p.dx||1);
     const moving=Math.hypot(data.moveX||0,data.moveY||0)>.08;
-    playerActor.body.position.y=moving?Math.sin(data.time*11)*.035:0;
-    playerActor.legs.forEach((leg,i)=>{leg.rotation.z=moving?Math.sin(data.time*12+i*Math.PI)*.42:0;});
+    const playerPhase=data.time*10.5;
+    const playerStride=moving?Math.sin(playerPhase):0;
+    playerActor.body.position.y=moving?Math.abs(Math.sin(playerPhase))*.045:Math.sin(data.time*1.8)*.008;
+    playerActor.body.rotation.z=moving?Math.sin(playerPhase*2)*.018:Math.sin(data.time*1.3)*.008;
+    playerActor.legs.forEach((leg,i)=>{leg.rotation.z=playerStride*(i===0?-.48:.48);});
+    playerActor.arms.forEach((arm,i)=>{arm.rotation.z=playerStride*(i===0?.16:-.16);});
+    playerActor.tailPivot.rotation.y=Math.sin(data.time*4.2)*.13;
     const active=new Set(['player']);
     for(let i=0;i<(data.enemies||[]).length;i++){
       const e=data.enemies[i],id='enemy'+i;active.add(id);
       const a=actor(id,e.brute?'brute':e.behavior,false);
       a.root.visible=true;a.root.position.set((e.x-px)*unit,0,(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
-      a.body.position.y=e.hit>0?.05:Math.sin(data.time*5+i)*.012;
-      a.legs.forEach((leg,j)=>{leg.rotation.z=Math.sin(data.time*7+i+j*Math.PI)*.16;});
+      const enemyMoving=!!(e.alerted||e.hostile||e.fleeing);
+      const gait=data.time*(enemyMoving?8.5:2.2)+i*.7;
+      a.body.position.y=e.hit>0?.06:enemyMoving?Math.abs(Math.sin(gait))*.025:Math.sin(gait)*.008;
+      a.body.rotation.z=e.hit>0?-.035:Math.sin(gait*.5)*.008;
+      a.legs.forEach((leg,j)=>{leg.rotation.z=enemyMoving?Math.sin(gait+j*Math.PI)*.34:Math.sin(gait+j*Math.PI)*.025;});
+      a.arms.forEach((arm,j)=>{arm.rotation.z=enemyMoving?Math.sin(gait+j*Math.PI)*.12:0;});
+      a.tailPivot.rotation.y=Math.sin(gait*.55)*.11;
       if(e.hostile||e.alerted||e.hit>0){
         const ratio=Math.max(0,Math.min(1,e.hp/e.maxHp));
         a.healthFill.scale.x=ratio;
