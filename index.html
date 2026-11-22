@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#17251b">
 <title>DINO GAME — Эволюция начинается</title>
-<link rel="stylesheet" href="style.css?v=127">
+<link rel="stylesheet" href="style.css?v=128">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -25,7 +25,7 @@
     </div>
     <button id="startBtn" class="primary-btn">НАЧАТЬ ИГРУ <span>→</span></button>
     <button id="continueBtn" class="text-btn hidden">ПРОДОЛЖИТЬ РАЗВИТИЕ</button>
-    <button id="versionBtn" class="version">Версия <b>0.2.00</b> · История обновлений</button>
+    <button id="versionBtn" class="version">Версия <b>0.1.14</b> · История обновлений</button>
   </section>
   <header id="hud" class="hidden">
     <div class="hud-left">
@@ -54,13 +54,12 @@
     <div class="dialog"><p class="eyebrow">ЭКСПЕДИЦИЯ ЗАВЕРШЕНА</p><h2>ДИНОЗАВР ПОВЕРЖЕН</h2><p id="runSummary">Ты победил 0 хищников</p><button id="retryBtn" class="primary-btn">ЕЩЁ ОДНА ПОПЫТКА</button><button id="gameOverMenuBtn" class="secondary-btn">В МЕНЮ</button></div>
   </div>
   <div id="changelog" class="screen overlay hidden">
-    <div class="dialog changelog"><button id="closeChangelog" class="close-btn">×</button><p class="eyebrow">ИСТОРИЯ РАЗРАБОТКИ</p><h2>ОБНОВЛЕНИЯ</h2><div class="change-entry"><b>0.2.00 — Переход на 3D-графику</b><p>Основной игровой мир переведён на low-poly 3D-рендеринг: объёмные динозавры, камера сверху под углом, освещение, тени и 3D-окружение. Существующие игровые механики и интерфейс сохранены.</p></div><div class="change-entry"><b>0.1.13 — Ручное управление и визуальная полировка</b><p>Отключено автоматическое движение героя к врагу, увеличены отступы джойстика и улучшен силуэт динозавров.</p></div><div class="change-entry"><b>0.1.09 — Естественный бой и полноэкранный режим</b><p>Убраны обычные выстрелы. Динозавр атакует укусами и ударами когтей вблизи, самостоятельно выбирает ближайшую цель и мягко сближается, не отбирая управление у игрока. Возвращена кнопка полноэкранного режима для браузера и Telegram Mini Apps.</p></div><div class="change-entry"><b>0.1.08 — Новая эпоха Dino Game</b><p>Начало перехода от раннера к пиксельной top-down Action RPG. Новое игровое ядро, свободное перемещение, хищники, автоматические атаки и эволюционные улучшения.</p></div><div class="change-entry"><b>0.1.07 — Улучшения интерфейса</b><p>Исправления мобильного HUD и полноэкранного режима прежней версии.</p></div><button id="closeChangelogBtn" class="secondary-btn">ЗАКРЫТЬ</button></div>
-  </div>
+    <div class="dialog changelog"<div class="change-entry"><b>0.1.14 — Патч 114: Переход к 3D-графике</b><p>Основной игровой мир подключён к low-poly 3D-рендереру. Объёмные динозавры, камера под углом, освещение, тени и окружение. Существующая логика и 2D-резерв сохранены.</p></div><div class="change-entry"><b>0.1.13 — Патч 113: Ручное управление и визуальная полировка</b><p>Отключено автоматическое движение героя к врагу; увеличены отступы джойстика; начата переработка внешнего вида динозавров.</p></div><div class="change-entry"><b>0.1.12 — Патч 112: Автоатака по травоядным и браузерный fullscreen</b><p>Автоатака выбирает любую живую особь; исправлена работа полноэкранного режима в браузере и Telegram.</p></div><div class="change-entry"><b>0.1.11 — Патч 111: HUD и джойстик</b><p>Счётчик побед перестал перекрывать паузу; джойстик увеличен и сдвинут; скорректировано поведение сближения.</p></div><div class="change-entry"><b>0.1.10 — Патч 110: Поведение динозавров</b><p>Добавлены категории поведения травоядных, территориальных и охотников; улучшена адаптация интерфейса к Telegram.</p></div><div class="change-entry"><b>0.1.09 — Патч 109: Естественный бой и fullscreen</b><p>Ближний бой, автоматический выбор цели и полноэкранный режим.</p></div><div class="change-entry"><b>0.1.08 — Патч 108: Новая эпоха Dino Game</b><p>Переход к top-down Action RPG: свободное перемещение, противники и эволюционные улучшения.</p></div><div class="change-entry"><b>0.1.07 — Патч 107: Браузерная компоновка</b><p>Исправлено расположение верхних элементов управления в браузере.</p></div><button id="closeChangelogBtn" class="secondary-btn">ЗАКРЫТЬ</button>
   <div class="build-mark">DINO GAME <span>·</span> ACTION RPG</div>
 </main>
-<script src="combat.js?v=127"></script>
-<script src="game.js?v=127"></script>
-<script src="renderer3d.js?v=127"></script>
-<script src="fullscreen.js?v=127"></script>
+<script src="combat.js?v=128"></script>
+<script src="game.js?v=128"></script>
+<script src="renderer3d.js?v=128"></script>
+<script src="fullscreen.js?v=128"></script>
 </body>
 </html>
