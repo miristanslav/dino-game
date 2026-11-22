@@ -7,6 +7,11 @@ const SAVE_KEY='dino_game_rpg_save_v1';
 const saved=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch{return {}}})();
 const defaultProfile={dna:0,runs:0,totalKills:0,stats:{vitality:0,power:0,agility:0,armor:0,haste:0,instinct:0}};
 saved.profile={...defaultProfile,...(saved.profile||{}),stats:{...defaultProfile.stats,...(saved.profile?.stats||{})}};
+saved.profile.dna=Math.max(0,Math.floor(Number(saved.profile.dna)||0));
+saved.profile.runs=Math.max(0,Math.floor(Number(saved.profile.runs)||0));
+saved.profile.totalKills=Math.max(0,Math.floor(Number(saved.profile.totalKills)||0));
+Object.keys(defaultProfile.stats).forEach(k=>saved.profile.stats[k]=clampProfileStat(saved.profile.stats[k]));
+function clampProfileStat(value){return Math.max(0,Math.min(10,Math.floor(Number(value)||0)))}
 let W=480,H=800,scale=1,last=0,raf=0,state='menu',worldTime=0,shake=0;
 let player,enemies=[],orbs=[],particles=[],decor=[],kills=0,spawnClock=0,elapsed=0,levelChoices=[],keys={},joy={x:0,y:0,active:false},pointerId=null,nextEnemyId=1;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
