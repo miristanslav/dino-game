@@ -10,8 +10,9 @@
   canvas.setAttribute('aria-hidden', 'true');
   sourceCanvas.parentNode.insertBefore(canvas, sourceCanvas.nextSibling);
 
-  let renderer, scene, camera, ground, groundTiles=[], decorMeshes=[], actors=new Map();
-  let width=innerWidth,height=innerHeight,ready=false,lastDecorKey='';
+  let renderer, scene, camera, ground, decorMeshes=[], actors=new Map();
+  let width=innerWidth,height=innerHeight,ready=false;
+  const MAP_HALF=420, MAP_LIMIT=11400, WORLD_UNIT=.035;
   const clock=new THREE.Clock();
   const mat=(color,roughness=.92)=>new THREE.MeshStandardMaterial({color,roughness,flatShading:true});
   const materials={
@@ -116,6 +117,67 @@
     mesh(new THREE.DodecahedronGeometry(.18,0),materials.stoneLight,g,-.15,.48,-.1,s*.65,.45*s,s*.55);
     decorMeshes.push({group:g,x,z});
   }
+  function hash2(x,z){let n=(Math.imul(x|0,374761393)+Math.imul(z|0,668265263))|0;n=Math.imul(n^(n>>>13),1274126177);return (n^(n>>>16))>>>0;}
+  function riverCenter(x){return Math.sin(x*.0085)*48+Math.sin(x*.019)*13-18;}
+  function terrainHeight(x,z){
+    const broad=Math.sin(x*.012)*.65+Math.cos(z*.014)*.52+Math.sin((x+z)*.009)*.38;
+    const ridgeA=Math.max(0,1-Math.abs(z-(145+Math.sin(x*.012)*24))/72);
+    const ridgeB=Math.max(0,1-Math.abs(z-(-205+Math.cos(x*.01)*18))/58);
+    const river=Math.abs(z-riverCenter(x));
+    return broad+ridgeA*2.1+ridgeB*1.45-Math.max(0,1-river/10)*.34;
+  }
+  function makeTerrain(){
+    const segments=168,size=MAP_HALF*2,positions=[],colors=[],indices=[];
+    const low=new THREE.Color('#304d32'),mid=new THREE.Color('#456b3d'),high=new THREE.Color('#68734a'),bank=new THREE.Color('#786d4b');
+    for(let iz=0;iz<=segments;iz++)for(let ix=0;ix<=segments;ix++){
+      const x=-MAP_HALF+size*ix/segments,z=-MAP_HALF+size*iz/segments,h=terrainHeight(x,z);
+      positions.push(x,h,z);
+      const riverDist=Math.abs(z-riverCenter(x));
+      const t=THREE.MathUtils.clamp((h+1.8)/5,0,1);
+      const c=low.clone().lerp(mid,t*.72).lerp(high,Math.max(0,t-.55)*.65);
+      if(riverDist<15)c.lerp(bank,Math.max(0,1-riverDist/15)*.55);
+      const variation=(hash2(ix,iz)%100)/1000;c.offsetHSL(0,0,variation-.045);
+      colors.push(c.r,c.g,c.b);
+      if(ix<segments&&iz<segments){const a=iz*(segments+1)+ix,b=a+1,c0=a+segments+1,d=c0+1;indices.push(a,c0,b,b,c0,d);}
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();
+    ground=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true}));ground.receiveShadow=true;scene.add(ground);
+  }
+  function makeRiver(){
+    const positions=[],indices=[],steps=180;
+    for(let i=0;i<=steps;i++){const x=-MAP_HALF+i*(MAP_HALF*2/steps),z=riverCenter(x),w=7.5+Math.sin(i*.19)*1.1,y=terrainHeight(x,z)+.12;positions.push(x,y,z-w,x,y,z+w);if(i<steps){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();
+    const water=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:'#477f83',roughness:.42,metalness:.08,side:THREE.DoubleSide}));scene.add(water);
+    const lake=new THREE.Mesh(new THREE.CircleGeometry(24,40),new THREE.MeshStandardMaterial({color:'#477f83',roughness:.4,metalness:.08}));lake.rotation.x=-Math.PI/2;lake.position.set(128,terrainHeight(128,-128)+.13,-128);lake.scale.set(1.35,.78,1);scene.add(lake);
+  }
+  function makeForest(){
+    const trunkGeo=new THREE.CylinderGeometry(.16,.25,1.9,5),crownGeo=new THREE.ConeGeometry(1.15,2.9,6),trunkMat=mat('#594832'),crownMats=[mat('#345b35'),mat('#416b3b'),mat('#4b7540')];
+    const centers=[[-280,-245,115],[-115,-250,100],[235,-255,115],[-300,30,105],[290,35,110],[-210,260,95],[80,270,105],[300,245,95],[-15,-55,70],[205,155,65]];
+    const trees=[],rocks=[];
+    for(let i=0;i<420;i++){
+      const h=hash2(i,71),angle=(h%100000)/100000*Math.PI*2,rad=18+((h>>>8)%10000)/10000*105;
+      const ci=centers[i%centers.length],x=ci[0]+Math.cos(angle)*rad,z=ci[1]+Math.sin(angle)*rad;
+      if(Math.hypot(x,z)>MAP_HALF-18||Math.abs(z-riverCenter(x))<17)continue;
+      const clearings=[[-30,-25,47],[130,-125,35],[-210,125,34],[250,170,32]];
+      if(clearings.some(c=>Math.hypot(x-c[0],z-c[1])<c[2]))continue;
+      trees.push({x,z,scale:.72+((h>>>19)%1000)/1000*.75,variant:(h>>>4)%3});
+    }
+    for(let i=0;i<trees.length;i++){
+      const t=trees[i];const trunk=new THREE.Mesh(trunkGeo,trunkMat);trunk.position.set(t.x,terrainHeight(t.x,t.z)+.9*t.scale,t.z);trunk.scale.setScalar(t.scale);trunk.castShadow=false;scene.add(trunk);
+      const crown=new THREE.Mesh(crownGeo,crownMats[t.variant]);crown.position.set(t.x,terrainHeight(t.x,t.z)+2.65*t.scale,t.z);crown.scale.set(t.scale,t.scale,t.scale);crown.castShadow=false;scene.add(crown);
+    }
+    const rockGeo=new THREE.DodecahedronGeometry(1,0),rockMat=materials.stone;
+    for(let i=0;i<95;i++){
+      const h=hash2(i,991),x=-MAP_HALF+((h%100000)/100000)*(MAP_HALF*2),z=-MAP_HALF+(((h>>>8)%100000)/100000)*(MAP_HALF*2);
+      if(Math.abs(z-riverCenter(x))<18)continue;
+      const rock=new THREE.Mesh(rockGeo,rockMat),sc=.8+((h>>>18)%1000)/1000*2.1;rock.position.set(x,terrainHeight(x,z)+sc*.28,z);rock.scale.set(sc,sc*.62,sc*.85);rock.rotation.set(.1,(h%628)/100,.12);scene.add(rock);
+    }
+    // A broken natural ridge marks the edge of the explorable valley.
+    for(let i=0;i<180;i++){
+      const a=i/180*Math.PI*2,x=Math.cos(a)*(MAP_HALF-9),z=Math.sin(a)*(MAP_HALF-9),sc=3.5+(hash2(i,414)%1000)/1000*5;
+      const boulder=new THREE.Mesh(rockGeo,rockMat);boulder.position.set(x,terrainHeight(x,z)+sc*.32,z);boulder.scale.set(sc,sc*1.1,sc*1.25);boulder.rotation.y=a;scene.add(boulder);
+    }
+  }
   function isMobile(){return window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;}
   function init(){
     try{
@@ -133,18 +195,9 @@
       const hemi=new THREE.HemisphereLight('#d9edc4','#263b29',2.0);scene.add(hemi);
       const sun=new THREE.DirectionalLight('#fff0c8',2.25);sun.position.set(-9,18,10);sun.castShadow=true;
       sun.shadow.mapSize.set(isMobile()?512:1024,isMobile()?512:1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-22;sun.shadow.bias=-.0004;scene.add(sun);
-      ground=new THREE.Group();scene.add(ground);
-      const tileGeo=new THREE.PlaneGeometry(8,8);
-      for(let z=-4;z<=4;z++)for(let x=-4;x<=4;x++){
-        const m=new THREE.Mesh(tileGeo,materials.ground[0]);
-        m.userData={ox:x,oz:z};m.rotation.x=-Math.PI/2;m.position.set(x*8,-.035,z*8);m.receiveShadow=true;ground.add(m);groundTiles.push(m);
-      }
-      const ambientPatch=mesh(new THREE.CircleGeometry(2.2,12),materials.soil,scene,0,-.02,0,1,1,1);
-      ambientPatch.rotation.x=-Math.PI/2;ambientPatch.material=materials.soil;ambientPatch.material.transparent=true;ambientPatch.material.opacity=.13;ambientPatch.receiveShadow=true;
-      for(let i=0;i<46;i++){
-        const a=i*2.399,d=4.5+(i%9)*1.8,x=Math.cos(a)*d,z=Math.sin(a)*d;
-        if(i%3===0)addRock(x,z,.65+(i%4)*.15);else addFern(x,z,.65+(i%5)*.14);
-      }
+      makeTerrain();
+      makeRiver();
+      makeForest();
       ready=true;sourceCanvas.style.visibility='hidden';resize();
     }catch(err){console.warn('3D renderer unavailable; keeping 2D fallback.',err);canvas.remove();}
   }
@@ -161,18 +214,12 @@
   function render(data){
     if(!ready)return;
     const p=data.player||{x:0,y:0,dx:1,dy:0};
-    const px=p.x||0,pz=p.y||0,unit=.035;
+    const px=p.x||0,pz=p.y||0,unit=WORLD_UNIT;
     const aspect=width/Math.max(1,height),portraitZoom=aspect<1.15?Math.min(1.78,1+(1.15-aspect)*1.05):1;
     camera.position.set(0,18.5*portraitZoom,16.5*portraitZoom);camera.lookAt(0,0,0);
-    const worldX=px*unit,worldZ=pz*unit,baseTileX=Math.floor(worldX/8),baseTileZ=Math.floor(worldZ/8);
-    for(const tile of groundTiles){const tx=baseTileX+tile.userData.ox,tz=baseTileZ+tile.userData.oz;let hash=(tx*374761393+tz*668265263)|0;hash=(hash^(hash>>>13))*1274126177;hash=(hash^(hash>>>16))>>>0;tile.material=materials.ground[hash%materials.ground.length];tile.position.set(tx*8-worldX,-.035,tz*8-worldZ);}
-    for(const d of decorMeshes){
-      const wrap=(v,span)=>((v+span/2)%span+span)%span-span/2;
-      d.group.position.set(wrap(d.x-px*unit,44),0,wrap(d.z-pz*unit,44));
-    }
     // Re-center a persistent jungle set around the moving player; avoid creating objects per frame.
     const playerActor=actor('player','player',true);
-    playerActor.root.position.set(0,0,0);
+    playerActor.root.position.set(0,terrainHeight(px*unit,pz*unit)-terrainHeight(px*unit,pz*unit),0);
     playerActor.root.rotation.y=-Math.atan2(p.dy||0,p.dx||1);
     const moving=Math.hypot(data.moveX||0,data.moveY||0)>.08;
     const playerPhase=data.time*10.5;
@@ -186,7 +233,7 @@
     for(let i=0;i<(data.enemies||[]).length;i++){
       const e=data.enemies[i],id='enemy'+(e.id??i);active.add(id);
       const a=actor(id,e.brute?'brute':e.behavior,false);
-      a.root.visible=true;a.root.position.set((e.x-px)*unit,0,(e.y-pz)*unit);
+      a.root.visible=true;a.root.position.set((e.x-px)*unit,terrainHeight(e.x*unit,e.y*unit)-terrainHeight(px*unit,pz*unit),(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
       const enemyMoving=!!(e.alerted||e.hostile||e.fleeing);
       const gait=data.time*(enemyMoving?8.5:2.2)+i*.7;
