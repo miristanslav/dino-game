@@ -71,3 +71,21 @@ body{touch-action:none}#gameCanvas{position:absolute;inset:0;width:100%;height:1
 .stat-row:has(.stat-buy:not(:disabled)){border-color:#a7ce7144}
 .stat-buy:disabled{cursor:default}
 @media(max-height:700px){.profile-dialog{max-height:94dvh;padding:18px 14px}.permanent-stats{gap:5px}.stat-row{padding:8px 9px}.stat-info small{font-size:9px}}
+
+
+/* Permanent skill tree */
+.skill-tree-title{font-size:13px;letter-spacing:.12em;color:var(--lime);margin:14px 0 5px;text-align:center}
+.skill-tree-note{font-size:10px;line-height:1.4;color:#aebfa5;text-align:center;margin:0 0 10px}
+.skill-tree{display:grid;gap:10px;margin-bottom:16px}
+.skill-branch{padding:10px;border:1px solid #d5edb32b;border-radius:12px;background:#15271b}
+.skill-branch-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.skill-branch-head b{font-size:11px;letter-spacing:.13em;color:var(--lime)}
+.skill-branch-head small{font-size:9px;color:#aebfa5}
+.skill-node{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:9px 10px;margin-top:6px;text-align:left;border:1px solid #8dbd6544;border-radius:9px;background:#263e2a;color:#e8f0df;touch-action:manipulation}
+.skill-node b{font-size:11px}
+.skill-node small{font-size:9px;color:#b7c9ac;line-height:1.35}
+.skill-node .skill-cost{color:#f0cf83;font-weight:850;letter-spacing:.04em}
+.skill-node:disabled{opacity:.52}
+.skill-node.is-unlocked{border-color:#a9d875;background:#314c2c}
+.skill-node.is-unlocked .skill-cost{color:#b7e477}
+@media(max-height:700px){.skill-tree{gap:7px}.skill-branch{padding:8px}.skill-node{padding:7px 9px}}
