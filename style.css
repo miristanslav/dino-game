@@ -37,3 +37,9 @@ body{touch-action:none}#gameCanvas{position:absolute;inset:0;width:100%;height:1
 .build-mark{position:absolute;right:10px;bottom:5px;z-index:2;color:#d7e6ce55;font-size:8px;letter-spacing:.16em;pointer-events:none}.build-mark span{color:var(--lime)}
 @media(min-width:700px){#mobileControls{width:min(900px,100%);left:50%;right:auto;transform:translateX(-50%)}#hud{left:22px;right:60px}}
 @media(max-height:520px){#mobileControls{height:95px}.joystick{width:82px;height:82px}.stick{width:38px;height:38px;left:20px;top:20px}.action{width:54px;height:54px}.action.special{width:62px;height:62px}.world-hint{top:68px}.menu-card{margin-bottom:10px}.logo-mark{width:42px;height:42px;margin-bottom:8px}}
+
+/* Restored fullscreen control: available in browser and Telegram Mini Apps. */
+.fullscreen-btn{position:absolute;z-index:7;top:max(12px,env(safe-area-inset-top));right:12px;width:38px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:#f1f7e9;font-size:25px;line-height:1;display:grid;place-items:center;backdrop-filter:blur(7px);touch-action:manipulation}
+.fullscreen-btn.is-active{color:var(--lime);border-color:#b7e47788}
+.pause-btn{right:58px}
+@media(max-width:380px){.fullscreen-btn{right:10px;width:34px;height:34px}.pause-btn{right:52px}}
