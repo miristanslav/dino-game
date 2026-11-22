@@ -10,7 +10,7 @@
   canvas.setAttribute('aria-hidden', 'true');
   sourceCanvas.parentNode.insertBefore(canvas, sourceCanvas.nextSibling);
 
-  let renderer, scene, camera, ground, decorMeshes=[], actors=new Map();
+  let renderer, scene, camera, ground, worldRoot, decorMeshes=[], actors=new Map();
   let width=innerWidth,height=innerHeight,ready=false;
   const MAP_HALF=420, MAP_LIMIT=11400, WORLD_UNIT=.035;
   const clock=new THREE.Clock();
@@ -141,42 +141,48 @@
       if(ix<segments&&iz<segments){const a=iz*(segments+1)+ix,b=a+1,c0=a+segments+1,d=c0+1;indices.push(a,c0,b,b,c0,d);}
     }
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();
-    ground=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true}));ground.receiveShadow=true;scene.add(ground);
+    ground=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true}));ground.receiveShadow=true;worldRoot.add(ground);
   }
   function makeRiver(){
     const positions=[],indices=[],steps=180;
     for(let i=0;i<=steps;i++){const x=-MAP_HALF+i*(MAP_HALF*2/steps),z=riverCenter(x),w=7.5+Math.sin(i*.19)*1.1,y=terrainHeight(x,z)+.12;positions.push(x,y,z-w,x,y,z+w);if(i<steps){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();
-    const water=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:'#477f83',roughness:.42,metalness:.08,side:THREE.DoubleSide}));scene.add(water);
-    const lake=new THREE.Mesh(new THREE.CircleGeometry(24,40),new THREE.MeshStandardMaterial({color:'#477f83',roughness:.4,metalness:.08}));lake.rotation.x=-Math.PI/2;lake.position.set(128,terrainHeight(128,-128)+.13,-128);lake.scale.set(1.35,.78,1);scene.add(lake);
+    const water=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:'#477f83',roughness:.42,metalness:.08,side:THREE.DoubleSide}));worldRoot.add(water);
+    const lake=new THREE.Mesh(new THREE.CircleGeometry(24,40),new THREE.MeshStandardMaterial({color:'#477f83',roughness:.4,metalness:.08}));lake.rotation.x=-Math.PI/2;lake.position.set(128,terrainHeight(128,-128)+.13,-128);lake.scale.set(1.35,.78,1);worldRoot.add(lake);
   }
   function makeForest(){
     const trunkGeo=new THREE.CylinderGeometry(.16,.25,1.9,5),crownGeo=new THREE.ConeGeometry(1.15,2.9,6),trunkMat=mat('#594832'),crownMats=[mat('#345b35'),mat('#416b3b'),mat('#4b7540')];
     const centers=[[-280,-245,115],[-115,-250,100],[235,-255,115],[-300,30,105],[290,35,110],[-210,260,95],[80,270,105],[300,245,95],[-15,-55,70],[205,155,65]];
-    const trees=[],rocks=[];
+    const treeData=[],rocks=[];
     for(let i=0;i<420;i++){
       const h=hash2(i,71),angle=(h%100000)/100000*Math.PI*2,rad=18+((h>>>8)%10000)/10000*105;
       const ci=centers[i%centers.length],x=ci[0]+Math.cos(angle)*rad,z=ci[1]+Math.sin(angle)*rad;
       if(Math.hypot(x,z)>MAP_HALF-18||Math.abs(z-riverCenter(x))<17)continue;
       const clearings=[[-30,-25,47],[130,-125,35],[-210,125,34],[250,170,32]];
       if(clearings.some(c=>Math.hypot(x-c[0],z-c[1])<c[2]))continue;
-      trees.push({x,z,scale:.72+((h>>>19)%1000)/1000*.75,variant:(h>>>4)%3});
+      treeData.push({x,z,scale:.72+((h>>>19)%1000)/1000*.75,variant:(h>>>4)%3});
     }
-    for(let i=0;i<trees.length;i++){
-      const t=trees[i];const trunk=new THREE.Mesh(trunkGeo,trunkMat);trunk.position.set(t.x,terrainHeight(t.x,t.z)+.9*t.scale,t.z);trunk.scale.setScalar(t.scale);trunk.castShadow=false;scene.add(trunk);
-      const crown=new THREE.Mesh(crownGeo,crownMats[t.variant]);crown.position.set(t.x,terrainHeight(t.x,t.z)+2.65*t.scale,t.z);crown.scale.set(t.scale,t.scale,t.scale);crown.castShadow=false;scene.add(crown);
+    const dummy=new THREE.Object3D();
+    const trunkBatch=new THREE.InstancedMesh(trunkGeo,trunkMat,treeData.length);
+    const crownBatches=crownMats.map(m=>new THREE.InstancedMesh(crownGeo,m,treeData.filter(t=>t.variant===crownMats.indexOf(m)).length));
+    const crownCounts=[0,0,0];
+    for(const t of treeData){
+      const y=terrainHeight(t.x,t.z);dummy.position.set(t.x,y+.9*t.scale,t.z);dummy.scale.setScalar(t.scale);dummy.rotation.set(0,0,0);dummy.updateMatrix();trunkBatch.setMatrixAt(crownCounts.reduce((a,b)=>a+b,0),dummy.matrix);
+      dummy.position.set(t.x,y+2.65*t.scale,t.z);dummy.updateMatrix();const batch=crownBatches[t.variant];batch.setMatrixAt(crownCounts[t.variant]++,dummy.matrix);
     }
+    trunkBatch.instanceMatrix.needsUpdate=true;worldRoot.add(trunkBatch);
+    for(const batch of crownBatches){batch.instanceMatrix.needsUpdate=true;worldRoot.add(batch);}
     const rockGeo=new THREE.DodecahedronGeometry(1,0),rockMat=materials.stone;
+    const rockBatch=new THREE.InstancedMesh(rockGeo,rockMat,95),rockDummy=new THREE.Object3D();let rockCount=0;
     for(let i=0;i<95;i++){
       const h=hash2(i,991),x=-MAP_HALF+((h%100000)/100000)*(MAP_HALF*2),z=-MAP_HALF+(((h>>>8)%100000)/100000)*(MAP_HALF*2);
       if(Math.abs(z-riverCenter(x))<18)continue;
-      const rock=new THREE.Mesh(rockGeo,rockMat),sc=.8+((h>>>18)%1000)/1000*2.1;rock.position.set(x,terrainHeight(x,z)+sc*.28,z);rock.scale.set(sc,sc*.62,sc*.85);rock.rotation.set(.1,(h%628)/100,.12);scene.add(rock);
-    }
-    // A broken natural ridge marks the edge of the explorable valley.
+      const sc=.8+((h>>>18)%1000)/1000*2.1;rockDummy.position.set(x,terrainHeight(x,z)+sc*.28,z);rockDummy.scal    const ridgeBatch=new THREE.InstancedMesh(rockGeo,rockMat,180),ridgeDummy=new THREE.Object3D();
     for(let i=0;i<180;i++){
       const a=i/180*Math.PI*2,x=Math.cos(a)*(MAP_HALF-9),z=Math.sin(a)*(MAP_HALF-9),sc=3.5+(hash2(i,414)%1000)/1000*5;
-      const boulder=new THREE.Mesh(rockGeo,rockMat);boulder.position.set(x,terrainHeight(x,z)+sc*.32,z);boulder.scale.set(sc,sc*1.1,sc*1.25);boulder.rotation.y=a;scene.add(boulder);
+      ridgeDummy.position.set(x,terrainHeight(x,z)+sc*.32,z);ridgeDummy.scale.set(sc,sc*1.1,sc*1.25);ridgeDummy.rotation.set(0,a,0);ridgeDummy.updateMatrix();ridgeBatch.setMatrixAt(i,ridgeDummy.matrix);
     }
+    ridgeBatch.instanceMatrix.needsUpdate=true;worldRoot.add(ridgeBatch);
   }
   function isMobile(){return window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;}
   function init(){
@@ -195,6 +201,7 @@
       const hemi=new THREE.HemisphereLight('#d9edc4','#263b29',2.0);scene.add(hemi);
       const sun=new THREE.DirectionalLight('#fff0c8',2.25);sun.position.set(-9,18,10);sun.castShadow=true;
       sun.shadow.mapSize.set(isMobile()?512:1024,isMobile()?512:1024);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=22;sun.shadow.camera.bottom=-22;sun.shadow.bias=-.0004;scene.add(sun);
+      worldRoot=new THREE.Group();scene.add(worldRoot);
       makeTerrain();
       makeRiver();
       makeForest();
@@ -215,6 +222,7 @@
     if(!ready)return;
     const p=data.player||{x:0,y:0,dx:1,dy:0};
     const px=p.x||0,pz=p.y||0,unit=WORLD_UNIT;
+    worldRoot.position.set(-px*unit,0,-pz*unit);
     const aspect=width/Math.max(1,height),portraitZoom=aspect<1.15?Math.min(1.78,1+(1.15-aspect)*1.05):1;
     camera.position.set(0,18.5*portraitZoom,16.5*portraitZoom);camera.lookAt(0,0,0);
     // Re-center a persistent jungle set around the moving player; avoid creating objects per frame.
