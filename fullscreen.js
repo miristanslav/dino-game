@@ -4,7 +4,11 @@
   const button = document.getElementById('fullscreenBtn');
   if (!button) return;
 
-  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  const telegramWebApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  // The Telegram bridge script also creates a WebApp stub in ordinary browsers.
+  // Use Telegram fullscreen only inside an initialized Mini App; otherwise use the browser API.
+  const inTelegram = !!(telegramWebApp && telegramWebApp.initData && telegramWebApp.initData.length > 0);
+  const tg = inTelegram ? telegramWebApp : null;
   const root = document.documentElement;
   const px = value => Math.max(0, Number(value) || 0) + 'px';
 
@@ -62,19 +66,20 @@
         }
       } else if (document.fullscreenElement) {
         if (document.exitFullscreen) await document.exitFullscreen();
-      } else if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
+      } else {
+        const target = document.getElementById('app') || document.documentElement;
+        const request = target.requestFullscreen || target.webkitRequestFullscreen;
+        if (request) await request.call(target);
       }
-    } catch (_) {
-      if (tg && typeof tg.expand === 'function') {
-        try { tg.expand(); } catch (_) {}
-      }
+    } catch (error) {
+      console.warn('Fullscreen request failed:', error);
     }
     syncTelegramLayout();
     refresh();
   });
 
   document.addEventListener('fullscreenchange', refresh);
+  document.addEventListener('webkitfullscreenchange', refresh);
   if (tg && typeof tg.onEvent === 'function') {
     tg.onEvent('fullscreenChanged', () => { syncTelegramLayout(); refresh(); });
     tg.onEvent('fullscreenFailed', refresh);
