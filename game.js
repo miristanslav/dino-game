@@ -48,7 +48,7 @@ if(e.wanderTimer<=0){e.wanderAngle+=rand(-1.15,1.15);e.wanderTimer=rand(1.8,4.2)
 e.vx=Math.cos(e.wanderAngle)*e.speed*.42;e.vy=Math.sin(e.wanderAngle)*e.speed*.42;
 e.x+=e.vx*dt;e.y+=e.vy*dt;
 }
-}}e.attack-=dt;if((e.hostile||e.alerted)&&d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
+}e.attack-=dt;if((e.hostile||e.alerted)&&d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
 enemies=enemies.filter(e=>!e.dead);
 for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
 for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;p.vx*=.94;p.vy*=.94}particles=particles.filter(p=>p.t>0);decor.forEach(d=>{if(d.x-player.x>620)d.x-=1240;if(d.x-player.x< -620)d.x+=1240;if(d.y-player.y>780)d.y-=1560;if(d.y-player.y< -780)d.y+=1560})}
