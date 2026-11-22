@@ -1,513 +1,59 @@
-function removeSplash() { const splash = document.getElementById('splashScreen'); if (splash) { splash.classList.add('fade-out'); setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500); } }
-window.addEventListener('load', () => setTimeout(removeSplash, 1000)); setTimeout(removeSplash, 2000);
-
-function haptic(type) { if (isTelegram && tgApp?.HapticFeedback) { try { const hf = tgApp.HapticFeedback; if (type === 'jump') hf.impactOccurred('light'); if (type === 'eat') hf.notificationOccurred('success'); if (type === 'crash') hf.notificationOccurred('error'); if (type === 'buy') hf.impactOccurred('medium'); } catch (e) {} } }
-
-let fullscreenRequested = false;
-let portraitLockRequested = false;
-
-function lockPortraitOrientation() {
-  if (portraitLockRequested) return;
-
-  const isPortraitNow = window.matchMedia('(orientation: portrait)').matches;
-  let browserLockPromise = null;
-
-  // Telegram locks the current orientation, not a requested target.
-  // Never ask Telegram to lock while the viewport is landscape.
-  if (isTelegram && isPortraitNow && tgApp && typeof tgApp.lockOrientation === 'function') {
-    try {
-      if (!tgApp.isVersionAtLeast || tgApp.isVersionAtLeast('8.0')) {
-        tgApp.lockOrientation();
-        portraitLockRequested = true;
-      }
-    } catch (e) {}
-  }
-
-  try {
-    if (screen.orientation && typeof screen.orientation.lock === 'function') {
-      browserLockPromise = screen.orientation.lock('portrait');
-    }
-  } catch (e) {}
-
-  if (browserLockPromise && typeof browserLockPromise.then === 'function') {
-    browserLockPromise.then(() => {
-      portraitLockRequested = true;
-      // Lock Telegram only after the viewport is actually portrait.
-      if (isTelegram && window.matchMedia('(orientation: portrait)').matches &&
-          tgApp && typeof tgApp.lockOrientation === 'function' &&
-          (!tgApp.isVersionAtLeast || tgApp.isVersionAtLeast('8.0'))) {
-        try { tgApp.lockOrientation(); } catch (e) {}
-      }
-    }).catch(() => {
-      // Browser may reject orientation locking outside supported fullscreen contexts.
-      // Telegram's native lock above remains active when available.
-    });
-  }
+(() => {
+'use strict';
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false});
+const $=id=>document.getElementById(id);
+const ui={menu:$('menu'),hud:$('hud'),controls:$('mobileControls'),pause:$('pauseScreen'),level:$('levelScreen'),over:$('gameOverScreen'),changelog:$('changelog'),hint:$('worldHint')};
+const SAVE_KEY='dino_game_rpg_save_v1';
+const saved=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch{return {}}})();
+let W=480,H=800,scale=1,last=0,raf=0,state='menu',worldTime=0,shake=0;
+let player,enemies=[],shots=[],orbs=[],particles=[],decor=[],kills=0,spawnClock=0,elapsed=0,levelChoices=[],keys={},joy={x:0,y:0,active:false},pointerId=null;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function resize(){const dpr=Math.min(2,window.devicePixelRatio||1);W=window.innerWidth;H=window.innerHeight;canvas.width=Math.floor(W*dpr);canvas.height=Math.floor(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);scale=dpr}
+window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);resize();
+function freshPlayer(){return{x:0,y:0,r:13,hp:100,maxHp:100,speed:145,damage:14,attackRate:.78,attack:0,level:1,xp:0,nextXp:35,range:190,specialCd:0,dashCd:0,dashTime:0,dx:0,dy:0,invuln:0,armor:0}}
+function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({bestKills:Math.max(saved.bestKills||0,kills),lastLevel:player?.level||1}))}catch{}}
+function show(name){Object.values(ui).forEach(x=>x.classList.add('hidden'));if(name&&ui[name])ui[name].classList.remove('hidden')}
+function start(){player=freshPlayer();enemies=[];shots=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function pause(){if(state!=='playing')return;state='paused';show('pause');$('pauseBtn').classList.add('hidden')}
+function resume(){if(state!=='paused')return;state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
+function endRun(){state='over';saveProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Достигнут уровень: '+player.level;show('over')}
+function updateHud(){$('healthFill').style.width=(player.hp/player.maxHp*100)+'%';$('healthText').textContent=Math.ceil(player.hp)+' / '+player.maxHp;$('xpFill').style.width=(player.xp/player.nextXp*100)+'%';$('levelText').textContent='УРОВЕНЬ '+player.level;$('killText').textContent='ПОБЕДЫ: '+kills}
+const upgrades=[{name:'Усиленные когти',desc:'Урон основной атаки +25%',apply:p=>p.damage=Math.round(p.damage*1.25)},{name:'Быстрая реакция',desc:'Скорость атаки +20%',apply:p=>p.attackRate*=.8},{name:'Крепкая чешуя',desc:'Максимальное здоровье +25 и лечение',apply:p=>{p.maxHp+=25;p.hp=Math.min(p.maxHp,p.hp+35)}},{name:'Охотничий инстинкт',desc:'Дальность автоматической атаки +20%',apply:p=>p.range*=1.2},{name:'Мускулистые лапы',desc:'Скорость передвижения +12%',apply:p=>p.speed*=1.12},{name:'Природная броня',desc:'Получаемый урон снижается на 2',apply:p=>p.armor+=2}];
+function levelUp(){state='level';const picks=[...upgrades].sort(()=>Math.random()-.5).slice(0,3);const box=$('upgradeChoices');box.innerHTML='';picks.forEach(u=>{const b=document.createElement('button');b.className='upgrade-choice';b.innerHTML=u.name+'<small>'+u.desc+'</small>';b.addEventListener('click',()=>{u.apply(player);player.level++;player.nextXp=Math.round(player.nextXp*1.32+12);state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');updateHud();last=performance.now();raf=requestAnimationFrame(loop)},{once:true});box.appendChild(b)});show('level')}
+function gainXp(n){player.xp+=n;if(player.xp>=player.nextXp){player.xp-=player.nextXp;player.level++;player.nextXp=Math.round(player.nextXp*1.32+12);updateHud();levelUp()}else updateHud()}
+function spawnEnemy(){const a=rand(0,Math.PI*2),d=rand(300,420),x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d;const brute=Math.random()<Math.min(.32,.08+elapsed/180);enemies.push({x,y,r:brute?17:12,hp:brute?58:30,maxHp:brute?58:30,speed:brute?48:66,damage:brute?15:9,brute,hit:0,attack:rand(.2,.8)})}
+function burst(x,y,color,n=8){for(let i=0;i<n;i++){const a=rand(0,Math.PI*2),s=rand(25,105);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rand(.2,.55),life:.55,color})}}
+function fire(){if(player.attack>0||!enemies.length)return;let target=null,best=player.range;for(const e of enemies){const d=dist(player,e);if(d<best){best=d;target=e}}if(!target)return;player.attack=player.attackRate;const dx=target.x-player.x,dy=target.y-player.y,len=Math.hypot(dx,dy)||1;shots.push({x:player.x,y:player.y,vx:dx/len*310,vy:dy/len*310,life:.8,damage:player.damage,target});burst(player.x+dx/len*12,player.y+dy/len*12,'#c5ed7d',3)}
+function special(){if(state!=='playing'||player.specialCd>0)return;player.specialCd=8;const radius=112;burst(player.x,player.y,'#a8e6ff',28);for(const e of enemies){const d=dist(player,e);if(d<radius+e.r){e.hp-=player.damage*2.1;e.hit=.2;const dx=e.x-player.x,dy=e.y-player.y,l=Math.hypot(dx,dy)||1;e.x+=dx/l*34;e.y+=dy/l*34;if(e.hp<=0)killEnemy(e)}}enemies=enemies.filter(e=>e.hp>0);updateHud()}
+function dash(){if(state!=='playing'||player.dashCd>0)return;let dx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),dy=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(dx,dy);if(l<.1){dx=player.dx||1;dy=player.dy||0;l=Math.hypot(dx,dy)||1}player.dx=dx/l;player.dy=dy/l;player.dashTime=.18;player.dashCd=2.4;player.invuln=.35;burst(player.x,player.y,'#c4e99a',7)}
+function killEnemy(e){if(e.dead)return;e.dead=true;kills++;orbs.push({x:e.x,y:e.y,r:5,value:e.brute?15:9});burst(e.x,e.y,e.brute?'#e4a76c':'#a8ce72',12);updateHud()}
+function update(dt){elapsed+=dt;worldTime+=dt;player.attack=Math.max(0,player.attack-dt);player.specialCd=Math.max(0,player.specialCd-dt);player.dashCd=Math.max(0,player.dashCd-dt);player.invuln=Math.max(0,player.invuln-dt);player.dashTime=Math.max(0,player.dashTime-dt);
+let mx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),my=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}if(l>.1){player.dx=mx;player.dy=my}
+const boost=player.dashTime>0?3.5:1;player.x+=mx*player.speed*boost*dt;player.y+=my*player.speed*boost*dt;
+spawnClock-=dt;if(spawnClock<=0&&enemies.length<Math.min(22,5+Math.floor(elapsed/18))){spawnEnemy();spawnClock=Math.max(.55,1.8-elapsed*.006)}
+for(const e of enemies){const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1;e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt;e.attack-=dt;if(d<player.r+e.r+3&&e.attack<=0&&player.invuln<=0){player.hp=Math.max(0,player.hp-Math.max(1,e.damage-player.armor));player.invuln=.55;e.attack=.9;shake=5;burst(player.x,player.y,'#e66d58',6);updateHud();if(player.hp<=0){endRun();return}}}
+fire();for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;for(const e of enemies){if(e.dead)continue;if(Math.hypot(s.x-e.x,s.y-e.y)<e.r+5){e.hp-=s.damage;e.hit=.12;s.life=0;burst(s.x,s.y,'#d4f58d',4);if(e.hp<=0)killEnemy(e);break}}}shots=shots.filter(s=>s.life>0);enemies=enemies.filter(e=>!e.dead);
+for(const o of orbs){const dx=player.x-o.x,dy=player.y-o.y,d=Math.hypot(dx,dy);if(d<player.range*.72){o.x+=dx/d*220*dt;o.y+=dy/d*220*dt}if(d<player.r+o.r+4){o.got=true;gainXp(o.value)}}orbs=orbs.filter(o=>!o.got);
+for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;p.vx*=.94;p.vy*=.94}particles=particles.filter(p=>p.t>0);decor.forEach(d=>{if(d.x-player.x>620)d.x-=1240;if(d.x-player.x< -620)d.x+=1240;if(d.y-player.y>780)d.y-=1560;if(d.y-player.y< -780)d.y+=1560})}
+function tileHash(x,y){let n=(Math.floor(x/40)*374761393+Math.floor(y/40)*668265263)|0;n=(n^(n>>>13))*1274126177;return(n^(n>>>16))>>>0}
+function drawWorld(){const cx=player?player.x:0,cy=player?player.y:0;ctx.fillStyle='#314c32';ctx.fillRect(0,0,W,H);const tile=40,startX=Math.floor((cx-W/2)/tile)-1,endX=Math.ceil((cx+W/2)/tile)+1,startY=Math.floor((cy-H/2)/tile)-1,endY=Math.ceil((cy+H/2)/tile)+1;
+for(let gy=startY;gy<=endY;gy++)for(let gx=startX;gx<=endX;gx++){const h=tileHash(gx*tile,gy*tile),x=gx*tile-cx+W/2,y=gy*tile-cy+H/2;ctx.fillStyle=h%5===0?'#38583a':h%3===0?'#345334':'#314f33';ctx.fillRect(Math.round(x),Math.round(y),tile+1,tile+1);if(h%7===0){ctx.fillStyle='#587044';ctx.fillRect(x+8,y+9,3,3);ctx.fillRect(x+26,y+27,2,2)}}
+for(const d of decor){const x=d.x-cx+W/2,y=d.y-cy+H/2;if(x< -45||x>W+45||y< -45||y>H+45)continue;if(d.type==='fern'){ctx.fillStyle='#203d29';ctx.fillRect(x-3*d.s,y-2*d.s,6*d.s,12*d.s);ctx.fillStyle='#63864a';for(let i=0;i<4;i++){ctx.fillRect(x-10*d.s+i*2*d.s,y-10*d.s+i*3*d.s,8*d.s,3*d.s);ctx.fillRect(x+2*d.s+i*2*d.s,y-10*d.s+i*3*d.s,7*d.s,3*d.s)}}else{ctx.fillStyle='#293d2d';ctx.fillRect(x-8*d.s,y-4*d.s,17*d.s,10*d.s);ctx.fillStyle='#71806a';ctx.fillRect(x-5*d.s,y-6*d.s,8*d.s,4*d.s)}}
 }
-
-function requestTgFullscreen() {
-  if (!isTelegram) return;
-  try {
-    if (tgApp && tgApp.requestFullscreen && !fullscreenRequested) {
-      tgApp.requestFullscreen();
-      fullscreenRequested = true;
-    }
-    // Lock immediately while the app is still in portrait; the API locks current mode.
-    lockPortraitOrientation();
-    setTimeout(() => resizeCanvas(), 300);
-  } catch (e) {}
-}
-if (isTelegram) {
-  setTimeout(requestTgFullscreen, 50);
-  document.addEventListener('pointerdown', function firstTap() {
-    requestTgFullscreen();
-    lockPortraitOrientation();
-    document.removeEventListener('pointerdown', firstTap);
-  });
-} else {
-  document.addEventListener('pointerdown', function firstTap() {
-    lockPortraitOrientation();
-    document.removeEventListener('pointerdown', firstTap);
-  }, { once: true });
-}
-
-function resizeCanvas() {
-  const oldGroundY = GROUND_Y;
-  const stage = document.getElementById('portraitStage');
-  const rect = stage ? stage.getBoundingClientRect() : null;
-  W = rect && rect.width ? rect.width : window.innerWidth;
-  H = rect && rect.height ? rect.height : window.innerHeight;
-  canvas.width = W; canvas.height = H; GROUND_Y = H * 0.78;
-  dino.x = Math.max(30, Math.min(60, W * 0.16));
-  if (!dino.jumping) dino.y = GROUND_Y;
-  groundDots.forEach(d => { d.y = GROUND_Y + 6 + Math.random() * 20; }); obstacles.forEach(o => { o.y = GROUND_Y; });
-  const dY = GROUND_Y - oldGroundY; birds.forEach(b => { b.y += dY; }); powerUps.forEach(p => { p.y += dY; });
-  if (lightning) lightning = null;
-}
-window.addEventListener('resize', () => resizeCanvas());
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => resizeCanvas());
-window.addEventListener('orientationchange', () => setTimeout(() => resizeCanvas(), 200));
-if (isTelegram && tgApp?.onEvent) { try { tgApp.onEvent('viewportChanged', () => setTimeout(() => resizeCanvas(), 100)); } catch (e) {} }
-
-function dinoBoxForGroundBone() {
-  return { x: dino.x + 4 * dino.scale, y: dino.y - 18 * dino.scale, w: 28 * dino.scale, h: 18 * dino.scale };
-}
-
-function getComboMultiplier() { if (comboCount >= 6) return 3; if (comboCount >= 3) return 2; return 1; }
-function updateComboHUD(pulse) {
-  const mult = getComboMultiplier();
-  if (mult > 1) { comboMult.textContent = `🔥 x${mult}`; comboHud.classList.remove('hidden'); if (pulse) { comboHud.classList.remove('pulse'); void comboHud.offsetWidth; comboHud.classList.add('pulse'); } }
-  else comboHud.classList.add('hidden');
-}
-function resetCombo() { if (comboCount > 0) { comboCount = 0; comboTimer = 0; updateComboHUD(); } }
-
-function pauseGame() {
-  if (gameState !== 'playing') return;
-  gameState = 'paused';
-  dino.ducking = false; duckTimer = 0;
-  pauseScreen.classList.remove('hidden');
-  pauseBtn.classList.add('hidden');
-  stopMusic();
-}
-
-function resumeGame() {
-  if (gameState !== 'paused') return;
-  gameState = 'playing';
-  pauseScreen.classList.add('hidden');
-  pauseBtn.classList.remove('hidden');
-  lastTime = performance.now();
-  if (musicEnabled) startMusic();
-}
-
-function jump() {
-  if (gameState !== 'playing' || dino.ducking) return;
-  duckTimer = 0;
-  const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump');
-  if (!dino.jumping) {
-    const jumpPower = Math.min(15.8, Math.abs(JUMP_FORCE) + (save.upgrades.jump * 0.64)); dino.vy = -jumpPower; dino.jumping = true; dino.jumpsLeft = hasDoubleJump ? 1 : 0;
-    haptic('jump'); playSound('jump'); spawnDust(dino.x + 30, GROUND_Y, 6, 3);
-  } else if (dino.jumpsLeft > 0) {
-    dino.vy = JUMP_FORCE * 0.9; dino.jumpsLeft--; haptic('jump'); playSound('jump'); spawnDust(dino.x + 30, dino.y, 6, 3);
-  }
-}
-function duck(on, duration) {
-  if (gameState !== 'playing' || dino.jumping) return;
-  dino.ducking = on;
-  duckTimer = on ? (Number.isFinite(duration) ? Math.max(0, duration) : Infinity) : 0;
-}
-
-// ПАТЧ 26: вынесено из reset() — используется и при сбросе прогресса
-function takeDamage(source = 'obstacle') {
-  if (gameState !== 'playing') return false;
-  const timedShield = activePowerUps.find(powerUp => powerUp.type === 'shield');
-  if (timedShield) {
-    timedShield.hitPulse = 1;
-    damageCooldown = 0;
-    spawnFloatingText(dino.x + 20, dino.y - 55, '🛡 ЗАЩИТА');
-    return false;
-  }
-  if (cactusGuardHits > 0) {
-    cactusGuardHits--;
-    guardPulse = 1;
-    damageCooldown = 0;
-    updateHUD();
-    spawnFloatingText(dino.x + 20, dino.y - 55, cactusGuardHits > 0 ? '🛡 ' + cactusGuardHits : '🛡 БЛОК!');
-    if (cactusGuardHits === 0) spawnFloatingText(dino.x + 20, dino.y - 82, 'ЩИТ ИСЧЕЗ');
-    return false;
-  }
-  if (damageCooldown > 0) return false;
-  if (source === 'obstacle' && save.currentPet === 'ghost' && !ghostUsed) {
-    ghostUsed = true; damageCooldown = 0.22;
-    spawnFloatingText(dino.x + 20, dino.y - 60, 'СПАСЕНИЕ! 👻');
-    shakeTime = 10; haptic('eat'); playSound('record');
-    return false;
-  }
-  currentLives = Math.max(0, currentLives - 1);
-  damageCooldown = 1.1; shakeTime = 10;
-  haptic('crash'); playSound('crash');
-  spawnFloatingText(dino.x + 20, dino.y - 55, '-1 ❤️');
-  updateHUD();
-  if (currentLives <= 0) { gameOver(); return false; }
-  return true;
-}
-function clearRoundState() {
-  obstacles = []; birds = []; particles = []; bonesFlying = []; powerUps = []; rainDrops = []; snowflakes = []; activePowerUps = []; eggs = []; groundBones = []; cactusGuardHits = 0; guardPulse = 0; bonusPteroTimer = 5; passiveBoneTimer = 0; passiveBoneTick = 1; lightning = null; lightningAmbient = 0;
-  dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; dino.ducking = false; duckTimer = 0; dino.jumpsLeft = 1;
-  score = 0; distance = 0; sessionBones = 0; currentLives = 1 + (save.upgrades.lives || 0); damageCooldown = 0; poisonOverlayTimer = 0; speed = BASE_SPEED; frame = 0; spawnTimer = 40; dino.scale = DINO_SCALE_GAME;
-  ghostUsed = false; petX = dino.x - 40; petY = GROUND_Y - 60;
-  comboCount = 0; comboTimer = 0; updateComboHUD();
-  dayNightTime = 0.25 * DAY_NIGHT_CYCLE; weatherTime = 0; isRaining = false; birdsEatenThisGame = 0; lastPowerUpSecond = -1;
-  updatePowerUpHUD();
-}
-
-function reset() {
-  requestTgFullscreen();
-  clearRoundState();
-  gameState = 'playing';
-  hideAllScreens();
-  pauseBtn.classList.remove('hidden');
-  hud.classList.remove('hidden');
-  xpBarContainer.classList.remove('hidden');
-  speedBarContainer.classList.add('active');
-  fullscreenBtn.classList.add('hidden');
-  versionBtn.style.display = 'none';
-  tapHint.classList.remove('hidden');
-  setTimeout(() => tapHint.classList.add('hidden'), 2000);
-  updateHUD();
-  initAudio();
-  startMusic();
-}
-
-function gameOver() {
-  gameState = 'gameover'; shakeTime = 15; haptic('crash'); playSound('crash'); spawnDust(dino.x + 30, dino.y - 20, 15, 5); stopMusic();
-  comboCount = 0; comboTimer = 0; updateComboHUD();
-  const earnedThisGame = sessionBones; save.bones += sessionBones; sessionBones = 0;
-  const finalScore = Math.floor(score); const isNewRecord = finalScore > save.highScore;
-  if (isNewRecord) { save.highScore = finalScore; playSound('record'); newRecordText.classList.remove('hidden'); } else { newRecordText.classList.add('hidden'); }
-
-  // ПАТЧ 25: отправляем рекорд в облако (ПАТЧ 26: добавили .catch для защиты)
-  if (finalScore > 0) submitScoreToCloud(finalScore).catch((e) => console.warn('submitScore error', e));
-
-  save.games.push({ score: finalScore, date: Date.now() }); save.games.sort((a, b) => b.score - a.score); save.games = save.games.slice(0, 10);
-  checkAchievements(finalScore);
-  if (save.dailyQuest && !save.dailyQuest.claimed) {
-    const q = save.dailyQuest; if (q.type === 'score') q.progress = Math.max(q.progress, finalScore); else if (q.type === 'birds') q.progress += birdsEatenThisGame; else if (q.type === 'bones') q.progress += earnedThisGame;
-    if (q.progress >= q.target) { q.progress = q.target; q.completed = true; }
-  }
-  const xpGained = Math.floor(finalScore / 10) + earnedThisGame * 2; const oldLevel = getLevelFromXp(save.xp).level;
-  save.xp += xpGained; const newInfo = getLevelFromXp(save.xp); let totalLevelReward = 0;
-  if (newInfo.level > oldLevel) { for (let lv = oldLevel + 1; lv <= newInfo.level; lv++) totalLevelReward += xpLevelReward(lv); save.bones += totalLevelReward; save.playerLevel = newInfo.level; }
-  writeSave(); updateHUD();
-  updateDailyBadge(); // ПАТЧ 26: бейдж ежедневки обновляется сразу после игры
-  goScore.textContent = finalScore; goHigh.textContent = Math.floor(save.highScore); goBones.textContent = `+${earnedThisGame} 🦴`; goXp.textContent = `+${xpGained} XP`;
-  gameoverScreen.classList.remove('hidden'); pauseBtn.classList.add('hidden'); pauseScreen.classList.add('hidden'); fullscreenBtn.classList.add('hidden'); xpBarContainer.classList.add('hidden'); versionBtn.style.display = 'none'; speedBarContainer.classList.remove('active'); powerUpHud.classList.add('hidden'); hud.classList.add('hidden');
-  if (newInfo.level > oldLevel) setTimeout(() => showLevelUpPopup(newInfo.level, totalLevelReward), 900);
-}
-
-function update(dt) {
-  if (gameState === 'paused') return;
-  frame++;
-  if (gameState === 'playing') {
-    damageCooldown = Math.max(0, damageCooldown - dt);
-    if (duckTimer !== Infinity && duckTimer > 0) { duckTimer = Math.max(0, duckTimer - dt); if (duckTimer === 0) dino.ducking = false; }
-    poisonOverlayTimer = Math.max(0, poisonOverlayTimer - dt);
-    bonusPteroTimer -= dt;
-    if (bonusPteroTimer <= 0) {
-      if (Math.random() < 0.5) spawnBonusPterodactyl();
-      bonusPteroTimer += 5;
-    }
-    if (passiveBoneTimer > 0) {
-      passiveBoneTimer = Math.max(0, passiveBoneTimer - dt);
-      passiveBoneTick -= dt;
-      if (passiveBoneTick <= 0) {
-        sessionBones += 1; passiveBoneTick += 1; updateHUD();
-        spawnFloatingText(dino.x + 20, dino.y - 82, '+1 🦴');
-      }
-    }
-    eggs.forEach(egg => { egg.y += 235 * dt; egg.rotation += dt * 5; });
-    for (let i = eggs.length - 1; i >= 0; i--) {
-      if (eggs[i].y >= GROUND_Y - 8) {
-        spawnDust(eggs[i].x, GROUND_Y - 3, 9, 3);
-        spawnGoldenReward(eggs[i].x); eggs.splice(i, 1); playSound('record');
-      }
-    }
-    groundBones.forEach(bone => { bone.x -= speed; bone.phase += dt * 4; });
-    for (let i = groundBones.length - 1; i >= 0; i--) {
-      const bone = groundBones[i];
-      const box = { x: bone.x - 9, y: bone.y - 10, w: 20, h: 16 };
-      if (rectCollide(dinoBoxForGroundBone(), box)) {
-        sessionBones += bone.amount; spawnFloatingText(bone.x, bone.y - 20, `+${bone.amount} 🦴`);
-        groundBones.splice(i, 1); updateHUD(); playSound('eat');
-      } else if (bone.x < dino.x - 35) groundBones.splice(i, 1);
-    }
-
-    const skinBonus = getCurrentSkin().bonus; const petBonus = getCurrentPet().bonus;
-    let scoreBonusMult = 1; if (skinBonus.type === 'score') scoreBonusMult *= skinBonus.value; if (petBonus.type === 'score') scoreBonusMult *= petBonus.value;
-    score += 0.1 * (speed / BASE_SPEED) * (dt * 60) * scoreBonusMult;
-    distance += speed * (dt * 60);
-    speed = BASE_SPEED + Math.min(MAX_SPEED_BONUS, score / 400); speedBar.style.width = Math.min(100, ((speed - BASE_SPEED) / MAX_SPEED_BONUS) * 100) + '%';
-
-    if (save.currentPet !== 'none') {
-      const targetX = dino.x - 40; const targetY = dino.y - 60 + Math.sin(frame * 0.1) * 10;
-      petX += (targetX - petX) * 0.1; petY += (targetY - petY) * 0.1;
-    }
-
-    if (comboCount > 0) { comboTimer -= dt; if (comboTimer <= 0) resetCombo(); else comboTimerFill.style.width = Math.min(100, (comboTimer / COMBO_TIMEOUT) * 100) + '%'; }
-    dayNightTime += dt; if (dayNightTime >= DAY_NIGHT_CYCLE) dayNightTime -= DAY_NIGHT_CYCLE;
-    const biomeInfo = getBiomeState(score);
-    if (biomeInfo.current.hasSnow || (biomeInfo.next && biomeInfo.next.hasSnow && biomeInfo.transitionT > 0.5)) { isRaining = false; updateSnow(dt); }
-    else { weatherTime += dt; const currentWeatherDuration = isRaining ? RAIN_DURATION : CLEAR_DURATION; if (weatherTime >= currentWeatherDuration) { isRaining = !isRaining; weatherTime = 0; if (isRaining) initRain(); } updateLightning(dt); updateRain(dt); }
-
-    if (dino.jumping) {
-      dino.vy += GRAVITY * (dt * 60); dino.y += dino.vy * (dt * 60);
-      if (dino.y >= GROUND_Y) { dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false; const hasDoubleJump = activePowerUps.some(a => a.type === 'doubleJump'); dino.jumpsLeft = hasDoubleJump ? 1 : 0; spawnDust(dino.x + 30, GROUND_Y, 5, 2); }
-    } else if (frame % 8 === 0) spawnDust(dino.x + 10, GROUND_Y, 1, 1);
-
-    spawnTimer -= dt * 60; if (spawnTimer <= 0) { spawnObstacle(); const difficultyFactor = Math.min(1, score / 2000); let baseGap = Math.max(45, 100 - difficultyFactor * 40); const minFrames = baseGap / (speed / BASE_SPEED); const maxFrames = (baseGap + 60) / (speed / BASE_SPEED); spawnTimer = Math.max(30, minFrames + Math.random() * (maxFrames - minFrames)); }
-
-    obstacles.forEach(o => o.x -= speed); powerUps.forEach(p => p.x -= speed); powerUps = powerUps.filter(p => p.x > -20);
-    const dinoBox = getDinoBox();
-
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const o = obstacles[i]; const oBox = getCactusBox(o);
-      if (!dino.jumping && !o.wasClose) { const dist = boxDistance(dinoBox, oBox); if (dist > 0 && dist < 15) o.wasClose = true; }
-      if (oBox.x + oBox.w < dinoBox.x - 15) { if (o.wasClose) { score += 5 * scoreBonusMult; spawnFloatingText(o.x + o.w * dino.scale / 2, o.y - o.h * dino.scale - 25, 'NICE! +5'); } obstacles.splice(i, 1); }
-    }
-
-    guardPulse = Math.max(0, guardPulse - dt * 5);
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const o = obstacles[i];
-      if (!rectCollide(dinoBox, getCactusBox(o))) continue;
-      if (o.type === 'poisonFlower') {
-        poisonOverlayTimer = 5;
-        obstacles.splice(i, 1);
-        takeDamage('poison');
-        if (gameState !== 'playing') return;
-        continue;
-      }
-      // Столкнувшееся препятствие убирается всегда; защита решает только, будет ли урон.
-      obstacles.splice(i, 1);
-      takeDamage('obstacle');
-      if (gameState !== 'playing') return;
-    }
-
-    birds.forEach(b => {
-      const factor = b.speedFactor || 0.5;
-      let effSpeed = speed * factor;
-      if (b.kind === 'predator' && b.altitude === 'high' && b.targetPlayer && !b.diveComplete) {
-        const targetY = b.diveTargetY == null ? GROUND_Y - 19 : b.diveTargetY;
-        const deltaY = targetY - b.y;
-        b.y += deltaY * Math.min(1, dt * 1.75);
-        if (Math.abs(deltaY) < 0.8) {
-          b.y = targetY;
-          b.diveComplete = true;
-        }
-      } else if (b.kind === 'predator' && b.targetId) {
-        const target = birds.find(other => other.id === b.targetId);
-        if (target) b.y += (target.y - b.y) * Math.min(1, dt * 1.2);
-        else b.targetId = null;
-      }
-      if (b.altitude === 'medium' && b.kind !== 'bonus' && save.upgrades.magnet > 0) {
-        const mRange = 122.5 + save.upgrades.magnet * 49;
-        const tx = dino.x + 15 * dino.scale, ty = dino.y - 12 * dino.scale;
-        const dx = tx - (b.x + 20 * BIRD_SCALE_GAME), dy = ty - b.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < mRange && b.x > dino.x - 50) {
-          b.magnetized = true;
-          const pullSpeed = 1.4 * save.upgrades.magnet;
-          if (dist > pullSpeed) { b.x += (dx / dist) * pullSpeed; b.y += (dy / dist) * pullSpeed; }
-          else { b.x += dx; b.y += dy; }
-          effSpeed = 0.2;
-        } else b.magnetized = false;
-      }
-      if (b.kind === 'peaceful') b.x += speed * factor;
-      else b.x -= effSpeed;
-      if (b.kind === 'bonus' && !b.eggDropped && b.x <= W * 0.5) {
-        b.eggDropped = true; eggs.push({ x: b.x + 18, y: b.y + 10, rotation: 0 });
-      }
-    });
-
-
-    // Хищники могут перехватывать мирных птеродактилей.
-    for (const hunter of birds) {
-      if (hunter.kind !== 'predator' || !hunter.targetId) continue;
-      const target = birds.find(other => other.id === hunter.targetId && !other.eaten);
-      if (target && target.kind === 'peaceful' && rectCollide(getBirdBox(hunter), getBirdBox(target))) {
-        spawnGroundBone(target.x + 18, 1 + (save.upgrades.doubleBones || 0));
-        target.eaten = true;
-        hunter.targetId = null;
-      } else if (!target) hunter.targetId = null;
-    }
-
-    for (let i = birds.length - 1; i >= 0; i--) {
-      const b = birds[i], bBox = getBirdBox(b);
-      if (b.eaten) { birds.splice(i, 1); continue; }
-      if (b.kind === 'peaceful') {
-        if (rectCollide(dinoBox, bBox)) {
-          if (Math.random() < b.dropChance) spawnGroundBone(b.x + 18, 1 + (save.upgrades.doubleBones || 0));
-          birds.splice(i, 1); resetCombo(); continue;
-        }
-        if (!b.dropChecked && b.x <= dino.x + 36 && b.x + b.w * BIRD_SCALE_GAME >= dino.x + 20) {
-          b.dropChecked = true;
-          if (Math.random() < b.dropChance) spawnGroundBone(dino.x + 55, 1 + (save.upgrades.doubleBones || 0));
-        }
-        if (b.x > W + 80) { resetCombo(); birds.splice(i, 1); }
-      } else if (b.kind === 'predator') {
-        if (rectCollide(dinoBox, bBox) && !b.playerAvoided) {
-          const avoided = b.targetPlayer
-            ? (dino.jumping || dino.ducking)
-            : (b.altitude === 'high' ? dino.jumping : dino.ducking);
-          if (avoided) {
-            // После успешного уклонения хищник сохраняет нижнюю траекторию и пролетает дальше.
-            b.playerAvoided = true;
-          } else {
-            takeDamage('pterodactyl');
-            birds.splice(i, 1);
-            if (gameState !== 'playing') return;
-          }
-        } else if (b.x < -80) birds.splice(i, 1);
-      } else if (b.kind === 'bonus' && b.x < -80) {
-        birds.splice(i, 1);
-      }
-    }
-
-    // Подбор и обратный отсчёт обычных бонусов.
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-      const powerUp = powerUps[i];
-      if (!rectCollide(dinoBox, { x: powerUp.x - 15, y: powerUp.y - 15, w: 30, h: 30 })) continue;
-      if (powerUp.special) {
-        if (powerUp.special === 'shield') {
-          cactusGuardHits += 5;
-          guardPulse = 1;
-          spawnFloatingText(dino.x + 20, dino.y - 82, '🛡 ЗАЩИТА: 5 УДАРОВ!');
-        } else if (powerUp.special === 'passiveBones') {
-          passiveBoneTimer = 20;
-          passiveBoneTick = 1;
-          spawnFloatingText(dino.x + 20, dino.y - 82, '🦴 +1 КОСТЬ / СЕК');
-        } else if (powerUp.special === 'clearBirds') {
-          let count = 0;
-          birds = birds.filter(b => {
-            if (b.kind && b.x > -60 && b.x < W + 60) {
-              spawnGroundBone(Math.max(dino.x + 55, b.x), 1 + (save.upgrades.doubleBones || 0));
-              count++;
-              return false;
-            }
-            return true;
-          });
-          spawnFloatingText(dino.x + 20, dino.y - 82, `💥 ${count} ПТЕРОДАКТИЛЕЙ!`);
-        }
-        powerUps.splice(i, 1);
-        playSound('record'); haptic('eat'); updateHUD();
-        continue;
-      }
-      const skinBonusDuration = skinBonus.type === 'powerup' ? skinBonus.value : 0;
-      const totalDuration = powerUp.duration + skinBonusDuration;
-      const existing = activePowerUps.find(item => item.type === powerUp.type);
-      if (existing) {
-        existing.timer = Math.max(existing.timer, totalDuration);
-        existing.maxTimer = existing.timer;
-      } else {
-        activePowerUps.push({ type: powerUp.type, timer: totalDuration, maxTimer: totalDuration, icon: powerUp.icon, color: powerUp.color });
-      }
-      if (powerUp.type === 'doubleJump') dino.jumpsLeft = Math.max(dino.jumpsLeft, 1);
-      playSound('record'); haptic('eat');
-      powerUps.splice(i, 1);
-      updatePowerUpHUD();
-    }
-
-    let powerUpChanged = false;
-    for (let i = activePowerUps.length - 1; i >= 0; i--) {
-      const powerUp = activePowerUps[i];
-      powerUp.timer -= dt;
-      powerUp.hitPulse = Math.max(0, (powerUp.hitPulse || 0) - dt * 5);
-      const shownSecond = Math.max(0, Math.ceil(powerUp.timer));
-      if (powerUp.displaySecond !== shownSecond) powerUpChanged = true;
-      if (powerUp.timer <= 0) { activePowerUps.splice(i, 1); powerUpChanged = true; }
-    }
-    if (powerUpChanged) updatePowerUpHUD();
-
-    // ПАТЧ 26: highScore хранится как int (был баг с float)
-    const scoreFloored = Math.floor(score);
-    if (scoreFloored > save.highScore) save.highScore = scoreFloored;
-
-    clouds.forEach(c => { c.x -= c.speed; if (c.x < -80) { c.x = W + Math.random() * 200; c.y = 40 + Math.random() * 60; } });
-    groundDots.forEach(d => { d.x -= GROUND_SCROLL_SPEED; if (d.x < 0) { d.x = W; d.y = GROUND_Y + 6 + Math.random() * 20; } });
-    updateHUD();
-  }
-  updateParticles(); updateBonesFlying(); if (shakeTime > 0) shakeTime--;
-}
-
-function drawMenuScene(colors) {
-  const menuDinoX = W * 0.15 + Math.sin(frame * 0.02) * 30; drawDinoAt(menuDinoX, GROUND_Y, false, false, Math.floor(frame / 6) % 12, false, DINO_SCALE_MENU);
-  drawCactus({ x: W * 0.8, y: GROUND_Y, w: 8, h: 20, type: 'cactus_small' }, colors, 2); drawCactus({ x: W * 0.9, y: GROUND_Y, w: 10, h: 25, type: 'cactus_big' }, colors, 2);
-  const birdX = W * 0.4 + Math.sin(frame * 0.03) * 100; const birdY = H * 0.25 + Math.cos(frame * 0.02) * 40;
-  drawBird({ x: birdX, y: birdY, w: 10, h: 10, type: 'bird', magnetized: false }, colors, BIRD_SCALE_MENU);
-}
-
-function drawGroundBones() {
-  groundBones.forEach(b => {
-    ctx.save(); ctx.translate(b.x, b.y + Math.sin(b.phase) * 2); ctx.rotate(-0.35);
-    ctx.strokeStyle = '#FFF4D6'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.stroke();
-    ctx.fillStyle = '#FFF4D6';
-    [-5,5].forEach(x => { ctx.beginPath(); ctx.arc(x, -2, 2.3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(x, 2, 2.3, 0, Math.PI * 2); ctx.fill(); });
-    ctx.restore();
-  });
-}
-function drawEggs() {
-  eggs.forEach(egg => {
-    ctx.save(); ctx.translate(egg.x, egg.y); ctx.rotate(egg.rotation);
-    ctx.fillStyle = '#FFD54F'; ctx.strokeStyle = '#FFF3B0'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, 7, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.restore();
-  });
-}
-
-function render() {
-  let shakeX = 0, shakeY = 0; if (shakeTime > 0) { shakeX = (Math.random() - 0.5) * shakeTime * 0.6; shakeY = (Math.random() - 0.5) * shakeTime * 0.6; }
-  ctx.clearRect(0, 0, W, H); ctx.save(); ctx.translate(shakeX, shakeY);
-  const isMenu = gameState === 'menu' || gameState === 'daily' || gameState === 'records' || gameState === 'upgrades' || gameState === 'achievements' || gameState === 'settings';
-  const timeOfDay = (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') ? dayNightTime / DAY_NIGHT_CYCLE : 0.5;
-  // ПАТЧ 26: в меню используем biomeScore=0 — иначе фон залипал в позднем биоме
-  const biomeScore = isMenu ? 0 : score;
-  const colors = getObjectColors(timeOfDay, biomeScore);
-  drawBackground(timeOfDay, !isMenu, biomeScore); drawLightning(); drawGround(timeOfDay, biomeScore); drawParticles();
-  if (gameState === 'playing' || gameState === 'paused' || gameState === 'gameover') {
-    obstacles.forEach(o => drawCactus(o, colors, dino.scale)); birds.forEach(b => b.kind ? drawPterodactyl(b, colors) : drawBird(b, colors, BIRD_SCALE_GAME)); powerUps.forEach(drawPowerUp); drawRain(); drawSnow(); drawBonesFlying(); drawGroundBones(); drawEggs(); drawDino(); drawPet(); drawProtectionShield();
-  } else { drawMenuScene(colors); }
-  if (poisonOverlayTimer > 0) {
-    const poison = ctx.createLinearGradient(0, 0, W, H);
-    poison.addColorStop(0, 'rgba(255, 35, 0, 0.5)');
-    poison.addColorStop(1, 'rgba(255, 205, 0, 0.5)');
-    ctx.fillStyle = poison; ctx.fillRect(0, 0, W, H);
-  }
-  ctx.restore();
-}
-
-function loop(ts) {
-  const dt = ts - lastTime; lastTime = ts; const dtSeconds = Math.min(0.05, dt / 1000); const steps = Math.min(3, Math.max(1, Math.round(dt / 16.67)));
-  for (let i = 0; i < steps; i++) update(dtSeconds / steps);
-  if (gameState === 'playing' && frame % 300 === 0) writeSave(); render(); requestAnimationFrame(loop);
-}
-
-resizeCanvas(); checkDailyAndStreak(); updateHUD(); showMainMenu(); requestAnimationFrame(loop);
+function drawDino(x,y,r,color,dirX=1,dirY=0,isPlayer=false){ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.fillStyle='#14201677';ctx.beginPath();ctx.ellipse(0,r*.75,r*1.2,r*.48,0,0,Math.PI*2);ctx.fill();ctx.rotate(Math.atan2(dirY,dirX)*.18);ctx.fillStyle=color;ctx.fillRect(-r*.7,-r*.48,r*1.25,r*.95);ctx.fillRect(r*.25,-r*.9,r*.85,r*.65);ctx.fillStyle=isPlayer?'#c4e47d':'#d58d61';ctx.fillRect(r*.7,-r*1.03,r*.5,r*.38);ctx.fillStyle='#172117';ctx.fillRect(r*1.02,-r*.9,3,3);ctx.fillStyle=color;ctx.fillRect(-r*1.3,-r*.12,r*.75,r*.25);ctx.fillRect(-r*.5,r*.35,r*.3,r*.45);ctx.fillRect(r*.35,r*.35,r*.3,r*.45);if(isPlayer){ctx.fillStyle='#d9f19c';ctx.fillRect(-r*.35,-r*.58,3,3);ctx.fillStyle='#a5cf65';ctx.fillRect(-r*.55,-r*.78,3,3);ctx.fillRect(-r*.1,-r*.82,3,3)}ctx.restore()}
+function render(){drawWorld();const cx=player?player.x:0,cy=player?player.y:0;const sx=x=>x-cx+W/2,sy=y=>y-cy+H/2;
+for(const o of orbs){ctx.fillStyle='#f1d47c';ctx.fillRect(sx(o.x)-4,sy(o.y)-4,8,8);ctx.fillStyle='#fff2b3';ctx.fillRect(sx(o.x)-1,sy(o.y)-1,3,3)}
+for(const s of shots){ctx.fillStyle='#d8f69b';ctx.fillRect(sx(s.x)-3,sy(s.y)-3,7,7);ctx.fillStyle='#f4ffd8';ctx.fillRect(sx(s.x)-1,sy(s.y)-1,3,3)}
+for(const e of enemies){const x=sx(e.x),y=sy(e.y);drawDino(x,y,e.r,e.brute?'#a85e49':'#c27a54',player.x-e.x,player.y-e.y);ctx.fillStyle='#1b251c';ctx.fillRect(x-e.r,y-e.r-9,e.r*2,3);ctx.fillStyle='#e56c57';ctx.fillRect(x-e.r,y-e.r-9,e.r*2*(e.hp/e.maxHp),3)}
+if(player){if(player.invuln>0&&Math.floor(worldTime*18)%2===0){}else drawDino(W/2,H/2,player.r,'#82b85b',player.dx,player.dy,true);if(player.specialCd>0){ctx.strokeStyle='#9bd9d766';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,H/2,player.r+5,0,Math.PI*2);ctx.stroke()}}
+for(const p of particles){ctx.globalAlpha=clamp(p.t/.55,0,1);ctx.fillStyle=p.color;ctx.fillRect(sx(p.x),sy(p.y),3,3)}ctx.globalAlpha=1;
+if(shake>0){shake=Math.max(0,shake-1)}}
+function loop(now){if(state!=='playing')return;const dt=Math.min(.033,(now-last)/1000||0);last=now;update(dt);if(state==='playing'){render();raf=requestAnimationFrame(loop)}}
+function bindHold(id,fn){const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();fn();el.setPointerCapture?.(e.pointerId)})}
+const joyEl=$('joystick'),stick=$('stick');function joyMove(e){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=34,l=Math.hypot(dx,dy),k=l>max?max/l:1;joy.x=dx*k/max;joy.y=dy*k/max;stick.style.transform='translate('+dx*k+'px,'+dy*k+'px)'}
+joyEl.addEventListener('pointerdown',e=>{e.preventDefault();pointerId=e.pointerId;joy.active=true;joyEl.setPointerCapture(e.pointerId);joyMove(e)});joyEl.addEventListener('pointermove',e=>{if(joy.active&&e.pointerId===pointerId)joyMove(e)});function joyEnd(e){if(e.pointerId!==pointerId)return;joy.active=false;pointerId=null;joy.x=joy.y=0;stick.style.transform='translate(0,0)'}joyEl.addEventListener('pointerup',joyEnd);joyEl.addEventListener('pointercancel',joyEnd);
+bindHold('specialBtn',special);bindHold('dashBtn',dash);$('pauseBtn').addEventListener('click',pause);$('resumeBtn').addEventListener('click',resume);$('menuBtn').addEventListener('click',()=>{state='menu';show('menu');$('pauseBtn').classList.add('hidden');saveProgress()});$('retryBtn').addEventListener('click',start);$('gameOverMenuBtn').addEventListener('click',()=>{state='menu';show('menu')});$('startBtn').addEventListener('click',start);$('continueBtn').addEventListener('click',start);$('versionBtn').addEventListener('click',()=>show('changelog'));$('closeChangelog').addEventListener('click',()=>show('menu'));$('closeChangelogBtn').addEventListener('click',()=>show('menu'));
+window.addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key==='Escape'||e.key==='p')pause();if(e.key===' '||e.key==='Shift')dash();if(e.key==='e'||e.key==='E')special()});window.addEventListener('keyup',e=>keys[e.key]=false);
+if(saved.bestKills>0)$('continueBtn').classList.remove('hidden');
+show('menu');render();
+})();
