@@ -178,7 +178,7 @@ if(e.attackWindup>0){
     e.attack=.9;
   }
 }else if((e.hostile||e.alerted)&&contactNow<=contactDistance&&e.attack<=0){
-  e.attackWindup=e.brute?.5:.36;
+  e.attackWindup=e.brute ? 0.5 : 0.36;
   e.attackAngle=Math.atan2(player.y-e.y,player.x-e.x);
 }
 enemies=enemies.filter(e=>!e.dead);
