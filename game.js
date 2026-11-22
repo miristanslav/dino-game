@@ -27,7 +27,10 @@ localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
 function awardRunProgress(){
 if(runSaved)return;
 runSaved=true;
-const earned=Math.max(0,Math.floor(kills/5)+Math.floor(Math.max(0,(player?.level||1)-1)/3));
+const killDna=Math.floor(kills/5);
+const levelDna=Math.floor(Math.max(0,(player?.level||1)-1)/3);
+const survivalDna=Math.floor(elapsed/120);
+const earned=killDna+levelDna+survivalDna;
 runReward=earned;
 saved.profile.dna+=earned;
 saved.profile.runs++;
@@ -39,37 +42,44 @@ function show(name){Object.values(ui).forEach(x=>x.classList.add('hidden'));if(n
 function start(){if(!window.Dino3D||!window.Dino3D.ready){const reason=window.Dino3D?.error?.message||'3D-рендерер ещё не готов';alert('Не удалось запустить 3D-мир Dino Game. '+reason+' Обнови страницу и попробуй снова.');return}player=freshPlayer();runReward=0;runSaved=false;enemies=[];orbs=[];particles=[];decor=[];kills=0;spawnClock=.7;elapsed=0;worldTime=0;state='playing';for(let i=0;i<45;i++)decor.push({x:rand(-500,500),y:rand(-650,650),type:Math.random()<.55?'fern':'rock',s:rand(.65,1.5)});show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');ui.hint.classList.remove('hidden');setTimeout(()=>ui.hint.classList.add('hidden'),2800);updateHud();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function pause(){if(state!=='playing')return;state='paused';show('pause');$('pauseBtn').classList.add('hidden')}
 function resume(){if(state!=='paused')return;state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
-function endRun(){state='over';awardRunProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Уровень: '+player.level+' · ДНК получено: '+runReward;show('over')}
+function endRun(){state='over';awardRunProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Уровень: '+player.level+' · Время: '+Math.floor(elapsed/60)+' мин. · ДНК: '+runReward+' (победы '+Math.floor(kills/5)+', уровни '+Math.floor(Math.max(0,player.level-1)/3)+', выживание '+Math.floor(elapsed/120)+')';show('over')}
 function updateHud(){$('healthFill').style.width=(player.hp/player.maxHp*100)+'%';$('healthText').textContent=Math.ceil(player.hp)+' / '+player.maxHp;$('xpFill').style.width=(player.xp/player.nextXp*100)+'%';$('levelText').textContent='УРОВЕНЬ '+player.level;$('killText').textContent='ПОБЕДЫ: '+kills}
+const MAX_STAT_LEVEL=10;
+const statCost=level=>1+Math.floor(level/3);
 const permanentStats=[
-{id:'vitality',name:'Живучесть',desc:'+10 к максимальному здоровью за уровень',base:100,step:10},
-{id:'power',name:'Сила',desc:'+1,5 к урону основной атаки за уровень',base:14,step:1.5},
-{id:'agility',name:'Ловкость',desc:'+3% к скорости передвижения за уровень',base:145,step:3},
-{id:'armor',name:'Природная броня',desc:'−1 к получаемому урону за уровень',base:0,step:1},
-{id:'haste',name:'Скорость атаки',desc:'+2,5% к частоте атак за уровень',base:0,step:2.5},
-{id:'instinct',name:'Инстинкт',desc:'+8 к радиусу подбора опыта за уровень',base:190,step:8}
+{id:'vitality',name:'Живучесть',desc:'+10 к максимальному здоровью',value:l=>(100+l*10)+' ед.'},
+{id:'power',name:'Сила',desc:'+1,5 к урону когтей',value:l=>(14+l*1.5).toFixed(1)+' урона'},
+{id:'agility',name:'Ловкость',desc:'+3% к скорости передвижения',value:l=>Math.round(145*(1+l*.03))+' ед.'},
+{id:'armor',name:'Природная броня',desc:'−1 к входящему урону',value:l=>l+' ед.'},
+{id:'haste',name:'Скорость атаки',desc:'+2,5% к частоте атак',value:l=>Math.round((1-Math.pow(.975,l))*100)+'% быстрее'},
+{id:'instinct',name:'Инстинкт',desc:'+8 к радиусу притяжения опыта',value:l=>(190+l*8)+' ед.'}
 ];
 function renderProfile(){
 const p=saved.profile;
 $('dnaCount').textContent=p.dna;
-$('profileMeta').textContent='Забегов: '+p.runs+' · Побед: '+p.totalKills;
+$('profileMeta').textContent='Забегов: '+p.runs+' · Побед: '+p.totalKills+' · Улучшения ограничены 10 уровнями';
 const box=$('permanentStats');box.innerHTML='';
 permanentStats.forEach(st=>{
-const level=p.stats[st.id]||0;
+const level=Math.min(MAX_STAT_LEVEL,Math.max(0,Number(p.stats[st.id])||0));
+const cost=statCost(level),maxed=level>=MAX_STAT_LEVEL;
 const row=document.createElement('div');row.className='stat-row';
 const info=document.createElement('div');info.className='stat-info';
-const name=document.createElement('b');name.textContent=st.name+' · '+level;
-const desc=document.createElement('small');desc.textContent=st.desc;
-info.append(name,desc);
-const buy=document.createElement('button');buy.className='stat-buy';buy.textContent='+';buy.disabled=p.dna<1;buy.setAttribute('aria-label','Улучшить: '+st.name);
+const name=document.createElement('b');name.textContent=st.name+' · '+level+'/'+MAX_STAT_LEVEL;
+const desc=document.createElement('small');desc.textContent=st.desc+' · Сейчас: '+st.value(level)+(maxed?' · МАКСИМУМ':' · Следующий: '+st.value(level+1));
+const price=document.createElement('small');price.className='stat-price';price.textContent=maxed?'Полностью развито':'Стоимость: '+cost+' ДНК';
+info.append(name,desc,price);
+const buy=document.createElement('button');buy.className='stat-buy';buy.textContent=maxed?'✓':'+';buy.disabled=maxed||p.dna<cost;buy.setAttribute('aria-label',maxed?'Максимальный уровень':('Улучшить '+st.name+' за '+cost+' ДНК'));
 buy.addEventListener('click',()=>buyPermanentStat(st.id));
 row.append(info,buy);box.appendChild(row);
 });
 }
 function buyPermanentStat(id){
 const st=permanentStats.find(x=>x.id===id);
-if(!st||saved.profile.dna<1)return;
-saved.profile.dna--;saved.profile.stats[id]=(saved.profile.stats[id]||0)+1;
+if(!st)return;
+const level=Math.min(MAX_STAT_LEVEL,Math.max(0,Number(saved.profile.stats[id])||0));
+const cost=statCost(level);
+if(level>=MAX_STAT_LEVEL||saved.profile.dna<cost)return;
+saved.profile.dna-=cost;saved.profile.stats[id]=level+1;
 saveProgress();renderProfile();
 }
 const upgrades=[{name:'Усиленные когти',desc:'Урон основной атаки +25%',apply:p=>p.damage=Math.round(p.damage*1.25)},{name:'Быстрая реакция',desc:'Скорость атаки +20%',apply:p=>p.attackRate*=.8},{name:'Крепкая чешуя',desc:'Максимальное здоровье +25 и лечение',apply:p=>{p.maxHp+=25;p.hp=Math.min(p.maxHp,p.hp+35)}},{name:'Охотничий инстинкт',desc:'Дальность автоматической атаки +20%',apply:p=>p.range*=1.2},{name:'Мускулистые лапы',desc:'Скорость передвижения +12%',apply:p=>p.speed*=1.12},{name:'Природная броня',desc:'Получаемый урон снижается на 2',apply:p=>p.armor+=2}];
