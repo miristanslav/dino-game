@@ -5,12 +5,13 @@ const $=id=>document.getElementById(id);
 const ui={menu:$('menu'),hud:$('hud'),controls:$('mobileControls'),pause:$('pauseScreen'),level:$('levelScreen'),over:$('gameOverScreen'),changelog:$('changelog'),hint:$('worldHint'),profile:$('profileScreen')};
 const SAVE_KEY='dino_game_rpg_save_v1';
 const saved=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch{return {}}})();
-const defaultProfile={dna:0,runs:0,totalKills:0,stats:{vitality:0,power:0,agility:0,armor:0,haste:0,instinct:0}};
-saved.profile={...defaultProfile,...(saved.profile||{}),stats:{...defaultProfile.stats,...(saved.profile?.stats||{})}};
+const defaultProfile={dna:0,runs:0,totalKills:0,stats:{vitality:0,power:0,agility:0,armor:0,haste:0,instinct:0},skills:{claws:false,tempo:false,pursuit:false,heart:false,scales:false,guard:false,senses:false,forager:false,endurance:false}};
+saved.profile={...defaultProfile,...(saved.profile||{}),stats:{...defaultProfile.stats,...(saved.profile?.stats||{})},skills:{...defaultProfile.skills,...(saved.profile?.skills||{})}};
 saved.profile.dna=Math.max(0,Math.floor(Number(saved.profile.dna)||0));
 saved.profile.runs=Math.max(0,Math.floor(Number(saved.profile.runs)||0));
 saved.profile.totalKills=Math.max(0,Math.floor(Number(saved.profile.totalKills)||0));
 Object.keys(defaultProfile.stats).forEach(k=>saved.profile.stats[k]=clampProfileStat(saved.profile.stats[k]));
+Object.keys(defaultProfile.skills).forEach(k=>saved.profile.skills[k]=saved.profile.skills[k]===true);
 function clampProfileStat(value){return Math.max(0,Math.min(10,Math.floor(Number(value)||0)))}
 let W=480,H=800,scale=1,last=0,raf=0,state='menu',worldTime=0,shake=0;
 let player,enemies=[],orbs=[],particles=[],decor=[],kills=0,spawnClock=0,elapsed=0,levelChoices=[],keys={},joy={x:0,y:0,active:false},pointerId=null,nextEnemyId=1;
@@ -18,9 +19,9 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=(a,b)=>a+Math.random()*(b-a)
 function resize(){const tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null,vv=window.visualViewport;W=Math.round((tg&&tg.viewportWidth)||(vv&&vv.width)||window.innerWidth);H=Math.round((tg&&tg.viewportHeight)||(vv&&vv.height)||window.innerHeight);if(window.Dino3D&&window.Dino3D.resize)window.Dino3D.resize()}
 window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);resize();
 function freshPlayer(){
-const st=saved.profile.stats;
-const maxHp=100+st.vitality*10;
-return{x:0,y:0,r:13,hp:maxHp,maxHp,speed:145*(1+st.agility*.03),damage:14+st.power*1.5,attackRate:.72*Math.pow(.975,st.haste),attackCooldown:0,attackWindup:0,attackVisual:0,attackAngle:0,level:1,xp:0,nextXp:35,range:190+st.instinct*8,specialCd:0,dashCd:0,dashTime:0,dx:0,dy:0,invuln:0,armor:st.armor}}
+const st=saved.profile.stats,sk=saved.profile.skills;
+const maxHp=100+st.vitality*10+(sk.heart?25:0);
+return{x:0,y:0,r:13,hp:maxHp,maxHp,speed:145*(1+st.agility*.03),damage:(14+st.power*1.5)*(sk.claws?1.15:1),attackRate:.72*Math.pow(.975,st.haste)*(sk.tempo?.9:1),attackCooldown:0,attackWindup:0,attackVisual:0,attackAngle:0,level:1,xp:0,xpMultiplier:sk.forager?1.25:1,nextXp:35,range:190+st.instinct*8+(sk.senses?35:0)+(sk.pursuit?30:0),specialCd:0,dashCd:0,dashCooldown:sk.endurance?1.9:2.4,dashInvuln:sk.guard?.55:.35,dashTime:0,dx:0,dy:0,invuln:0,armor:st.armor+(sk.scales?2:0)}}
 let runReward=0,runSaved=false;
 function saveProgress(){
 try{
@@ -50,6 +51,20 @@ function resume(){if(state!=='paused')return;state='playing';show('hud');ui.hud.
 function endRun(){state='over';awardRunProgress();$('runSummary').textContent='Побеждено хищников: '+kills+' · Уровень: '+player.level+' · Время: '+Math.floor(elapsed/60)+' мин. · ДНК: '+runReward+' (победы '+Math.floor(kills/5)+', уровни '+Math.floor(Math.max(0,player.level-1)/3)+', выживание '+Math.floor(elapsed/120)+')';show('over')}
 function updateHud(){$('healthFill').style.width=(player.hp/player.maxHp*100)+'%';$('healthText').textContent=Math.ceil(player.hp)+' / '+player.maxHp;$('xpFill').style.width=(player.xp/player.nextXp*100)+'%';$('levelText').textContent='УРОВЕНЬ '+player.level;$('killText').textContent='ПОБЕДЫ: '+kills}
 const MAX_STAT_LEVEL=10;
+const skillBranches=[
+{ name:'ОХОТА',tag:'Урон и темп боя',skills:[
+{id:'claws',name:'Рваные когти',desc:'Урон всех атак +15%',cost:2},
+{id:'tempo',name:'Боевой ритм',desc:'Скорость атак +10%',cost:3},
+{id:'pursuit',name:'Преследователь',desc:'Радиус атаки +30',cost:4}]},
+{ name:'ЗАЩИТА',tag:'Здоровье и стойкость',skills:[
+{id:'heart',name:'Крепкое сердце',desc:'Максимальное здоровье +25',cost:2},
+{id:'scales',name:'Усиленная чешуя',desc:'Постоянная броня +2',cost:3},
+{id:'guard',name:'Инстинкт защиты',desc:'Неуязвимость после рывка дольше',cost:4}]},
+{ name:'ВЫЖИВАНИЕ',tag:'Исследование и развитие',skills:[
+{id:'senses',name:'Острый нюх',desc:'Радиус притяжения опыта +35',cost:2},
+{id:'forager',name:'Собиратель опыта',desc:'Получаемый опыт +25%',cost:3},
+{id:'endurance',name:'Выносливость',desc:'Перезарядка рывка быстрее',cost:4}]}
+];
 const statCost=level=>1+Math.floor(level/3);
 const permanentStats=[
 {id:'vitality',name:'Живучесть',desc:'+10 к максимальному здоровью',value:l=>(100+l*10)+' ед.'},
@@ -59,6 +74,32 @@ const permanentStats=[
 {id:'haste',name:'Скорость атаки',desc:'+2,5% к частоте атак',value:l=>Math.round((1-Math.pow(.975,l))*100)+'% быстрее'},
 {id:'instinct',name:'Инстинкт',desc:'+8 к радиусу притяжения опыта',value:l=>(190+l*8)+' ед.'}
 ];
+function renderSkillTree(){
+const box=$('skillTree');if(!box)return;box.innerHTML='';
+skillBranches.forEach(branch=>{
+const section=document.createElement('section');section.className='skill-branch';
+const heading=document.createElement('div');heading.className='skill-branch-head';
+const title=document.createElement('b');title.textContent=branch.name;
+const tag=document.createElement('small');tag.textContent=branch.tag;heading.append(title,tag);section.appendChild(heading);
+branch.skills.forEach((skill,index)=>{
+const unlocked=saved.profile.skills[skill.id]===true;
+const previous=index===0||saved.profile.skills[branch.skills[index-1].id]===true;
+const button=document.createElement('button');button.type='button';button.className='skill-node'+(unlocked?' is-unlocked':'');
+const name=document.createElement('b');name.textContent=(unlocked?'✓ ':'')+skill.name;
+const desc=document.createElement('small');desc.textContent=skill.desc;
+const cost=document.createElement('small');cost.className='skill-cost';cost.textContent=unlocked?'НАВЫК ОТКРЫТ':(!previous?'СНАЧАЛА: '+branch.skills[index-1].name:'ОТКРЫТЬ · '+skill.cost+' ДНК');
+button.append(name,desc,cost);button.disabled=unlocked||!previous||saved.profile.dna<skill.cost;
+button.addEventListener('click',()=>buySkill(skill.id));section.appendChild(button);
+});box.appendChild(section);
+});
+}
+function buySkill(id){
+const skill=skillBranches.flatMap(branch=>branch.skills).find(item=>item.id===id);if(!skill||saved.profile.skills[id])return;
+const branch=skillBranches.find(item=>item.skills.some(entry=>entry.id===id));const index=branch.skills.findIndex(entry=>entry.id===id);
+if(index>0&&!saved.profile.skills[branch.skills[index-1].id])return;
+if(saved.profile.dna<skill.cost)return;
+saved.profile.dna-=skill.cost;saved.profile.skills[id]=true;saveProgress();renderProfile();
+}
 function renderProfile(){
 const p=saved.profile;
 $('dnaCount').textContent=p.dna;
@@ -77,6 +118,7 @@ const buy=document.createElement('button');buy.className='stat-buy';buy.textCont
 buy.addEventListener('click',()=>buyPermanentStat(st.id));
 row.append(info,buy);box.appendChild(row);
 });
+renderSkillTree();
 }
 function buyPermanentStat(id){
 const st=permanentStats.find(x=>x.id===id);
@@ -89,11 +131,11 @@ saveProgress();renderProfile();
 }
 const upgrades=[{name:'Усиленные когти',desc:'Урон основной атаки +25%',apply:p=>p.damage=Math.round(p.damage*1.25)},{name:'Быстрая реакция',desc:'Скорость атаки +20%',apply:p=>p.attackRate*=.8},{name:'Крепкая чешуя',desc:'Максимальное здоровье +25 и лечение',apply:p=>{p.maxHp+=25;p.hp=Math.min(p.maxHp,p.hp+35)}},{name:'Охотничий инстинкт',desc:'Дальность автоматической атаки +20%',apply:p=>p.range*=1.2},{name:'Мускулистые лапы',desc:'Скорость передвижения +12%',apply:p=>p.speed*=1.12},{name:'Природная броня',desc:'Получаемый урон снижается на 2',apply:p=>p.armor+=2}];
 function levelUp(){state='level';const picks=[...upgrades].sort(()=>Math.random()-.5).slice(0,3);const box=$('upgradeChoices');box.innerHTML='';picks.forEach(u=>{const b=document.createElement('button');b.className='upgrade-choice';b.innerHTML=u.name+'<small>'+u.desc+'</small>';b.addEventListener('click',()=>{u.apply(player);state='playing';show('hud');ui.hud.classList.remove('hidden');ui.controls.classList.remove('hidden');$('pauseBtn').classList.remove('hidden');updateHud();last=performance.now();raf=requestAnimationFrame(loop)},{once:true});box.appendChild(b)});show('level')}
-function gainXp(n){player.xp+=n;if(player.xp>=player.nextXp){player.xp-=player.nextXp;player.level++;player.nextXp=Math.round(player.nextXp*1.32+12);updateHud();levelUp()}else updateHud()}
+function gainXp(n){player.xp+=n*(player.xpMultiplier||1);if(player.xp>=player.nextXp){player.xp-=player.nextXp;player.level++;player.nextXp=Math.round(player.nextXp*1.32+12);updateHud();levelUp()}else updateHud()}
 function spawnEnemy(){const a=rand(0,Math.PI*2),d=rand(300,420),x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d,roll=Math.random(),behavior=roll<.58?'grazer':roll<.82?'territorial':'hunter',brute=behavior==='hunter'&&Math.random()<Math.min(.2,.04+elapsed/260),hp=brute?58:behavior==='hunter'?30:behavior==='territorial'?38:24;enemies.push({id:nextEnemyId++,x,y,homeX:x,homeY:y,r:brute?17:behavior==='grazer'?11:12,hp,maxHp:hp,speed:behavior==='grazer'?rand(24,34):behavior==='territorial'?rand(26,36):brute?40:50,damage:brute?13:behavior==='hunter'?8:6,brute,behavior,hostile:false,alerted:false,alertTime:0,alertCooldown:0,fleeing:false,fleeCooldown:0,fleeAngle:rand(0,Math.PI*2),vx:0,vy:0,wanderAngle:rand(0,Math.PI*2),wanderTimer:rand(.5,2.5),hit:0,attack:rand(.2,.8)})}
 function burst(x,y,color,n=8){for(let i=0;i<n;i++){const a=rand(0,Math.PI*2),s=rand(25,105);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rand(.2,.55),life:.55,color})}}
 function special(){if(state!=='playing'||player.specialCd>0)return;player.specialCd=8;const radius=112;burst(player.x,player.y,'#a8e6ff',28);for(const e of enemies){const d=dist(player,e);if(d<radius+e.r){e.hp-=player.damage*2.1;e.hit=.2;const dx=e.x-player.x,dy=e.y-player.y,l=Math.hypot(dx,dy)||1;e.x+=dx/l*34;e.y+=dy/l*34;if(e.hp<=0)killEnemy(e)}}enemies=enemies.filter(e=>e.hp>0);updateHud()}
-function dash(){if(state!=='playing'||player.dashCd>0)return;let dx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),dy=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(dx,dy);if(l<.1){dx=player.dx||1;dy=player.dy||0;l=Math.hypot(dx,dy)||1}player.dx=dx/l;player.dy=dy/l;player.dashTime=.18;player.dashCd=2.4;player.invuln=.35;burst(player.x,player.y,'#c4e99a',7)}
+function dash(){if(state!=='playing'||player.dashCd>0)return;let dx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),dy=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(dx,dy);if(l<.1){dx=player.dx||1;dy=player.dy||0;l=Math.hypot(dx,dy)||1}player.dx=dx/l;player.dy=dy/l;player.dashTime=.18;player.dashCd=player.dashCooldown||2.4;player.invuln=player.dashInvuln||.35;burst(player.x,player.y,'#c4e99a',7)}
 function killEnemy(e){if(e.dead)return;e.dead=true;kills++;orbs.push({x:e.x,y:e.y,r:5,value:e.brute?15:9});burst(e.x,e.y,e.brute?'#e4a76c':'#a8ce72',12);updateHud()}
 function update(dt){elapsed+=dt;worldTime+=dt;player.specialCd=Math.max(0,player.specialCd-dt);player.dashCd=Math.max(0,player.dashCd-dt);player.invuln=Math.max(0,player.invuln-dt);player.dashTime=Math.max(0,player.dashTime-dt);
 let mx=joy.x+(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),my=joy.y+(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0),l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}DinoCombat.update(player,enemies,dt,burst,killEnemy);if(Math.hypot(mx,my)>.1){player.dx=mx;player.dy=my}
