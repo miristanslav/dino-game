@@ -52,7 +52,10 @@
       const arm=mesh(sphere,skin,body,.43,.67,side*.25,.12,.23,.11);arm.rotation.z=-.35;
     }
     const healthGroup=new THREE.Group();root.add(healthGroup);
-    return {root,body,legs,healthGroup,kind,isPlayer};
+    const healthBack=mesh(new THREE.BoxGeometry(.8,.075,.04),materials.playerDark,healthGroup,0,1.95,0);
+    const healthFill=mesh(new THREE.BoxGeometry(1,.055,.05),materials.health,healthGroup,0,1.96,.03);
+    healthGroup.visible=false;
+    return {root,body,legs,healthGroup,healthFill,kind,isPlayer};
   }
   function addFern(x,z,s=1){
     const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);g.scale.setScalar(s);
@@ -119,7 +122,10 @@
     const px=p.x||0,pz=p.y||0,unit=.035;
     camera.position.set(0,18.5,16.5);camera.lookAt(0,0,0);
     ground.position.set(-((px*unit)%8),0,-((pz*unit)%8));
-    for(const d of decorMeshes){d.group.position.set((d.x-(px*unit)) ,0,(d.z-(pz*unit)));}
+    for(const d of decorMeshes){
+      const wrap=(v,span)=>((v+span/2)%span+span)%span-span/2;
+      d.group.position.set(wrap(d.x-px*unit,44),0,wrap(d.z-pz*unit,44));
+    }
     // Re-center a persistent jungle set around the moving player; avoid creating objects per frame.
     const playerActor=actor('player','player',true);
     playerActor.root.position.set(0,0,0);
@@ -130,15 +136,15 @@
     const active=new Set(['player']);
     for(let i=0;i<(data.enemies||[]).length;i++){
       const e=data.enemies[i],id='enemy'+i;active.add(id);
-      const a=actor(id,e.behavior,e.brute);
+      const a=actor(id,e.brute?'brute':e.behavior,false);
       a.root.visible=true;a.root.position.set((e.x-px)*unit,0,(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(-dy||0,-dx||1);
       a.body.position.y=e.hit>0?.05:Math.sin(data.time*5+i)*.012;
       a.legs.forEach((leg,j)=>{leg.rotation.z=Math.sin(data.time*7+i+j*Math.PI)*.16;});
       if(e.hostile||e.alerted||e.hit>0){
-        a.healthGroup.clear();
-        const bg=mesh(new THREE.BoxGeometry(.8,.075,.04),materials.playerDark,a.healthGroup,0,1.95,0);
-        mesh(new THREE.BoxGeometry(.8*Math.max(0,e.hp/e.maxHp),.055,.05),materials.health,a.healthGroup,-.4+.4*Math.max(0,e.hp/e.maxHp),1.96,.03);
+        const ratio=Math.max(0,Math.min(1,e.hp/e.maxHp));
+        a.healthFill.scale.x=ratio;
+        a.healthFill.position.x=-.4+.4*ratio;
         a.healthGroup.visible=true;
       }else a.healthGroup.visible=false;
     }
