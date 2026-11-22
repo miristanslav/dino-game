@@ -147,7 +147,7 @@
     playerActor.tailPivot.rotation.y=Math.sin(data.time*4.2)*.13;
     const active=new Set(['player']);
     for(let i=0;i<(data.enemies||[]).length;i++){
-      const e=data.enemies[i],id='enemy'+i;active.add(id);
+      const e=data.enemies[i],id='enemy'+(e.id??i);active.add(id);
       const a=actor(id,e.brute?'brute':e.behavior,false);
       a.root.visible=true;a.root.position.set((e.x-px)*unit,0,(e.y-pz)*unit);
       const dx=px-e.x,dy=pz-e.y;a.root.rotation.y=-Math.atan2(dy,dx);
@@ -165,7 +165,7 @@
         a.healthGroup.visible=true;
       }else a.healthGroup.visible=false;
     }
-    for(const [id,a] of actors){if(id!=='player'&&!active.has(id)){scene.remove(a.root);actors.delete(id);}}
+    for(const [id,a] of actors){if(id.startsWith('enemy')&&!active.has(id)){scene.remove(a.root);actors.delete(id);}}
     for(let i=0;i<(data.orbs||[]).length;i++){
       const o=data.orbs[i],id='orb'+i;active.add(id);let orb=actors.get(id);
       if(!orb){const group=new THREE.Group();mesh(new THREE.IcosahedronGeometry(.16,1),materials.xp,group);scene.add(group);orb={root:group};actors.set(id,orb);}
