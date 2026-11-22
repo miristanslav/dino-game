@@ -3,15 +3,16 @@
 (() => {
   'use strict';
   const sourceCanvas = document.getElementById('gameCanvas');
-  if (!sourceCanvas || !window.THREE) return;
+  if (!sourceCanvas) return;
   const THREE = window.THREE;
+  if (!THREE) { window.Dino3D={ready:false,error:new Error('Библиотека Three.js не загрузилась'),render(){},resize(){}}; return; }
   const canvas = document.createElement('canvas');
   canvas.id = 'game3dCanvas';
   canvas.setAttribute('aria-hidden', 'true');
   sourceCanvas.parentNode.insertBefore(canvas, sourceCanvas.nextSibling);
 
   let renderer, scene, camera, ground, worldRoot, decorMeshes=[], actors=new Map();
-  let width=innerWidth,height=innerHeight,ready=false;
+  let width=innerWidth,height=innerHeight,ready=false,initError=null;
   const MAP_HALF=420, MAP_LIMIT=11400, WORLD_UNIT=.035;
   const clock=new THREE.Clock();
   const mat=(color,roughness=.92)=>new THREE.MeshStandardMaterial({color,roughness,flatShading:true});
@@ -177,7 +178,11 @@
     for(let i=0;i<95;i++){
       const h=hash2(i,991),x=-MAP_HALF+((h%100000)/100000)*(MAP_HALF*2),z=-MAP_HALF+(((h>>>8)%100000)/100000)*(MAP_HALF*2);
       if(Math.abs(z-riverCenter(x))<18)continue;
-      const sc=.8+((h>>>18)%1000)/1000*2.1;rockDummy.position.set(x,terrainHeight(x,z)+sc*.28,z);rockDummy.scal    const ridgeBatch=new THREE.InstancedMesh(rockGeo,rockMat,180),ridgeDummy=new THREE.Object3D();
+      const sc=.8+((h>>>18)%1000)/1000*2.1;rockDummy.position.set(x,terrainHeight(x,z)+sc*.28,z);rockDummy.scale.set(sc,sc*.62,sc*.85);rockDummy.rotation.set(.1,(h%628)/100,.12);rockDummy.updateMatrix();rockBatch.setMatrixAt(rockCount++,rockDummy.matrix);
+    }
+    rockBatch.count=rockCount;rockBatch.instanceMatrix.needsUpdate=true;worldRoot.add(rockBatch);
+    // A broken natural ridge marks the edge of the explorable valley.
+    const ridgeBatch=new THREE.InstancedMesh(rockGeo,rockMat,180),ridgeDummy=new THREE.Object3D();
     for(let i=0;i<180;i++){
       const a=i/180*Math.PI*2,x=Math.cos(a)*(MAP_HALF-9),z=Math.sin(a)*(MAP_HALF-9),sc=3.5+(hash2(i,414)%1000)/1000*5;
       ridgeDummy.position.set(x,terrainHeight(x,z)+sc*.32,z);ridgeDummy.scale.set(sc,sc*1.1,sc*1.25);ridgeDummy.rotation.set(0,a,0);ridgeDummy.updateMatrix();ridgeBatch.setMatrixAt(i,ridgeDummy.matrix);
@@ -206,7 +211,7 @@
       makeRiver();
       makeForest();
       ready=true;sourceCanvas.style.visibility='hidden';resize();
-    }catch(err){console.warn('3D renderer unavailable; keeping 2D fallback.',err);canvas.remove();}
+    }catch(err){initError=err;console.error('Dino Game 3D initialization failed:',err);canvas.style.display='none';}
   }
   function resize(){
     width=innerWidth;height=innerHeight;
@@ -267,6 +272,6 @@
     renderer.render(scene,camera);
   }
   window.addEventListener('resize',resize);
-  window.Dino3D={render,resize,get ready(){return ready;}};
+  window.Dino3D={render,resize,get ready(){return ready;},get error(){return initError;}};
   if(window.THREE) init();
 })();
