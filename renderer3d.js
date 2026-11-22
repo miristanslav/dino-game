@@ -5,7 +5,75 @@
   const sourceCanvas = document.getElementById('gameCanvas');
   if (!sourceCanvas) return;
   const THREE = window.THREE;
-  if (!THREE) { window.Dino3D={ready:false,error:new Error('Библиотека Three.js не загрузилась'),render(){},resize(){}}; return; }
+
+  // Lightweight 2D safety renderer keeps play available when WebGL is unavailable.
+  let fallbackCtx=null, fallbackMode=false, fallbackWidth=innerWidth, fallbackHeight=innerHeight, fallbackDpr=1;
+  function fallbackResize(){
+    fallbackWidth=Math.max(1,innerWidth);fallbackHeight=Math.max(1,innerHeight);
+    fallbackDpr=Math.min(1.5,window.devicePixelRatio||1);
+    sourceCanvas.width=Math.round(fallbackWidth*fallbackDpr);
+    sourceCanvas.height=Math.round(fallbackHeight*fallbackDpr);
+    sourceCanvas.style.visibility='visible';
+    if(fallbackCtx)fallbackCtx.setTransform(fallbackDpr,0,0,fallbackDpr,0,0);
+  }
+  function activateFallback(error){
+    try{
+      fallbackCtx=sourceCanvas.getContext('2d');
+      if(!fallbackCtx)return false;
+      fallbackMode=true;fallbackResize();
+      console.warn('Dino Game: using 2D compatibility renderer',error||'Three.js unavailable');
+      return true;
+    }catch(fallbackError){console.error('Dino Game fallback renderer failed:',fallbackError);return false;}
+  }
+  function fallbackDino(ctx,x,y,color,angle,scale,isPlayer,hp,maxHp){
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle||0);ctx.scale(scale,scale);
+    ctx.fillStyle='rgba(0,0,0,.24)';ctx.beginPath();ctx.ellipse(0,8,19,10,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(-2,0,19,11,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-15,-2);ctx.lineTo(-31,-8);ctx.lineTo(-24,5);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.ellipse(12,-7,9,7,-.25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#f4edcf';ctx.beginPath();ctx.arc(16,-9,2.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#182018';ctx.beginPath();ctx.arc(16.8,-9,1,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(20,30,18,.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-5,7);ctx.lineTo(-7,14);ctx.moveTo(8,7);ctx.lineTo(10,14);ctx.stroke();
+    if(!isPlayer&&hp!==undefined){
+      ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(-15,-23,30,4);
+      ctx.fillStyle='#e46d59';ctx.fillRect(-15,-23,30*Math.max(0,Math.min(1,hp/Math.max(1,maxHp||hp))),4);
+    }
+    ctx.restore();
+  }
+  function fallbackRender(data){
+    if(!fallbackCtx)return;
+    const ctx=fallbackCtx,w=fallbackWidth,h=fallbackHeight,p=data.player||{x:0,y:0,dx:1,dy:0};
+    ctx.clearRect(0,0,w,h);ctx.fillStyle='#263f2c';ctx.fillRect(0,0,w,h);
+    const unit=Math.min(w/520,h/760)*.82,cx=w/2,cy=h*.52;
+    ctx.fillStyle='rgba(116,151,82,.13)';
+    for(let gx=0;gx<Math.ceil(w/54)+1;gx++)for(let gy=0;gy<Math.ceil(h/54)+1;gy++){
+      const ox=((gx*54-(p.x*.22)%54)+w)%w,oy=((gy*54-(p.y*.22)%54)+h)%h;
+      ctx.beginPath();ctx.arc(ox,oy,2,0,Math.PI*2);ctx.fill();
+    }
+    for(const e of (data.enemies||[])){
+      const dx=(e.x-p.x)*unit*.78,dy=(e.y-p.y)*unit*.78;
+      if(Math.abs(dx)>w*.65||Math.abs(dy)>h*.65)continue;
+      const color=e.behavior==='grazer'?'#9bbd72':e.behavior==='territorial'?'#c0a06a':e.brute?'#944f40':'#bb7654';
+      const angle=Math.atan2(p.y-e.y,p.x-e.x);
+      fallbackDino(ctx,cx+dx,cy+dy,color,angle,Math.max(.72,Math.min(1.2,unit*1.4)),false,e.hp,e.maxHp);
+      if(e.attackWindup>0){
+        ctx.strokeStyle='#e66d58';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx+dx,cy+dy,25+Math.sin((data.time||0)*22)*3,0,Math.PI*2);ctx.stroke();
+      }
+    }
+    for(const o of (data.orbs||[])){
+      const x=cx+(o.x-p.x)*unit*.78,y=cy+(o.y-p.y)*unit*.78;
+      ctx.fillStyle='#f5d77c';ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
+    }
+    fallbackDino(ctx,cx,cy,'#83bd57',Math.atan2(p.dy||0,p.dx||1),Math.max(.9,Math.min(1.45,unit*1.65)),true);
+    ctx.fillStyle='rgba(235,242,220,.8)';ctx.font='12px system-ui';ctx.textAlign='center';
+    ctx.fillText('РЕЖИМ СОВМЕСТИМОСТИ · 2D',cx,h-22);
+  }
+  if(!THREE){
+    const fallbackReady=activateFallback(new Error('Библиотека Three.js не загрузилась'));
+    window.Dino3D={ready:fallbackReady,error:fallbackReady?null:new Error('Не удалось создать 2D-режим'),mode:'2d-fallback',render:fallbackRender,resize:fallbackResize};
+    return;
+  }
   const canvas = document.createElement('canvas');
   canvas.id = 'game3dCanvas';
   canvas.setAttribute('aria-hidden', 'true');
@@ -244,9 +312,10 @@
       makeRiver();
       makeForest();
       ready=true;sourceCanvas.style.visibility='hidden';resize();
-    }catch(err){initError=err;console.error('Dino Game 3D initialization failed:',err);canvas.style.display='none';}
+    }catch(err){initError=err;console.error('Dino Game 3D initialization failed:',err);canvas.style.display='none';ready=activateFallback(err);}
   }
   function resize(){
+    if(fallbackMode){fallbackResize();return;}
     width=innerWidth;height=innerHeight;
     if(!ready||!renderer)return;
     renderer.setPixelRatio(Math.min(isMobile()?1.25:1.5,window.devicePixelRatio||1));renderer.setSize(width,height,false);
@@ -257,6 +326,7 @@
     a=makeDino(kind,isPlayer);scene.add(a.root);actors.set(id,a);return a;
   }
   function render(data){
+    if(fallbackMode){fallbackRender(data);return;}
     if(!ready)return;
     const p=data.player||{x:0,y:0,dx:1,dy:0};
     const px=p.x||0,pz=p.y||0,unit=WORLD_UNIT;
@@ -331,6 +401,6 @@
     renderer.render(scene,camera);
   }
   window.addEventListener('resize',resize);
-  window.Dino3D={render,resize,get ready(){return ready;},get error(){return initError;}};
+  window.Dino3D={render,resize,get ready(){return ready||fallbackMode;},get error(){return fallbackMode?null:initError;},get mode(){return fallbackMode?'2d-fallback':'3d'} };
   if(window.THREE) init();
 })();
