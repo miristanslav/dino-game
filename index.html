@@ -24,8 +24,8 @@
       <div class="menu-feature"><b>03</b><span>Развивай своего динозавра</span></div>
     </div>
     <button id="startBtn" class="primary-btn">НАЧАТЬ ИГРУ <span>→</span></button>
-    <button id="continueBtn" class="text-btn hidden">ПРОДОЛЖИТЬ РАЗВИТИЕ</button>
-    <button id="versionBtn" class="version">Версия <b>0.1.26</b> · История обновлений</button>
+    <button id="continueBtn" class="text-btn hidden">МОЙ ДИНОЗАВР · РАЗВИТИЕ</button>
+    <button id="versionBtn" class="version">Версия <b>0.1.27</b> · История обновлений</button>
   </section>
   <header id="hud" class="hidden">
     <div class="hud-left">
@@ -44,6 +44,17 @@
       <button id="dashBtn" class="action dash"><strong>➤</strong><small>РЫВОК</small></button>
     </div>
   </div>
+  <div id="profileScreen" class="screen overlay hidden">
+    <div class="dialog profile-dialog">
+      <button id="closeProfile" class="close-btn" type="button">×</button>
+      <p class="eyebrow">ПОСТОЯННОЕ РАЗВИТИЕ</p><h2>МОЙ ДИНОЗАВР</h2>
+      <div class="dna-wallet"><span>НАКОПЛЕННАЯ ДНК</span><b id="dnaCount">0</b></div>
+      <p id="profileMeta" class="profile-meta">Забегов: 0 · Побед: 0</p>
+      <p class="profile-note">ДНК начисляется после завершения забега. Каждое улучшение стоит 1 ДНК и сохраняется на этом устройстве.</p>
+      <div id="permanentStats" class="permanent-stats"></div>
+      <button id="profileStartBtn" class="primary-btn" type="button">В БОЙ</button>
+    </div>
+  </div>
   <div id="pauseScreen" class="screen overlay hidden">
     <div class="dialog"><p class="eyebrow">DINO GAME</p><h2>ПАУЗА</h2><p>Мир подождёт. Твоя эволюция продолжается.</p><button id="resumeBtn" class="primary-btn">ПРОДОЛЖИТЬ</button><button id="menuBtn" class="secondary-btn">В ГЛАВНОЕ МЕНЮ</button></div>
   </div>
@@ -58,9 +69,9 @@
   </div>
   <div class="build-mark">DINO GAME <span>·</span> ACTION RPG</div>
 </main>
-<script src="combat.js?v=142"></script>
-<script src="renderer3d.js?v=142"></script>
-<script src="game.js?v=142"></script>
+<script src="combat.js?v=143"></script>
+<script src="renderer3d.js?v=143"></script>
+<script src="game.js?v=143"></script>
 <script src="fullscreen.js?v=140"></script>
 </body>
 </html>
